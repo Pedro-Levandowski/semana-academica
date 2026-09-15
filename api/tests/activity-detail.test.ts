@@ -94,6 +94,7 @@ describe('GET /atividades/:id — Consultas e Detalhes (Fatia 3)', () => {
         ]
       });
 
+    expect(postRes.status).toBe(201);
     const activityId = postRes.body.id;
 
     const getRes = await request(app)

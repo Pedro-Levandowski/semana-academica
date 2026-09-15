@@ -12,6 +12,7 @@ import { RoomRepository } from './repositories/room-repository.js';
 import { ActivityRepository } from './repositories/activity-repository.js';
 import { CreateActivityUseCase } from './application/create-activity.js';
 import { GetActivityUseCase } from './application/get-activity.js';
+import { ListActivitiesUseCase } from './application/list-activities.js';
 import { NotFoundError } from './application/errors.js';
 import { DomainError, ConflictError } from './domain/activity.js';
 import { mapActivityResponse } from './http/activity-response.js';
@@ -52,6 +53,7 @@ export function createApp(options?: AppOptions | string) {
   const activityRepository = new ActivityRepository(db);
   const createActivityUseCase = new CreateActivityUseCase(activityRepository, roomRepository);
   const getActivityUseCase = new GetActivityUseCase(activityRepository);
+  const listActivitiesUseCase = new ListActivitiesUseCase(activityRepository);
 
   // Modo de teste routes (when MODO_TESTE=1)
   if (modoTeste) {
@@ -117,7 +119,7 @@ export function createApp(options?: AppOptions | string) {
 
   app.get('/atividades', requireUser, (_req: Request, res: Response) => {
     const agora = clock.now();
-    const atividades = activityRepository.findAll();
+    const atividades = listActivitiesUseCase.execute();
     const result = atividades.map((atv) => mapActivityResponse(atv, m2Port, agora));
     res.json(result);
   });

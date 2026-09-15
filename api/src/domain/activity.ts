@@ -162,3 +162,29 @@ export function calculateActivityStatus(activity: ActivityData, now: DateTime): 
   }
   return 'em_andamento';
 }
+
+export function getEarliestEncontroInicio(encontros: Array<{ inicio: string }>): DateTime {
+  if (!encontros || encontros.length === 0) {
+    return DateTime.fromMillis(0);
+  }
+  let earliest = DateTime.fromISO(encontros[0].inicio, { setZone: true });
+  for (let i = 1; i < encontros.length; i++) {
+    const dt = DateTime.fromISO(encontros[i].inicio, { setZone: true });
+    if (dt < earliest) {
+      earliest = dt;
+    }
+  }
+  return earliest;
+}
+
+export function sortActivities<T extends { titulo: string; encontros: Array<{ inicio: string }> }>(activities: T[]): T[] {
+  return [...activities].sort((a, b) => {
+    const dtA = getEarliestEncontroInicio(a.encontros);
+    const dtB = getEarliestEncontroInicio(b.encontros);
+    const diff = dtA.toMillis() - dtB.toMillis();
+    if (diff !== 0) {
+      return diff;
+    }
+    return a.titulo.localeCompare(b.titulo);
+  });
+}
