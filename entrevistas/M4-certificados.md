@@ -21,3 +21,11 @@
 | P4 | Formato do código é fixo: SA26-XXXX-XXXX. Os caracteres usam o alfabeto definido para os códigos do sistema, e cada certificado tem código único. O código é criado na primeira emissão e não muda nas reemissões. | RN-407 |
 | P5 | A abreviação é regra de negócio. Na verificação pública aparece o primeiro nome completo e as iniciais dos demais nomes com ponto. Partículas de, da, do, das e dos permanecem por extenso e minúsculas. A consulta é pública, sem X-Usuario, e exibe somente nome abreviado, atividade, carga horária e data de emissão. | RN-408 e RN-409 |
 | P6 | A emissão é idempotente. Na primeira emissão o certificado é criado e retorna 201. Nas solicitações seguintes para a mesma atividade e participante, retorna 200 com o mesmo certificado e o mesmo código, sem criar nova emissão. | RN-407 |
+
+## Rodada Complementar
+
+| # | Pergunta | Resposta |
+|---|----------|----------|
+| P7 | Composição dos itens do extrato — quando o campo `codigo` do item deve vir preenchido e quando deve vir `null`? | PENDENTE |
+| P8 | Alfabeto do código do certificado — quais caracteres são permitidos nos 8 caracteres do formato `SA26-XXXX-XXXX` (ex.: `0-9A-Z` completo ou alfabeto restrito)? | PENDENTE |
+| P9 | Precedência de erros na emissão — entre `ATIVIDADE_NAO_ENCERRADA` e `PRESENCA_INSUFICIENTE`, qual aparece primeiro quando ambos se aplicam? | PENDENTE |
