@@ -42,6 +42,33 @@ describe('Activity Output and Carga Horaria & Ordenacao (Fatia 2)', () => {
     expect(atv.cargaHorariaMinutos).toBe(151);
   });
 
+  it('R9 — Carga horaria fracionada exata (60.5 minutos) sem arredondamento', async () => {
+    const res = await request(app)
+      .post('/atividades')
+      .set('X-Usuario', 'org-ana')
+      .send({
+        titulo: 'Palestra Fracionada',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 20,
+        encontros: [
+          { inicio: '2026-10-20T10:00:00-03:00', fim: '2026-10-20T11:00:30-03:00' }
+        ]
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.cargaHorariaMinutos).toBe(60.5);
+
+    const getRes = await request(app)
+      .get('/atividades')
+      .set('X-Usuario', 'p-carla');
+
+    expect(getRes.status).toBe(200);
+    const atv = getRes.body.find((a: any) => a.id === res.body.id);
+    expect(atv).toBeDefined();
+    expect(atv.cargaHorariaMinutos).toBe(60.5);
+  });
+
   it('R10 — Valor enviado pelo cliente em cargaHorariaMinutos é ignorado', async () => {
     const res = await request(app)
       .post('/atividades')

@@ -132,7 +132,7 @@ export function calculateCargaHoraria(encontros: Array<{ inicio: string; fim: st
     const duracaoMinutos = fimDt.diff(inicioDt, 'minutes').minutes;
     total += duracaoMinutos;
   }
-  return Math.round(total);
+  return total;
 }
 
 export function sortEncontros<T extends { inicio: string }>(encontros: T[]): T[] {
