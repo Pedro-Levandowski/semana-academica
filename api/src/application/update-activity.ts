@@ -24,6 +24,10 @@ export class UpdateActivityUseCase {
       throw new NotFoundError('Atividade não encontrada');
     }
 
+    if (activity.cancelada) {
+      throw new DomainError('ATIVIDADE_CANCELADA', 'Atividade está cancelada');
+    }
+
     if (input.tipo !== undefined) {
       throw new DomainError('CAMPO_NAO_EDITAVEL', 'O campo tipo não é editável');
     }

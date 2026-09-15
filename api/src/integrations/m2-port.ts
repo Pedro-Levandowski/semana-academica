@@ -2,6 +2,7 @@ export interface M2IntegrationPort {
   getOcupadas(atividadeId: string): number;
   getEmEspera(atividadeId: string): number;
   convocarEspera(atividadeId: string): void;
+  cancelarInscricoes(atividadeId: string): void;
 }
 
 export class NeutralM2Adapter implements M2IntegrationPort {
@@ -14,6 +15,10 @@ export class NeutralM2Adapter implements M2IntegrationPort {
   }
 
   convocarEspera(_atividadeId: string): void {
+    // no-op
+  }
+
+  cancelarInscricoes(_atividadeId: string): void {
     // no-op
   }
 }

@@ -119,4 +119,8 @@ export class ActivityRepository {
     params.push(id);
     this.db.prepare(`UPDATE atividades SET ${sets.join(', ')} WHERE id = ?`).run(...params);
   }
+
+  cancel(id: string): void {
+    this.db.prepare(`UPDATE atividades SET cancelada = 1 WHERE id = ?`).run(id);
+  }
 }

@@ -14,6 +14,7 @@ import { CreateActivityUseCase } from './application/create-activity.js';
 import { GetActivityUseCase } from './application/get-activity.js';
 import { ListActivitiesUseCase } from './application/list-activities.js';
 import { UpdateActivityUseCase } from './application/update-activity.js';
+import { CancelActivityUseCase } from './application/cancel-activity.js';
 import { NotFoundError } from './application/errors.js';
 import { DomainError, ConflictError } from './domain/activity.js';
 import { mapActivityResponse } from './http/activity-response.js';
@@ -56,6 +57,7 @@ export function createApp(options?: AppOptions | string) {
   const getActivityUseCase = new GetActivityUseCase(activityRepository);
   const listActivitiesUseCase = new ListActivitiesUseCase(activityRepository);
   const updateActivityUseCase = new UpdateActivityUseCase(activityRepository, roomRepository, m2Port);
+  const cancelActivityUseCase = new CancelActivityUseCase(activityRepository, m2Port, clock);
 
   // Modo de teste routes (when MODO_TESTE=1)
   if (modoTeste) {
@@ -209,6 +211,18 @@ export function createApp(options?: AppOptions | string) {
         next(e);
       }
     });
+  });
+
+  app.post('/atividades/:id/cancelamento', requireUser, requireOrg, (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const agora = clock.now();
+      const activityId = req.params.id;
+      const updated = cancelActivityUseCase.execute(activityId);
+      const result = mapActivityResponse(updated, m2Port, agora);
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
   });
 
   app.use((_req: Request, res: Response) => {
