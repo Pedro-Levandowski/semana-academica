@@ -142,3 +142,23 @@ export function sortEncontros<T extends { inicio: string }>(encontros: T[]): T[]
     return dtA.toMillis() - dtB.toMillis();
   });
 }
+
+export function calculateActivityStatus(activity: ActivityData, now: DateTime): string {
+  if (activity.cancelada) {
+    return 'cancelada';
+  }
+  if (!activity.encontros || activity.encontros.length === 0) {
+    return 'prevista';
+  }
+  const sorted = sortEncontros(activity.encontros);
+  const primeiroInicio = DateTime.fromISO(sorted[0].inicio, { setZone: true });
+  const ultimoFim = DateTime.fromISO(sorted[sorted.length - 1].fim, { setZone: true });
+
+  if (now < primeiroInicio) {
+    return 'prevista';
+  }
+  if (now >= ultimoFim) {
+    return 'encerrada';
+  }
+  return 'em_andamento';
+}

@@ -116,15 +116,17 @@ export function createApp(options?: AppOptions | string) {
   });
 
   app.get('/atividades', requireUser, (_req: Request, res: Response) => {
+    const agora = clock.now();
     const atividades = activityRepository.findAll();
-    const result = atividades.map((atv) => mapActivityResponse(atv, m2Port));
+    const result = atividades.map((atv) => mapActivityResponse(atv, m2Port, agora));
     res.json(result);
   });
 
   app.get('/atividades/:id', requireUser, (req: Request, res: Response, next: NextFunction) => {
     try {
+      const agora = clock.now();
       const activity = getActivityUseCase.execute(req.params.id);
-      const result = mapActivityResponse(activity, m2Port);
+      const result = mapActivityResponse(activity, m2Port, agora);
       res.json(result);
     } catch (err) {
       next(err);
@@ -152,8 +154,9 @@ export function createApp(options?: AppOptions | string) {
     }
 
     try {
+      const agora = clock.now();
       const created = createActivityUseCase.execute(parseResult.data);
-      const result = mapActivityResponse(created, m2Port);
+      const result = mapActivityResponse(created, m2Port, agora);
       res.status(201).json(result);
     } catch (err) {
       next(err);

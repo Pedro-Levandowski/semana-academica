@@ -75,7 +75,7 @@ describe('GET /atividades/:id — Consultas e Detalhes (Fatia 3)', () => {
       vagasRestantes: 30,
       emEspera: 0
     });
-    expect(Array.isArray(getRes.body.encontros)).toBe(0 === 0);
+    expect(Array.isArray(getRes.body.encontros)).toBe(true);
     expect(getRes.body.encontros.length).toBe(1);
   });
 
@@ -105,15 +105,6 @@ describe('GET /atividades/:id — Consultas e Detalhes (Fatia 3)', () => {
   });
 
   it('6. Prova definitiva de R21: ordenação cronológica de encontros com offsets diferentes', async () => {
-    // Primeiro enviado: 10:00-03:00 até 11:00-03:00 (que é 13:00Z - 14:00Z)
-    // Segundo enviado (mas cronologicamente anterior): 12:00Z até 13:00Z (que é 09:00-03:00 - 10:00-03:00)
-    const encontroTardio = { inicio: '2026-10-20T10:00:00-03:00', fim: '2026-10-20T11:00:00-03:00' };
-    const encontroCedoZ = { inicio: '2026-10-20T09:00:00Z', fim: '2026-10-20T10:00:00Z' }; // 09:00Z = 06:00-03:00, wait, let's use 12:00Z = 09:00-03:00.
-    // Prompt says:
-    // - enviado primeiro: 2026-10-20T10:00:00-03:00 até 2026-10-20T11:00:00-03:00;
-    // - enviado depois: 2026-10-20T12:00:00Z até 2026-10-20T13:00:00Z.
-    // 12:00Z = 09:00-03:00, which is before 10:00-03:00.
-
     const postRes = await request(app)
       .post('/atividades')
       .set('X-Usuario', 'org-ana')
