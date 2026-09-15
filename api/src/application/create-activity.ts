@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import { RoomRepository } from '../repositories/room-repository.js';
 import { ActivityRepository } from '../repositories/activity-repository.js';
-import { validateActivityEncounterCount, calculateCargaHoraria, ActivityData } from '../domain/activity.js';
+import { validateActivityEncounterCount, validateEncounterRules, calculateCargaHoraria, ActivityData } from '../domain/activity.js';
 
 export class NotFoundError extends Error {
   constructor(message: string) {
@@ -29,6 +29,7 @@ export class CreateActivityUseCase {
     }
 
     validateActivityEncounterCount(input.tipo, input.encontros.length);
+    validateEncounterRules(input.encontros);
 
     const atvId = 'atv_' + crypto.randomBytes(4).toString('hex');
     const encontrosWithIds = input.encontros.map(enc => ({
