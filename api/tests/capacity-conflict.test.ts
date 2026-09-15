@@ -127,7 +127,7 @@ describe('Capacity (R7) and Room Conflict (R8)', () => {
 
     it('permite encontro com intervalo exato de 15 minutos após o término da anterior na mesma sala com 201', async () => {
       // Primeira atividade: 09:00 às 10:00
-      await request(app)
+      const first = await request(app)
         .post('/atividades')
         .set('X-Usuario', 'org-ana')
         .send({
@@ -137,6 +137,8 @@ describe('Capacity (R7) and Room Conflict (R8)', () => {
           vagas: 20,
           encontros: [{ inicio: '2026-10-19T09:00:00-03:00', fim: '2026-10-19T10:00:00-03:00' }]
         });
+      expect(first.status).toBe(201);
+      const firstId = first.body.id;
 
       // Segunda atividade: 10:15 às 11:15 (intervalo exato de 15 min)
       const second = await request(app)
@@ -151,10 +153,18 @@ describe('Capacity (R7) and Room Conflict (R8)', () => {
         });
 
       expect(second.status).toBe(201);
+      const secondId = second.body.id;
+
+      const listRes = await request(app).get('/atividades').set('X-Usuario', 'p-carla');
+      expect(listRes.status).toBe(200);
+      expect(listRes.body.length).toBe(2);
+      const ids = listRes.body.map((a: any) => a.id);
+      expect(ids).toContain(firstId);
+      expect(ids).toContain(secondId);
     });
 
     it('permite mesmo horário em salas diferentes com 201', async () => {
-      await request(app)
+      const first = await request(app)
         .post('/atividades')
         .set('X-Usuario', 'org-ana')
         .send({
@@ -164,6 +174,8 @@ describe('Capacity (R7) and Room Conflict (R8)', () => {
           vagas: 20,
           encontros: [{ inicio: '2026-10-19T09:00:00-03:00', fim: '2026-10-19T10:00:00-03:00' }]
         });
+      expect(first.status).toBe(201);
+      const firstId = first.body.id;
 
       const otherRoom = await request(app)
         .post('/atividades')
@@ -177,6 +189,14 @@ describe('Capacity (R7) and Room Conflict (R8)', () => {
         });
 
       expect(otherRoom.status).toBe(201);
+      const secondId = otherRoom.body.id;
+
+      const listRes = await request(app).get('/atividades').set('X-Usuario', 'p-carla');
+      expect(listRes.status).toBe(200);
+      expect(listRes.body.length).toBe(2);
+      const ids = listRes.body.map((a: any) => a.id);
+      expect(ids).toContain(firstId);
+      expect(ids).toContain(secondId);
     });
 
     it('recusa nova atividade posicionada antes com intervalo inferior a 15 minutos com 409 CONFLITO_DE_SALA', async () => {
