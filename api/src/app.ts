@@ -13,6 +13,7 @@ import { ActivityRepository } from './repositories/activity-repository.js';
 import { CreateActivityUseCase } from './application/create-activity.js';
 import { GetActivityUseCase } from './application/get-activity.js';
 import { ListActivitiesUseCase } from './application/list-activities.js';
+import { UpdateActivityUseCase } from './application/update-activity.js';
 import { NotFoundError } from './application/errors.js';
 import { DomainError, ConflictError } from './domain/activity.js';
 import { mapActivityResponse } from './http/activity-response.js';
@@ -54,6 +55,7 @@ export function createApp(options?: AppOptions | string) {
   const createActivityUseCase = new CreateActivityUseCase(activityRepository, roomRepository);
   const getActivityUseCase = new GetActivityUseCase(activityRepository);
   const listActivitiesUseCase = new ListActivitiesUseCase(activityRepository);
+  const updateActivityUseCase = new UpdateActivityUseCase(activityRepository, roomRepository, m2Port);
 
   // Modo de teste routes (when MODO_TESTE=1)
   if (modoTeste) {
@@ -165,6 +167,48 @@ export function createApp(options?: AppOptions | string) {
     } catch (err) {
       next(err);
     }
+  });
+
+  const updateActivitySchema = z.object({
+    titulo: z.string().optional(),
+    vagas: z.number().int().optional(),
+    tipo: z.any().optional(),
+    salaId: z.any().optional(),
+    encontros: z.any().optional(),
+    cargaHorariaMinutos: z.any().optional()
+  });
+
+  const jsonParser = express.json();
+
+  app.patch('/atividades/:id', requireUser, requireOrg, (req: Request, res: Response, next: NextFunction) => {
+    const activityId = req.params.id;
+    const existing = activityRepository.findById(activityId);
+    if (!existing) {
+      res.status(404).json({ erro: 'NAO_ENCONTRADO', mensagem: 'Atividade não encontrada' });
+      return;
+    }
+
+    jsonParser(req, res, (err?: any) => {
+      if (err) {
+        res.status(422).json({ erro: 'DADOS_INVALIDOS', mensagem: 'JSON malformado' });
+        return;
+      }
+
+      const parseResult = updateActivitySchema.safeParse(req.body);
+      if (!parseResult.success) {
+        res.status(422).json({ erro: 'DADOS_INVALIDOS', mensagem: 'Dados inválidos' });
+        return;
+      }
+
+      try {
+        const agora = clock.now();
+        const updated = updateActivityUseCase.execute(activityId, parseResult.data);
+        const result = mapActivityResponse(updated, m2Port, agora);
+        res.json(result);
+      } catch (e) {
+        next(e);
+      }
+    });
   });
 
   app.use((_req: Request, res: Response) => {
