@@ -142,3 +142,75 @@ export function sortEncontros<T extends { inicio: string }>(encontros: T[]): T[]
     return dtA.toMillis() - dtB.toMillis();
   });
 }
+
+export function calculateActivityStatus(activity: ActivityData, now: DateTime): string {
+  if (activity.cancelada) {
+    return 'cancelada';
+  }
+  if (!activity.encontros || activity.encontros.length === 0) {
+    return 'prevista';
+  }
+  const sorted = sortEncontros(activity.encontros);
+  const primeiroInicio = DateTime.fromISO(sorted[0].inicio, { setZone: true });
+  const ultimoFim = DateTime.fromISO(sorted[sorted.length - 1].fim, { setZone: true });
+
+  if (now < primeiroInicio) {
+    return 'prevista';
+  }
+  if (now >= ultimoFim) {
+    return 'encerrada';
+  }
+  return 'em_andamento';
+}
+
+export function getEarliestEncontroInicio(encontros: Array<{ inicio: string }>): DateTime {
+  if (!encontros || encontros.length === 0) {
+    return DateTime.fromMillis(0);
+  }
+  let earliest = DateTime.fromISO(encontros[0].inicio, { setZone: true });
+  for (let i = 1; i < encontros.length; i++) {
+    const dt = DateTime.fromISO(encontros[i].inicio, { setZone: true });
+    if (dt < earliest) {
+      earliest = dt;
+    }
+  }
+  return earliest;
+}
+
+export function sortActivities<T extends { titulo: string; encontros: Array<{ inicio: string }> }>(activities: T[]): T[] {
+  return [...activities].sort((a, b) => {
+    const dtA = getEarliestEncontroInicio(a.encontros);
+    const dtB = getEarliestEncontroInicio(b.encontros);
+    const diff = dtA.toMillis() - dtB.toMillis();
+    if (diff !== 0) {
+      return diff;
+    }
+    return a.titulo.localeCompare(b.titulo);
+  });
+}
+
+export function encounterBelongsToDay(encounter: { inicio: string }, targetDateIso: string): boolean {
+  const dt = DateTime.fromISO(encounter.inicio, { setZone: true });
+  if (!dt.isValid) return false;
+  const saoPauloDt = dt.setZone('America/Sao_Paulo');
+  return saoPauloDt.toISODate() === targetDateIso;
+}
+
+export function activityBelongsToDay(activity: { encontros: Array<{ inicio: string }> }, targetDateIso: string): boolean {
+  return activity.encontros.some(enc => encounterBelongsToDay(enc, targetDateIso));
+}
+
+export function filterActivities<T extends { tipo: string; encontros: Array<{ inicio: string }> }>(
+  activities: T[],
+  filters: { dia?: string; tipo?: string }
+): T[] {
+  return activities.filter(activity => {
+    if (filters.tipo && activity.tipo !== filters.tipo) {
+      return false;
+    }
+    if (filters.dia && !activityBelongsToDay(activity, filters.dia)) {
+      return false;
+    }
+    return true;
+  });
+}

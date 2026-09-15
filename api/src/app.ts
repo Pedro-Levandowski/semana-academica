@@ -10,7 +10,10 @@ import { NeutralM2Adapter, M2IntegrationPort } from './integrations/m2-port.js';
 import { UserRepository } from './repositories/user-repository.js';
 import { RoomRepository } from './repositories/room-repository.js';
 import { ActivityRepository } from './repositories/activity-repository.js';
-import { CreateActivityUseCase, NotFoundError } from './application/create-activity.js';
+import { CreateActivityUseCase } from './application/create-activity.js';
+import { GetActivityUseCase } from './application/get-activity.js';
+import { ListActivitiesUseCase } from './application/list-activities.js';
+import { NotFoundError } from './application/errors.js';
 import { DomainError, ConflictError } from './domain/activity.js';
 import { mapActivityResponse } from './http/activity-response.js';
 
@@ -49,6 +52,8 @@ export function createApp(options?: AppOptions | string) {
   const roomRepository = new RoomRepository(db);
   const activityRepository = new ActivityRepository(db);
   const createActivityUseCase = new CreateActivityUseCase(activityRepository, roomRepository);
+  const getActivityUseCase = new GetActivityUseCase(activityRepository);
+  const listActivitiesUseCase = new ListActivitiesUseCase(activityRepository);
 
   // Modo de teste routes (when MODO_TESTE=1)
   if (modoTeste) {
@@ -112,10 +117,24 @@ export function createApp(options?: AppOptions | string) {
     res.json(salas);
   });
 
-  app.get('/atividades', requireUser, (_req: Request, res: Response) => {
-    const atividades = activityRepository.findAll();
-    const result = atividades.map((atv) => mapActivityResponse(atv, m2Port));
+  app.get('/atividades', requireUser, (req: Request, res: Response) => {
+    const agora = clock.now();
+    const dia = typeof req.query.dia === 'string' ? req.query.dia : undefined;
+    const tipo = typeof req.query.tipo === 'string' ? req.query.tipo : undefined;
+    const atividades = listActivitiesUseCase.execute({ dia, tipo });
+    const result = atividades.map((atv) => mapActivityResponse(atv, m2Port, agora));
     res.json(result);
+  });
+
+  app.get('/atividades/:id', requireUser, (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const agora = clock.now();
+      const activity = getActivityUseCase.execute(req.params.id);
+      const result = mapActivityResponse(activity, m2Port, agora);
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
   });
 
   const createActivitySchema = z.object({
@@ -139,8 +158,9 @@ export function createApp(options?: AppOptions | string) {
     }
 
     try {
+      const agora = clock.now();
       const created = createActivityUseCase.execute(parseResult.data);
-      const result = mapActivityResponse(created, m2Port);
+      const result = mapActivityResponse(created, m2Port, agora);
       res.status(201).json(result);
     } catch (err) {
       next(err);

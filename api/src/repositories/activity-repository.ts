@@ -21,7 +21,7 @@ export class ActivityRepository {
 
   findAll(): Array<ActivityRow & { encontros: EncounterRow[] }> {
     const atividades = this.db.prepare(`
-      SELECT id, titulo, tipo, sala_id as salaId, vagas, carga_horaria_minutos as cargaHorariaMinutos, cancelada 
+      SELECT id, titulo, tipo, sala_id as salaId, vagas, carga_horaria_minutos as cargaHorariaMinutos, cancelada
       FROM atividades
     `).all() as ActivityRow[];
 
@@ -33,6 +33,29 @@ export class ActivityRepository {
         WHERE atividade_id = ?
       `).all(atv.id) as EncounterRow[]
     }));
+  }
+
+  findById(id: string): (ActivityRow & { encontros: EncounterRow[] }) | null {
+    const atv = this.db.prepare(`
+      SELECT id, titulo, tipo, sala_id as salaId, vagas, carga_horaria_minutos as cargaHorariaMinutos, cancelada
+      FROM atividades
+      WHERE id = ?
+    `).get(id) as ActivityRow | undefined;
+
+    if (!atv) {
+      return null;
+    }
+
+    const encontros = this.db.prepare(`
+      SELECT id, inicio, fim
+      FROM encontros
+      WHERE atividade_id = ?
+    `).all(atv.id) as EncounterRow[];
+
+    return {
+      ...atv,
+      encontros
+    };
   }
 
   create(activity: {

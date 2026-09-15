@@ -9,13 +9,7 @@ import {
   calculateCargaHoraria,
   ActivityData
 } from '../domain/activity.js';
-
-export class NotFoundError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'NotFoundError';
-  }
-}
+import { NotFoundError } from './errors.js';
 
 export class CreateActivityUseCase {
   constructor(
