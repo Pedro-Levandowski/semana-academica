@@ -130,7 +130,15 @@ export function calculateCargaHoraria(encontros: Array<{ inicio: string; fim: st
     const inicioDt = DateTime.fromISO(enc.inicio, { setZone: true });
     const fimDt = DateTime.fromISO(enc.fim, { setZone: true });
     const duracaoMinutos = fimDt.diff(inicioDt, 'minutes').minutes;
-    total += Math.round(duracaoMinutos);
+    total += duracaoMinutos;
   }
-  return total;
+  return Math.round(total);
+}
+
+export function sortEncontros<T extends { inicio: string }>(encontros: T[]): T[] {
+  return [...encontros].sort((a, b) => {
+    const dtA = DateTime.fromISO(a.inicio, { setZone: true });
+    const dtB = DateTime.fromISO(b.inicio, { setZone: true });
+    return dtA.toMillis() - dtB.toMillis();
+  });
 }

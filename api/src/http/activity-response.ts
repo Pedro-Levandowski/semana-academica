@@ -1,5 +1,5 @@
 import { M2IntegrationPort } from '../integrations/m2-port.js';
-import { ActivityData } from '../domain/activity.js';
+import { ActivityData, sortEncontros } from '../domain/activity.js';
 
 export function mapActivityResponse(
   atv: ActivityData,
@@ -18,6 +18,6 @@ export function mapActivityResponse(
     ocupadas,
     vagasRestantes: atv.vagas - ocupadas,
     emEspera,
-    encontros: atv.encontros
+    encontros: sortEncontros(atv.encontros)
   };
 }
