@@ -291,34 +291,127 @@ describe('POST /atividades - TDD Cycles', () => {
     });
   });
 
-  describe('Ciclo TDD G — reset pela API pública', () => {
-    it('POST /_teste/reset remove a atividade criada e deixa GET /atividades vazio', async () => {
-      const created = await request(app)
+  describe('Ciclo R1 — quantidade de encontros de palestra', () => {
+    it('recusa palestra com 2 encontros com 422 QUANTIDADE_DE_ENCONTROS e não persiste atividade', async () => {
+      const res = await request(app)
         .post('/atividades')
         .set('X-Usuario', 'org-ana')
         .send({
-          titulo: 'Introdução ao TypeScript',
+          titulo: 'Palestra Longa',
           tipo: 'palestra',
           salaId: 'sala-101',
           vagas: 20,
           encontros: [
-            {
-              inicio: '2026-10-19T09:00:00-03:00',
-              fim: '2026-10-19T10:00:00-03:00'
-            }
+            { inicio: '2026-10-19T09:00:00-03:00', fim: '2026-10-19T10:00:00-03:00' },
+            { inicio: '2026-10-20T09:00:00-03:00', fim: '2026-10-20T10:00:00-03:00' }
           ]
         });
 
-      expect(created.status).toBe(201);
+      expect(res.status).toBe(422);
+      expect(res.body.erro).toBe('QUANTIDADE_DE_ENCONTROS');
+      expect(typeof res.body.mensagem).toBe('string');
 
-      const resetRes = await request(app).post('/_teste/reset');
-      expect(resetRes.status).toBe(204);
+      // Comprovar que nada foi persistido
+      const listRes = await request(app)
+        .get('/atividades')
+        .set('X-Usuario', 'p-carla');
+      expect(listRes.status).toBe(200);
+      expect(listRes.body).toEqual([]);
+    });
+  });
+
+  describe('Ciclo R2 — quantidade de encontros de minicurso', () => {
+    it('recusa minicurso com 1 encontro com 422 QUANTIDADE_DE_ENCONTROS e não persiste', async () => {
+      const res = await request(app)
+        .post('/atividades')
+        .set('X-Usuario', 'org-ana')
+        .send({
+          titulo: 'Minicurso Curto',
+          tipo: 'minicurso',
+          salaId: 'lab-3',
+          vagas: 20,
+          encontros: [
+            { inicio: '2026-10-19T09:00:00-03:00', fim: '2026-10-19T10:00:00-03:00' }
+          ]
+        });
+
+      expect(res.status).toBe(422);
+      expect(res.body.erro).toBe('QUANTIDADE_DE_ENCONTROS');
+      expect(typeof res.body.mensagem).toBe('string');
 
       const listRes = await request(app)
         .get('/atividades')
         .set('X-Usuario', 'p-carla');
+      expect(listRes.body).toEqual([]);
+    });
 
-      expect(listRes.status).toBe(200);
+    it('permite minicurso com exatamente 2 encontros com 201', async () => {
+      const res = await request(app)
+        .post('/atividades')
+        .set('X-Usuario', 'org-ana')
+        .send({
+          titulo: 'Minicurso 2 Encontros',
+          tipo: 'minicurso',
+          salaId: 'lab-3',
+          vagas: 20,
+          encontros: [
+            { inicio: '2026-10-19T09:00:00-03:00', fim: '2026-10-19T10:00:00-03:00' },
+            { inicio: '2026-10-20T09:00:00-03:00', fim: '2026-10-20T10:00:00-03:00' }
+          ]
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.encontros.length).toBe(2);
+    });
+
+    it('permite minicurso com exatamente 5 encontros com 201', async () => {
+      const res = await request(app)
+        .post('/atividades')
+        .set('X-Usuario', 'org-ana')
+        .send({
+          titulo: 'Minicurso 5 Encontros',
+          tipo: 'minicurso',
+          salaId: 'lab-3',
+          vagas: 20,
+          encontros: [
+            { inicio: '2026-10-19T09:00:00-03:00', fim: '2026-10-19T10:00:00-03:00' },
+            { inicio: '2026-10-20T09:00:00-03:00', fim: '2026-10-20T10:00:00-03:00' },
+            { inicio: '2026-10-21T09:00:00-03:00', fim: '2026-10-21T10:00:00-03:00' },
+            { inicio: '2026-10-22T09:00:00-03:00', fim: '2026-10-22T10:00:00-03:00' },
+            { inicio: '2026-10-23T09:00:00-03:00', fim: '2026-10-23T10:00:00-03:00' }
+          ]
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.encontros.length).toBe(5);
+    });
+
+    it('recusa minicurso com 6 encontros com 422 QUANTIDADE_DE_ENCONTROS e não persiste', async () => {
+      const res = await request(app)
+        .post('/atividades')
+        .set('X-Usuario', 'org-ana')
+        .send({
+          titulo: 'Minicurso 6 Encontros',
+          tipo: 'minicurso',
+          salaId: 'lab-3',
+          vagas: 20,
+          encontros: [
+            { inicio: '2026-10-19T09:00:00-03:00', fim: '2026-10-19T10:00:00-03:00' },
+            { inicio: '2026-10-20T09:00:00-03:00', fim: '2026-10-20T10:00:00-03:00' },
+            { inicio: '2026-10-21T09:00:00-03:00', fim: '2026-10-21T10:00:00-03:00' },
+            { inicio: '2026-10-22T09:00:00-03:00', fim: '2026-10-22T10:00:00-03:00' },
+            { inicio: '2026-10-23T09:00:00-03:00', fim: '2026-10-23T10:00:00-03:00' },
+            { inicio: '2026-10-23T11:00:00-03:00', fim: '2026-10-23T12:00:00-03:00' }
+          ]
+        });
+
+      expect(res.status).toBe(422);
+      expect(res.body.erro).toBe('QUANTIDADE_DE_ENCONTROS');
+      expect(typeof res.body.mensagem).toBe('string');
+
+      const listRes = await request(app)
+        .get('/atividades')
+        .set('X-Usuario', 'p-carla');
       expect(listRes.body).toEqual([]);
     });
   });

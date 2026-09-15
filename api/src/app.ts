@@ -1,21 +1,24 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import crypto from 'node:crypto';
 import { z } from 'zod';
 import { createDatabase } from './db/connection.js';
 import { runMigrations } from './db/migrate.js';
 import { runSeed, runReset } from './db/seed.js';
 import { Clock, RealClock } from './clock/clock.js';
 import { DatabaseControllableClock, ControllableClock } from './clock/controllable-clock.js';
-import { NeutralM2Adapter } from './integrations/m2-port.js';
+import { NeutralM2Adapter, M2IntegrationPort } from './integrations/m2-port.js';
 import { UserRepository } from './repositories/user-repository.js';
 import { RoomRepository } from './repositories/room-repository.js';
 import { ActivityRepository } from './repositories/activity-repository.js';
+import { CreateActivityUseCase, NotFoundError } from './application/create-activity.js';
+import { DomainError } from './domain/activity.js';
+import { mapActivityResponse } from './http/activity-response.js';
 
 export interface AppOptions {
   dbPath?: string;
   clock?: Clock;
   modoTeste?: boolean;
+  m2Port?: M2IntegrationPort;
 }
 
 export function createApp(options?: AppOptions | string) {
@@ -41,10 +44,11 @@ export function createApp(options?: AppOptions | string) {
     runSeed(db);
   }
 
-  const m2Port = new NeutralM2Adapter();
+  const m2Port = opts.m2Port || new NeutralM2Adapter();
   const userRepository = new UserRepository(db);
   const roomRepository = new RoomRepository(db);
   const activityRepository = new ActivityRepository(db);
+  const createActivityUseCase = new CreateActivityUseCase(activityRepository, roomRepository, m2Port);
 
   // Modo de teste routes (when MODO_TESTE=1)
   if (modoTeste) {
@@ -110,86 +114,36 @@ export function createApp(options?: AppOptions | string) {
 
   app.get('/atividades', requireUser, (_req: Request, res: Response) => {
     const atividades = activityRepository.findAll();
-    const result = atividades.map((atv) => ({
-      id: atv.id,
-      titulo: atv.titulo,
-      tipo: atv.tipo,
-      salaId: atv.salaId,
-      vagas: atv.vagas,
-      cargaHorariaMinutos: atv.cargaHorariaMinutos,
-      situacao: atv.cancelada ? 'cancelada' : 'prevista',
-      ocupadas: m2Port.getOcupadas(atv.id),
-      vagasRestantes: atv.vagas - m2Port.getOcupadas(atv.id),
-      emEspera: m2Port.getEmEspera(atv.id),
-      encontros: atv.encontros
-    }));
+    const result = atividades.map((atv) => mapActivityResponse(atv, m2Port));
     res.json(result);
   });
 
   const createActivitySchema = z.object({
-    titulo: z.string().min(1),
+    titulo: z.string(),
     tipo: z.enum(['palestra', 'minicurso']),
-    salaId: z.string().min(1),
-    vagas: z.number().int().positive(),
+    salaId: z.string(),
+    vagas: z.number().int(),
     encontros: z.array(
       z.object({
-        inicio: z.string().min(1),
-        fim: z.string().min(1)
+        inicio: z.string(),
+        fim: z.string()
       })
-    ).min(1)
+    )
   });
 
-  app.post('/atividades', requireUser, requireOrg, express.json(), (req: Request, res: Response) => {
+  app.post('/atividades', requireUser, requireOrg, express.json(), (req: Request, res: Response, next: NextFunction) => {
     const parseResult = createActivitySchema.safeParse(req.body);
     if (!parseResult.success) {
       res.status(422).json({ erro: 'DADOS_INVALIDOS', mensagem: 'Dados inválidos' });
       return;
     }
 
-    const { titulo, tipo, salaId, vagas, encontros } = parseResult.data;
-
-    const room = roomRepository.findById(salaId);
-    if (!room) {
-      res.status(404).json({ erro: 'NAO_ENCONTRADO', mensagem: 'Sala não encontrada' });
-      return;
+    try {
+      const result = createActivityUseCase.execute(parseResult.data);
+      res.status(201).json(result);
+    } catch (err) {
+      next(err);
     }
-
-    const atvId = 'atv_' + crypto.randomBytes(4).toString('hex');
-    const encsWithIds = encontros.map(enc => ({
-      id: 'enc_' + crypto.randomBytes(4).toString('hex'),
-      inicio: enc.inicio,
-      fim: enc.fim
-    }));
-
-    let cargaHorariaMinutos = 0;
-    for (const enc of encontros) {
-      const duracaoMs = new Date(enc.fim).getTime() - new Date(enc.inicio).getTime();
-      cargaHorariaMinutos += Math.round(duracaoMs / 60000);
-    }
-
-    activityRepository.create({
-      id: atvId,
-      titulo,
-      tipo,
-      salaId,
-      vagas,
-      cargaHorariaMinutos,
-      encontros: encsWithIds
-    });
-
-    res.status(201).json({
-      id: atvId,
-      titulo,
-      tipo,
-      salaId,
-      vagas,
-      encontros: encsWithIds,
-      cargaHorariaMinutos,
-      situacao: 'prevista',
-      ocupadas: 0,
-      vagasRestantes: vagas - 0,
-      emEspera: 0
-    });
   });
 
   app.use((_req: Request, res: Response) => {
@@ -199,6 +153,14 @@ export function createApp(options?: AppOptions | string) {
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     if (err instanceof SyntaxError && 'body' in err) {
       res.status(422).json({ erro: 'DADOS_INVALIDOS', mensagem: 'JSON malformado' });
+      return;
+    }
+    if (err instanceof DomainError) {
+      res.status(422).json({ erro: err.code, mensagem: err.message });
+      return;
+    }
+    if (err instanceof NotFoundError) {
+      res.status(404).json({ erro: 'NAO_ENCONTRADO', mensagem: err.message });
       return;
     }
     res.status(422).json({ erro: 'DADOS_INVALIDOS', mensagem: err.message || 'Erro de validação' });
