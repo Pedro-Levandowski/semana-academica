@@ -1,12 +1,16 @@
-import { describe, it, expect, afterAll } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
 
-describe('API - Fases 1 & 2 (Ciclos A, B, C, D)', () => {
-  const app = createApp({ modoTeste: true });
+describe('API - Fases 1 & 2 (Isolado por teste)', () => {
+  let app: any;
 
-  afterAll(() => {
-    (app as any).close?.();
+  beforeEach(() => {
+    app = createApp({ modoTeste: true });
+  });
+
+  afterEach(() => {
+    app?.close?.();
   });
 
   it('deve retornar 404 e JSON no formato do contrato para rota inexistente', async () => {
@@ -97,6 +101,15 @@ describe('API - Fases 1 & 2 (Ciclos A, B, C, D)', () => {
       const response = await request(app)
         .put('/_teste/relogio')
         .send({ agora: 'data-invalida' });
+      expect(response.status).toBe(422);
+      expect(response.body.erro).toBe('DADOS_INVALIDOS');
+      expect(typeof response.body.mensagem).toBe('string');
+    });
+
+    it('recusa PUT /_teste/relogio com agora sem Z nem offset explícito ("2026-10-13T09:00:00") com 422 DADOS_INVALIDOS', async () => {
+      const response = await request(app)
+        .put('/_teste/relogio')
+        .send({ agora: '2026-10-13T09:00:00' });
       expect(response.status).toBe(422);
       expect(response.body.erro).toBe('DADOS_INVALIDOS');
       expect(typeof response.body.mensagem).toBe('string');
