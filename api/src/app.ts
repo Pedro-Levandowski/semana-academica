@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import crypto from 'node:crypto';
 import { z } from 'zod';
 import { createDatabase } from './db/connection.js';
 import { runMigrations } from './db/migrate.js';
@@ -28,7 +29,6 @@ export function createApp(options?: AppOptions | string) {
     origin: '*',
     allowedHeaders: ['Content-Type', 'X-Usuario']
   }));
-  app.use(express.json());
 
   const db = createDatabase(dbPath);
   runMigrations(db);
@@ -60,7 +60,7 @@ export function createApp(options?: AppOptions | string) {
 
     const isoSchema = z.string().datetime({ offset: true });
 
-    app.put('/_teste/relogio', (req: Request, res: Response) => {
+    app.put('/_teste/relogio', express.json(), (req: Request, res: Response) => {
       const { agora } = req.body || {};
       const result = isoSchema.safeParse(agora);
       if (!result.success) {
@@ -94,6 +94,15 @@ export function createApp(options?: AppOptions | string) {
     next();
   };
 
+  const requireOrg = (req: Request, res: Response, next: NextFunction) => {
+    const user = (req as any).user;
+    if (!user || user.papel !== 'organizacao') {
+      res.status(403).json({ erro: 'SOMENTE_ORGANIZACAO', mensagem: 'Acesso restrito à organização' });
+      return;
+    }
+    next();
+  };
+
   app.get('/salas', requireUser, (_req: Request, res: Response) => {
     const salas = roomRepository.findAll();
     res.json(salas);
@@ -117,11 +126,81 @@ export function createApp(options?: AppOptions | string) {
     res.json(result);
   });
 
+  const createActivitySchema = z.object({
+    titulo: z.string().min(1),
+    tipo: z.enum(['palestra', 'minicurso']),
+    salaId: z.string().min(1),
+    vagas: z.number().int().positive(),
+    encontros: z.array(
+      z.object({
+        inicio: z.string().min(1),
+        fim: z.string().min(1)
+      })
+    ).min(1)
+  });
+
+  app.post('/atividades', requireUser, requireOrg, express.json(), (req: Request, res: Response) => {
+    const parseResult = createActivitySchema.safeParse(req.body);
+    if (!parseResult.success) {
+      res.status(422).json({ erro: 'DADOS_INVALIDOS', mensagem: 'Dados inválidos' });
+      return;
+    }
+
+    const { titulo, tipo, salaId, vagas, encontros } = parseResult.data;
+
+    const room = roomRepository.findById(salaId);
+    if (!room) {
+      res.status(404).json({ erro: 'NAO_ENCONTRADO', mensagem: 'Sala não encontrada' });
+      return;
+    }
+
+    const atvId = 'atv_' + crypto.randomBytes(4).toString('hex');
+    const encsWithIds = encontros.map(enc => ({
+      id: 'enc_' + crypto.randomBytes(4).toString('hex'),
+      inicio: enc.inicio,
+      fim: enc.fim
+    }));
+
+    let cargaHorariaMinutos = 0;
+    for (const enc of encontros) {
+      const duracaoMs = new Date(enc.fim).getTime() - new Date(enc.inicio).getTime();
+      cargaHorariaMinutos += Math.round(duracaoMs / 60000);
+    }
+
+    activityRepository.create({
+      id: atvId,
+      titulo,
+      tipo,
+      salaId,
+      vagas,
+      cargaHorariaMinutos,
+      encontros: encsWithIds
+    });
+
+    res.status(201).json({
+      id: atvId,
+      titulo,
+      tipo,
+      salaId,
+      vagas,
+      encontros: encsWithIds,
+      cargaHorariaMinutos,
+      situacao: 'prevista',
+      ocupadas: 0,
+      vagasRestantes: vagas - 0,
+      emEspera: 0
+    });
+  });
+
   app.use((_req: Request, res: Response) => {
     res.status(404).json({ erro: 'NAO_ENCONTRADO', mensagem: 'Recurso não encontrado' });
   });
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    if (err instanceof SyntaxError && 'body' in err) {
+      res.status(422).json({ erro: 'DADOS_INVALIDOS', mensagem: 'JSON malformado' });
+      return;
+    }
     res.status(422).json({ erro: 'DADOS_INVALIDOS', mensagem: err.message || 'Erro de validação' });
   });
 

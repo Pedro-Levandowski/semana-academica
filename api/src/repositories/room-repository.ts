@@ -12,4 +12,8 @@ export class RoomRepository {
   findAll(): Room[] {
     return this.db.prepare('SELECT id, nome, capacidade FROM salas').all() as Room[];
   }
+
+  findById(id: string): Room | undefined {
+    return this.db.prepare('SELECT id, nome, capacidade FROM salas WHERE id = ?').get(id) as Room | undefined;
+  }
 }

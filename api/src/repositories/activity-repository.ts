@@ -34,4 +34,39 @@ export class ActivityRepository {
       `).all(atv.id) as EncounterRow[]
     }));
   }
+
+  create(activity: {
+    id: string;
+    titulo: string;
+    tipo: string;
+    salaId: string;
+    vagas: number;
+    cargaHorariaMinutos: number;
+    encontros: Array<{ id: string; inicio: string; fim: string }>;
+  }): void {
+    const insertActivity = this.db.prepare(`
+      INSERT INTO atividades (id, titulo, tipo, sala_id, vagas, carga_horaria_minutos, cancelada)
+      VALUES (?, ?, ?, ?, ?, ?, 0)
+    `);
+    const insertEncounter = this.db.prepare(`
+      INSERT INTO encontros (id, atividade_id, inicio, fim)
+      VALUES (?, ?, ?, ?)
+    `);
+
+    const transaction = this.db.transaction(() => {
+      insertActivity.run(
+        activity.id,
+        activity.titulo,
+        activity.tipo,
+        activity.salaId,
+        activity.vagas,
+        activity.cargaHorariaMinutos
+      );
+      for (const enc of activity.encontros) {
+        insertEncounter.run(enc.id, activity.id, enc.inicio, enc.fim);
+      }
+    });
+
+    transaction();
+  }
 }
