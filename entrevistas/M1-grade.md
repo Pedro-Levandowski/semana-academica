@@ -3,44 +3,52 @@
 ### Bloco 1
 
 ❓ **P-01 — Regras de quantidade e formato de encontros**: Ao criar uma atividade (`POST /atividades`), quais são os limites de quantidade de encontros para palestras e minicursos, e quais validações o contrato (`QUANTIDADE_DE_ENCONTROS` e `ENCONTRO_INVALIDO`) exige?
-- **Resposta**: PENDENTE (consultar requisitos)
+- **Resposta**: Uma palestra precisa possuir exatamente um encontro. Um minicurso precisa possuir entre dois e cinco encontros, incluindo os limites. Uma quantidade incompatível com o tipo resulta em QUANTIDADE_DE_ENCONTROS. Os encontros também precisam respeitar as regras próprias de duração, período, permanência no mesmo dia e ausência de sobreposição interna; a violação dessas condições resulta em ENCONTRO_INVALIDO.
+- **Fonte**: RN-102, RN-103, RN-104, RN-105 e RN-106.
 
 ---
 
 ❓ **P-02 — Limite de vagas versus capacidade da sala**: A verificação de capacidade (`VAGAS_ACIMA_DA_CAPACIDADE`) permite que o número de vagas seja exatamente igual à capacidade da sala ou exige que seja estritamente menor?
-- **Resposta**: PENDENTE (consultar requisitos)
+- **Resposta**: A quantidade de vagas pode ser exatamente igual à capacidade da sala. Ela não pode ultrapassar essa capacidade e também não pode ser menor que uma vaga.
+- **Fonte**: RN-107.
 
 ---
 
 ❓ **P-03 — Detecção de conflito de sala**: Como o sistema determina o `CONFLITO_DE_SALA` entre encontros de diferentes atividades na mesma sala? Existe sobreposição exata de horários ou janela de tolerância?
-- **Resposta**: PENDENTE (consultar requisitos)
+- **Resposta**: Encontros realizados na mesma sala precisam ter pelo menos quinze minutos entre o término de um e o início do seguinte. Um início com intervalo inferior a quinze minutos gera CONFLITO_DE_SALA; com exatamente quinze minutos, é permitido. Encontros pertencentes a atividades canceladas não participam dessa verificação.
+- **Fonte**: RN-108.
 
 ---
 
 ❓ **P-04 — Critérios de transição da situação temporal**: Quais são as regras exatas de relógio para uma atividade passar de `prevista` para `em_andamento` e de `em_andamento` para `encerrada` (considerando início e fim de seus encontros)?
-- **Resposta**: PENDENTE (consultar requisitos)
+- **Resposta**: Antes do início do primeiro encontro, a atividade fica prevista. No instante exato em que o primeiro encontro começa, passa para em_andamento e permanece assim inclusive nos intervalos entre seus encontros. No instante exato do término do último encontro, passa para encerrada. Esses estados são calculados pelo relógio, não informados pelo cliente.
+- **Fonte**: RN-114 e regras gerais de tempo.
 
 ---
 
 ❓ **P-05 — Restrições de edição (PATCH)**: Quais campos são permitidos no `PATCH /atividades/:id` e em quais situações ocorre `CAMPO_NAO_EDITAVEL` ou `ATIVIDADE_CANCELADA`?
-- **Resposta**: PENDENTE (consultar requisitos)
+- **Resposta**: Depois da criação, somente título e vagas podem ser alterados. Tipo, sala e encontros não podem mudar e a tentativa gera CAMPO_NAO_EDITAVEL. Uma atividade cancelada não aceita nenhuma alteração e gera ATIVIDADE_CANCELADA. O início da atividade não é indicado como impedimento adicional para o PATCH; ATIVIDADE_JA_INICIADA está associado ao cancelamento.
+- **Fonte**: RN-110 e RN-113.
 
 ---
 
 ### Bloco 2
 
 ❓ **P-06 — Regras de cancelamento de atividade**: Quais são as condições e restrições exatas para cancelar uma atividade (`POST /atividades/:id/cancelamento`), incluindo os códigos de erro `ATIVIDADE_JA_INICIADA` e `ATIVIDADE_CANCELADA`?
-- **Resposta**: PENDENTE (consultar requisitos)
+- **Resposta**: O cancelamento é permitido somente antes do início do primeiro encontro. No instante exato em que a atividade começa, a tentativa já deve retornar ATIVIDADE_JA_INICIADA. O cancelamento é definitivo: uma atividade cancelada não pode ser alterada nem cancelada novamente, retornando ATIVIDADE_CANCELADA nessas tentativas.
+- **Fonte**: RN-112 e RN-113.
 
 ---
 
 ❓ **P-07 — Cálculo da carga horária**: Como o campo `cargaHorariaMinutos` da atividade é calculado exatamente a partir dos encontros (soma da duração de cada encontro e suas condições)?
-- **Resposta**: PENDENTE (consultar requisitos)
+- **Resposta**: A carga horária é calculada somando a duração de todos os encontros e expressando o total em minutos. Ela não é definida manualmente pela organização. Se o cliente enviar um valor para cargaHorariaMinutos, esse valor não substitui o cálculo do sistema e deve ser ignorado.
+- **Fonte**: Não informada.
 
 ---
 
 ❓ **P-08 — Listagem, filtros e ordenação de atividades**: No `GET /atividades`, como funcionam os filtros `?dia=` e `?tipo=`, a combinação entre eles e qual é a regra de ordenação padrão das atividades retornadas?
-- **Resposta**: PENDENTE (consultar requisitos)
+- **Resposta**: A listagem é ordenada primeiro pelo início do primeiro encontro e, quando duas atividades possuem o mesmo início, pelo título. Atividades canceladas permanecem na listagem. O filtro dia seleciona atividades que tenham pelo menos um encontro naquele dia do calendário de Brasília. O filtro tipo seleciona palestra ou minicurso, e os dois filtros podem ser combinados.
+- **Fonte**: RN-115 e RN-116.
 
 ---
 
@@ -51,7 +59,8 @@
 ---
 
 ❓ **P-10 — Dados fornecidos aos módulos dependentes**: Quais campos e estados calculados da atividade, encontros e salas definidos no `contrato-api.md` são obrigatoriamente consumidos pelos módulos dependentes?
-- **Resposta**: PENDENTE (consultar requisitos)
+- **Resposta**: O M1 é a fonte oficial da identificação da atividade, tipo, sala, vagas, encontros, horários, duração, carga horária, situação e cancelamento. O M2 utiliza esses dados para inscrições e fornece ao M1 as contagens usadas em ocupadas, vagasRestantes e emEspera. O M3 utiliza principalmente atividade, encontros, horários, situação e cancelamento. O M4 consome a carga horária, os encontros, a situação e o cancelamento. O M5 consome atividades, vagas, encontros, situação, cancelamento e os dados de ocupação necessários ao painel. O M1 expõe os campos do objeto Atividade, mas não implementa as regras internas desses módulos.
+- **Fonte**: contrato-api.md, Issue #1, RN-109, RN-111 e RN-114.
 
 ---
 
@@ -70,48 +79,56 @@
 ---
 
 ❓ **P-13 — Limites de vagas (mínimo, máximo e igualdade com capacidade)**: Qual é o número mínimo de vagas permitido para uma atividade? O número de vagas pode ser exatamente igual à capacidade da sala (`vagas === capacidade`) ou apenas estritamente menor?
-- **Resposta**: PENDENTE (consultar requisitos)
+- **Resposta**: O mínimo é uma vaga. O máximo é a capacidade cadastrada para a sala. A igualdade entre vagas e capacidade é válida; somente um valor acima da capacidade deve gerar VAGAS_ACIMA_DA_CAPACIDADE.
+- **Fonte**: RN-107.
 
 ---
 
 ❓ **P-14 — Duração e período permitido para os encontros**: Existe duração mínima ou máxima em minutos para um encontro? Os encontros devem obrigatoriamente ocorrer dentro do período do evento (19/10/2026 a 23/10/2026)?
-- **Resposta**: PENDENTE (consultar requisitos)
+- **Resposta**: Cada encontro deve durar no mínimo sessenta minutos e no máximo duzentos e quarenta minutos, incluindo os dois limites. Além disso, todos os encontros precisam estar dentro do período do evento, de 19 a 23 de outubro de 2026, considerando o calendário de Brasília.
+- **Fonte**: RN-104 e RN-105.
 
 ---
 
 ❓ **P-15 — Encontros multi-dia e sobreposição interna**: Um encontro pode iniciar em um dia e terminar em outro (atravessando a meia-noite)? É permitido que dois encontros de uma mesma atividade tenham sobreposição de horários entre si?
-- **Resposta**: PENDENTE (consultar requisitos)
+- **Resposta**: Um encontro deve começar e terminar no mesmo dia do calendário de Brasília, portanto não pode atravessar a meia-noite. Também não pode existir sobreposição entre encontros pertencentes à mesma atividade. As duas violações resultam em ENCONTRO_INVALIDO.
+- **Fonte**: RN-105 e RN-106.
 
 ---
 
 ❓ **P-16 — Efeito de atividades canceladas no conflito de sala e listagem**: Atividades que estão com a situação `cancelada` continuam ocupando a sala para efeito de `CONFLITO_DE_SALA` ao criar novas atividades? Como atividades canceladas aparecem na listagem `GET /atividades` e nos filtros?
-- **Resposta**: PENDENTE (consultar requisitos)
+- **Resposta**: Encontros de atividades canceladas deixam de ocupar a sala para a verificação de conflitos. Entretanto, as atividades canceladas continuam aparecendo em GET /atividades. Quando filtros de dia ou tipo forem usados, elas seguem os mesmos critérios de filtro aplicados às demais atividades.
+- **Fonte**: RN-108, RN-115 e RN-116.
 
 ---
 
 ❓ **P-17 — Comportamento de carga horária informada e redução de vagas**: O que acontece se o cliente enviar o campo `cargaHorariaMinutos` no `POST` ou `PATCH`? Ao reduzir vagas via `PATCH` abaixo do número de inscritos/ocupados, qual erro é retornado (`VAGAS_ABAIXO_DOS_INSCRITOS`)?
-- **Resposta**: PENDENTE (consultar requisitos)
+- **Resposta**: cargaHorariaMinutos é sempre derivada dos encontros e um valor enviado pelo cliente não substitui o cálculo, devendo ser ignorado. Ao reduzir vagas, o novo total não pode ficar abaixo das inscrições que ocupam vaga, consideradas as confirmadas e convocadas. Se ficar abaixo, a API retorna VAGAS_ABAIXO_DOS_INSCRITOS.
+- **Fonte**: RN-109 e RN-111.
 
 ---
 
 ❓ **P-18 — Aumento de vagas, cancelamento e integração com M2**: Ao aumentar as vagas de uma atividade, qual é o impacto na lista de espera (integração com M2)? E ao cancelar uma atividade, o que acontece com as inscrições e listas de espera existentes?
-- **Resposta**: PENDENTE (consultar requisitos)
+- **Resposta**: Quando o aumento de vagas cria lugares disponíveis, o M1 deve acionar a integração para que o M2 aplique suas regras de convocação da lista de espera. O M1 não decide nem implementa a fila. Quando uma atividade é cancelada, todas as inscrições ativas associadas a ela devem ser canceladas pelo M2, incluindo as confirmadas, em espera e convocadas. A alteração da atividade e as mudanças das inscrições precisam ocorrer por uma integração consistente entre os módulos.
+- **Fonte**: RN-111, RN-211 e RN-217.
 
 ---
 
 ❓ **P-19 — Situação cancelada e ordenação de encontros**: Como a situação `cancelada` interage com o relógio temporal (`prevista`, `em_andamento`, `encerrada`)? Como os encontros dentro do objeto Atividade devem ser ordenados?
-- **Resposta (parcial)**: Os encontros dentro do objeto Atividade devem ser retornados estritamente em ordem de início. (**Fonte**: `contrato-api.md`).
-- **Resposta (restante)**: PENDENTE (consultar requisitos quanto à interação da situação cancelada com os estados temporais).
+- **Resposta**: Os encontros dentro do objeto Atividade devem ser retornados estritamente em ordem de início. A situação cancelada tem prioridade sobre prevista, em_andamento e encerrada. Depois do cancelamento, a atividade permanece com situação cancelada independentemente do avanço do relógio.
+- **Fonte**: RN-114 e contrato-api.md.
 
 ---
 
 ❓ **P-20 — Campos calculados de ocupação e precedência de erros**: Como são calculados exatamente `ocupadas`, `vagasRestantes` e `emEspera`, e quem é responsável por cada um (M1 vs M2)? Quando múltiplos erros de regra de negócio ocorrem simultaneamente, qual é a precedência de erro retornada pela API?
-- **Resposta**: PENDENTE (consultar requisitos)
+- **Resposta**: ocupadas corresponde à quantidade de inscrições confirmadas somada à quantidade de inscrições convocadas. emEspera corresponde à quantidade de inscrições com estado em_espera. vagasRestantes corresponde ao total de vagas menos ocupadas. O M2 é responsável pelos estados e contagens das inscrições; o M1 consulta esses valores pela integração e os expõe no objeto Atividade exigido pelo contrato. Quanto à precedência entre erros de recurso do M1, aplica-se a ordem geral do contrato (identificação, perfil, existência, corpo e regras do recurso), não havendo precedência adicional exigida entre regras de negócio simultâneas.
+- **Fonte**: contrato-api.md e RN-111.
 
 ---
 
 ❓ **P-21 — Fronteira de escopo, instantes de fronteira e cenários de verificação**: O que o M1 explicitamente **não** faz (fora de escopo)? Qual é o comportamento do sistema nos instantes exatos de transição de tempo (fronteiras de início/fim)? Quais cenários de teste externo provam o funcionamento de cada regra do M1?
-- **Resposta**: PENDENTE (consultar requisitos)
+- **Resposta**: O M1 não inclui login e senha, mais de um evento, pagamento, e-mail ou push, certificado em PDF, alteração de encontros ou troca de sala depois da criação, inscrição feita pela organização, check-out ou importação de planilha. Também não implementa as regras internas de inscrições, presença, certificados ou painel. Nas fronteiras temporais, o instante inicial já conta como atividade iniciada e o instante final já conta como atividade encerrada. Um prazo descrito como “até X” aceita o próprio instante X; um prazo que “fecha em X” já está fechado nesse instante. Todas as regras temporais precisam ser demonstradas pelo relógio controlado. Os testes externos devem cobrir valores imediatamente abaixo, exatamente no limite e imediatamente acima dos limites aplicáveis. Para o M1, isso inclui quantidade de encontros; duração; período; travessia de dia; sobreposição; capacidade; intervalo de sala; cálculo de carga; campos editáveis; redução de vagas; cancelamento antes e no início; situação antes, no início e no fim; atividade cancelada; ordenação; filtro por dia e combinação com tipo. A verificação deve ocorrer pela API e pela interface, sem depender da leitura do código.
+- **Fonte**: regras gerais de tempo, seções de restrições, fora de escopo e critérios de aceitação, além das RN-102 a RN-116.
 
 ---
 
@@ -171,3 +188,14 @@
 - Pendentes para a Rodada 2 oficial: P-01, P-02, P-03, P-04, P-05, P-06, P-07, P-08, P-10, P-13, P-14, P-15, P-16, P-17, P-18, parte de P-19, P-20 e P-21.
 - Nenhum documento externo de requisitos foi consultado nesta rodada.
 - Nenhuma spec, teste ou implementação foi criada nesta rodada.
+
+---
+
+## Fechamento da Rodada 2
+
+- Estado: Rodada 2 concluída.
+- Todas as pendências da Rodada 1 foram tratadas.
+- As respostas oficiais foram registradas em paráfrase com suas fontes RN-xxx.
+- Nenhuma pergunta nova foi criada nesta rodada.
+- Nenhuma spec, teste ou implementação foi criada nesta rodada.
+- A entrevista está pronta para revisão humana antes da geração da spec.
