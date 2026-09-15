@@ -83,4 +83,156 @@ describe('3. Migração da coluna situacao', () => {
       fs.unlinkSync(dbPath);
     }
   });
+
+  it('migra banco legado com foreign keys ativas e encontros associados', () => {
+    const tmpDir = os.tmpdir();
+    const dbPath = path.join(tmpDir, `test-migration-fk-${Date.now()}-${Math.random()}.sqlite`);
+
+    const db = new Database(dbPath);
+    db.pragma('foreign_keys = ON');
+    db.exec(`
+      CREATE TABLE salas (
+        id TEXT PRIMARY KEY,
+        nome TEXT NOT NULL,
+        capacidade INTEGER NOT NULL
+      );
+      CREATE TABLE atividades (
+        id TEXT PRIMARY KEY,
+        titulo TEXT NOT NULL,
+        tipo TEXT NOT NULL,
+        sala_id TEXT NOT NULL,
+        vagas INTEGER NOT NULL,
+        carga_horaria_minutos INTEGER NOT NULL,
+        situacao TEXT NOT NULL,
+        FOREIGN KEY (sala_id) REFERENCES salas(id)
+      );
+      CREATE TABLE encontros (
+        id TEXT PRIMARY KEY,
+        atividade_id TEXT NOT NULL,
+        inicio TEXT NOT NULL,
+        fim TEXT NOT NULL,
+        FOREIGN KEY (atividade_id) REFERENCES atividades(id)
+      );
+    `);
+
+    db.prepare('INSERT INTO salas (id, nome, capacidade) VALUES (?, ?, ?)').run('sala-101', 'Sala 101', 40);
+    db.prepare(`
+      INSERT INTO atividades (id, titulo, tipo, sala_id, vagas, carga_horaria_minutos, situacao)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run('atv_canc', 'Atividade Cancelada', 'palestra', 'sala-101', 40, 120, 'cancelada');
+    db.prepare(`
+      INSERT INTO atividades (id, titulo, tipo, sala_id, vagas, carga_horaria_minutos, situacao)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run('atv_prev', 'Atividade Prevista', 'palestra', 'sala-101', 40, 120, 'prevista');
+
+    db.prepare(`
+      INSERT INTO encontros (id, atividade_id, inicio, fim)
+      VALUES (?, ?, ?, ?)
+    `).run('enc_1', 'atv_prev', '2026-10-19T10:00:00-03:00', '2026-10-19T12:00:00-03:00');
+
+    db.close();
+
+    const dbMigrated = new Database(dbPath);
+    dbMigrated.pragma('foreign_keys = ON');
+
+    runMigrations(dbMigrated);
+
+    const tableInfo = dbMigrated.prepare("PRAGMA table_info(atividades)").all() as Array<{ name: string }>;
+    expect(tableInfo.some(col => col.name === 'situacao')).toBe(false);
+    expect(tableInfo.some(col => col.name === 'cancelada')).toBe(true);
+
+    const atividades = dbMigrated.prepare('SELECT id, cancelada FROM atividades ORDER BY id').all() as Array<any>;
+    expect(atividades.length).toBe(2);
+    expect(atividades.find(a => a.id === 'atv_canc').cancelada).toBe(1);
+    expect(atividades.find(a => a.id === 'atv_prev').cancelada).toBe(0);
+
+    const encontros = dbMigrated.prepare('SELECT id, atividade_id FROM encontros').all() as Array<any>;
+    expect(encontros.length).toBe(1);
+    expect(encontros[0].atividade_id).toBe('atv_prev');
+
+    const fkCheck = dbMigrated.prepare('PRAGMA foreign_key_check').all();
+    expect(fkCheck.length).toBe(0);
+
+    const fkStatus = dbMigrated.prepare('PRAGMA foreign_keys').get() as { foreign_keys: number };
+    expect(fkStatus.foreign_keys).toBe(1);
+
+    expect(() => runMigrations(dbMigrated)).not.toThrow();
+
+    dbMigrated.close();
+    if (fs.existsSync(dbPath)) {
+      fs.unlinkSync(dbPath);
+    }
+  });
+
+  it('migra banco em estado intermediário com colunas situacao e cancelada simultaneamente', () => {
+    const tmpDir = os.tmpdir();
+    const dbPath = path.join(tmpDir, `test-migration-both-${Date.now()}-${Math.random()}.sqlite`);
+
+    const db = new Database(dbPath);
+    db.pragma('foreign_keys = ON');
+    db.exec(`
+      CREATE TABLE salas (
+        id TEXT PRIMARY KEY,
+        nome TEXT NOT NULL,
+        capacidade INTEGER NOT NULL
+      );
+      CREATE TABLE atividades (
+        id TEXT PRIMARY KEY,
+        titulo TEXT NOT NULL,
+        tipo TEXT NOT NULL,
+        sala_id TEXT NOT NULL,
+        vagas INTEGER NOT NULL,
+        carga_horaria_minutos INTEGER NOT NULL,
+        situacao TEXT NOT NULL,
+        cancelada INTEGER NOT NULL DEFAULT 0,
+        FOREIGN KEY (sala_id) REFERENCES salas(id)
+      );
+      CREATE TABLE encontros (
+        id TEXT PRIMARY KEY,
+        atividade_id TEXT NOT NULL,
+        inicio TEXT NOT NULL,
+        fim TEXT NOT NULL,
+        FOREIGN KEY (atividade_id) REFERENCES atividades(id)
+      );
+    `);
+
+    db.prepare('INSERT INTO salas (id, nome, capacidade) VALUES (?, ?, ?)').run('sala-101', 'Sala 101', 40);
+    db.prepare(`
+      INSERT INTO atividades (id, titulo, tipo, sala_id, vagas, carga_horaria_minutos, situacao, cancelada)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run('atv_1', 'Atividade 1', 'palestra', 'sala-101', 40, 120, 'cancelada', 1);
+    db.prepare(`
+      INSERT INTO atividades (id, titulo, tipo, sala_id, vagas, carga_horaria_minutos, situacao, cancelada)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run('atv_2', 'Atividade 2', 'palestra', 'sala-101', 40, 120, 'prevista', 0);
+
+    db.prepare(`
+      INSERT INTO encontros (id, atividade_id, inicio, fim)
+      VALUES (?, ?, ?, ?)
+    `).run('enc_1', 'atv_1', '2026-10-19T10:00:00-03:00', '2026-10-19T12:00:00-03:00');
+
+    db.close();
+
+    const dbMigrated = new Database(dbPath);
+    dbMigrated.pragma('foreign_keys = ON');
+
+    runMigrations(dbMigrated);
+
+    const tableInfo = dbMigrated.prepare("PRAGMA table_info(atividades)").all() as Array<{ name: string }>;
+    expect(tableInfo.some(col => col.name === 'situacao')).toBe(false);
+    expect(tableInfo.some(col => col.name === 'cancelada')).toBe(true);
+
+    const atividades = dbMigrated.prepare('SELECT id, cancelada FROM atividades ORDER BY id').all() as Array<any>;
+    expect(atividades.length).toBe(2);
+    expect(atividades.find(a => a.id === 'atv_1').cancelada).toBe(1);
+    expect(atividades.find(a => a.id === 'atv_2').cancelada).toBe(0);
+
+    const fkCheck = dbMigrated.prepare('PRAGMA foreign_key_check').all();
+    expect(fkCheck.length).toBe(0);
+
+    dbMigrated.close();
+    if (fs.existsSync(dbPath)) {
+      fs.unlinkSync(dbPath);
+    }
+  });
 });
