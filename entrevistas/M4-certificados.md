@@ -29,3 +29,11 @@
 | P7 | Composição dos itens do extrato — quando o campo `codigo` do item deve vir preenchido e quando deve vir `null`? | PENDENTE |
 | P8 | Alfabeto do código do certificado — quais caracteres são permitidos nos 8 caracteres do formato `SA26-XXXX-XXXX` (ex.: `0-9A-Z` completo ou alfabeto restrito)? | PENDENTE |
 | P9 | Precedência de erros na emissão — entre `ATIVIDADE_NAO_ENCERRADA` e `PRESENCA_INSUFICIENTE`, qual aparece primeiro quando ambos se aplicam? | PENDENTE |
+
+## Rodada Complementar 2
+
+| # | Resposta | Fonte |
+|---|----------|-------|
+| P7 | O extrato deve listar todas as atividades em que o participante está inscrito. Em cada item, o campo codigo deve conter o código do certificado quando ele já tiver sido emitido para aquela atividade. Se ainda não houver certificado emitido, o campo codigo deve ser null. | RN-410 |
+| P8 | O código do certificado deve usar letras maiúsculas e dígitos, excluindo os caracteres I, O, 0 e 1 para evitar ambiguidades. Esse é o mesmo alfabeto utilizado pelos códigos de presença. | RN-407 e RN-302 |
+| P9 | Quando os dois erros puderem ocorrer ao mesmo tempo, ATIVIDADE_NAO_ENCERRADA deve ter precedência sobre PRESENCA_INSUFICIENTE. A validação de encerramento da atividade ocorre antes da validação da frequência. | RN-413 |
