@@ -11,7 +11,7 @@ import { UserRepository } from './repositories/user-repository.js';
 import { RoomRepository } from './repositories/room-repository.js';
 import { ActivityRepository } from './repositories/activity-repository.js';
 import { CreateActivityUseCase, NotFoundError } from './application/create-activity.js';
-import { DomainError } from './domain/activity.js';
+import { DomainError, ConflictError } from './domain/activity.js';
 import { mapActivityResponse } from './http/activity-response.js';
 
 export interface AppOptions {
@@ -154,6 +154,10 @@ export function createApp(options?: AppOptions | string) {
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     if (err instanceof SyntaxError && 'body' in err) {
       res.status(422).json({ erro: 'DADOS_INVALIDOS', mensagem: 'JSON malformado' });
+      return;
+    }
+    if (err instanceof ConflictError || err.code === 'CONFLITO_DE_SALA') {
+      res.status(409).json({ erro: err.code || 'CONFLITO_DE_SALA', mensagem: err.message });
       return;
     }
     if (err instanceof DomainError) {

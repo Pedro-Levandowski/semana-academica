@@ -7,6 +7,13 @@ export class DomainError extends Error {
   }
 }
 
+export class ConflictError extends Error {
+  constructor(public code: string, message: string) {
+    super(message);
+    this.name = 'ConflictError';
+  }
+}
+
 export interface ActivityData {
   id: string;
   titulo: string;
@@ -24,6 +31,12 @@ export function validateActivityEncounterCount(tipo: string, encontrosCount: num
   }
   if (tipo === 'minicurso' && (encontrosCount < 2 || encontrosCount > 5)) {
     throw new DomainError('QUANTIDADE_DE_ENCONTROS', 'Minicurso deve ter entre 2 e 5 encontros');
+  }
+}
+
+export function validateVagas(vagas: number, capacidadeSala: number): void {
+  if (vagas < 1 || vagas > capacidadeSala) {
+    throw new DomainError('VAGAS_ACIMA_DA_CAPACIDADE', 'Número de vagas excede a capacidade da sala ou é menor que 1');
   }
 }
 
@@ -83,6 +96,30 @@ export function validateEncounterRules(encontros: Array<{ inicio: string; fim: s
     const next = sorted[i + 1];
     if (next.inicio < current.fim) {
       throw new DomainError('ENCONTRO_INVALIDO', 'Sobreposição entre encontros da mesma atividade');
+    }
+  }
+}
+
+export function validateRoomConflict(
+  newEncontros: Array<{ inicio: string; fim: string }>,
+  existingEncontros: Array<{ inicio: string; fim: string }>
+): void {
+  const newParsed = newEncontros.map(enc => ({
+    inicio: DateTime.fromISO(enc.inicio, { setZone: true }),
+    fim: DateTime.fromISO(enc.fim, { setZone: true })
+  }));
+
+  const existingParsed = existingEncontros.map(enc => ({
+    inicio: DateTime.fromISO(enc.inicio, { setZone: true }),
+    fim: DateTime.fromISO(enc.fim, { setZone: true })
+  }));
+
+  for (const n of newParsed) {
+    for (const e of existingParsed) {
+      const hasConflict = n.inicio < e.fim.plus({ minutes: 15 }) && n.fim > e.inicio.minus({ minutes: 15 });
+      if (hasConflict) {
+        throw new ConflictError('CONFLITO_DE_SALA', 'Conflito de horário na mesma sala (intervalo mínimo de 15 minutos necessário)');
+      }
     }
   }
 }

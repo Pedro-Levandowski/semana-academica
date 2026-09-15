@@ -69,4 +69,13 @@ export class ActivityRepository {
 
     transaction();
   }
+
+  findActiveEncountersByRoomId(salaId: string): Array<{ inicio: string; fim: string }> {
+    return this.db.prepare(`
+      SELECT e.inicio, e.fim
+      FROM encontros e
+      JOIN atividades a ON e.atividade_id = a.id
+      WHERE a.sala_id = ? AND a.cancelada = 0
+    `).all(salaId) as Array<{ inicio: string; fim: string }>;
+  }
 }
