@@ -1,9 +1,7 @@
 import crypto from 'node:crypto';
 import { RoomRepository } from '../repositories/room-repository.js';
 import { ActivityRepository } from '../repositories/activity-repository.js';
-import { M2IntegrationPort } from '../integrations/m2-port.js';
-import { validateActivityEncounterCount, calculateCargaHoraria } from '../domain/activity.js';
-import { mapActivityResponse } from '../http/activity-response.js';
+import { validateActivityEncounterCount, calculateCargaHoraria, ActivityData } from '../domain/activity.js';
 
 export class NotFoundError extends Error {
   constructor(message: string) {
@@ -15,8 +13,7 @@ export class NotFoundError extends Error {
 export class CreateActivityUseCase {
   constructor(
     private activityRepository: ActivityRepository,
-    private roomRepository: RoomRepository,
-    private m2Port: M2IntegrationPort
+    private roomRepository: RoomRepository
   ) {}
 
   execute(input: {
@@ -25,7 +22,7 @@ export class CreateActivityUseCase {
     salaId: string;
     vagas: number;
     encontros: Array<{ inicio: string; fim: string }>;
-  }) {
+  }): ActivityData {
     const room = this.roomRepository.findById(input.salaId);
     if (!room) {
       throw new NotFoundError('Sala não encontrada');
@@ -52,7 +49,7 @@ export class CreateActivityUseCase {
       encontros: encontrosWithIds
     });
 
-    const created = {
+    const created: ActivityData = {
       id: atvId,
       titulo: input.titulo,
       tipo: input.tipo,
@@ -63,6 +60,6 @@ export class CreateActivityUseCase {
       encontros: encontrosWithIds
     };
 
-    return mapActivityResponse(created, this.m2Port);
+    return created;
   }
 }

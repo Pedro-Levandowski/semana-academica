@@ -5,6 +5,17 @@ export class DomainError extends Error {
   }
 }
 
+export interface ActivityData {
+  id: string;
+  titulo: string;
+  tipo: string;
+  salaId: string;
+  vagas: number;
+  cargaHorariaMinutos: number;
+  cancelada: number;
+  encontros: Array<{ id: string; inicio: string; fim: string }>;
+}
+
 export function validateActivityEncounterCount(tipo: string, encontrosCount: number): void {
   if (tipo === 'palestra' && encontrosCount !== 1) {
     throw new DomainError('QUANTIDADE_DE_ENCONTROS', 'Palestra deve ter exatamente 1 encontro');

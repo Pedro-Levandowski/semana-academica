@@ -48,7 +48,7 @@ export function createApp(options?: AppOptions | string) {
   const userRepository = new UserRepository(db);
   const roomRepository = new RoomRepository(db);
   const activityRepository = new ActivityRepository(db);
-  const createActivityUseCase = new CreateActivityUseCase(activityRepository, roomRepository, m2Port);
+  const createActivityUseCase = new CreateActivityUseCase(activityRepository, roomRepository);
 
   // Modo de teste routes (when MODO_TESTE=1)
   if (modoTeste) {
@@ -139,7 +139,8 @@ export function createApp(options?: AppOptions | string) {
     }
 
     try {
-      const result = createActivityUseCase.execute(parseResult.data);
+      const created = createActivityUseCase.execute(parseResult.data);
+      const result = mapActivityResponse(created, m2Port);
       res.status(201).json(result);
     } catch (err) {
       next(err);

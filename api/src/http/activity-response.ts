@@ -1,8 +1,8 @@
 import { M2IntegrationPort } from '../integrations/m2-port.js';
-import { ActivityRow, EncounterRow } from '../repositories/activity-repository.js';
+import { ActivityData } from '../domain/activity.js';
 
 export function mapActivityResponse(
-  atv: ActivityRow & { encontros: EncounterRow[] },
+  atv: ActivityData,
   m2Port: M2IntegrationPort
 ) {
   const ocupadas = m2Port.getOcupadas(atv.id);

@@ -415,4 +415,36 @@ describe('POST /atividades - TDD Cycles', () => {
       expect(listRes.body).toEqual([]);
     });
   });
+
+  describe('Ciclo TDD G — reset pela API pública', () => {
+    it('POST /_teste/reset remove a atividade criada e deixa GET /atividades vazio', async () => {
+      const created = await request(app)
+        .post('/atividades')
+        .set('X-Usuario', 'org-ana')
+        .send({
+          titulo: 'Introdução ao TypeScript',
+          tipo: 'palestra',
+          salaId: 'sala-101',
+          vagas: 20,
+          encontros: [
+            {
+              inicio: '2026-10-19T09:00:00-03:00',
+              fim: '2026-10-19T10:00:00-03:00'
+            }
+          ]
+        });
+
+      expect(created.status).toBe(201);
+
+      const resetRes = await request(app).post('/_teste/reset');
+      expect(resetRes.status).toBe(204);
+
+      const listRes = await request(app)
+        .get('/atividades')
+        .set('X-Usuario', 'p-carla');
+
+      expect(listRes.status).toBe(200);
+      expect(listRes.body).toEqual([]);
+    });
+  });
 });
