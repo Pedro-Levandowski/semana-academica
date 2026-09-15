@@ -117,9 +117,11 @@ export function createApp(options?: AppOptions | string) {
     res.json(salas);
   });
 
-  app.get('/atividades', requireUser, (_req: Request, res: Response) => {
+  app.get('/atividades', requireUser, (req: Request, res: Response) => {
     const agora = clock.now();
-    const atividades = listActivitiesUseCase.execute();
+    const dia = typeof req.query.dia === 'string' ? req.query.dia : undefined;
+    const tipo = typeof req.query.tipo === 'string' ? req.query.tipo : undefined;
+    const atividades = listActivitiesUseCase.execute({ dia, tipo });
     const result = atividades.map((atv) => mapActivityResponse(atv, m2Port, agora));
     res.json(result);
   });

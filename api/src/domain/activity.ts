@@ -188,3 +188,29 @@ export function sortActivities<T extends { titulo: string; encontros: Array<{ in
     return a.titulo.localeCompare(b.titulo);
   });
 }
+
+export function encounterBelongsToDay(encounter: { inicio: string }, targetDateIso: string): boolean {
+  const dt = DateTime.fromISO(encounter.inicio, { setZone: true });
+  if (!dt.isValid) return false;
+  const saoPauloDt = dt.setZone('America/Sao_Paulo');
+  return saoPauloDt.toISODate() === targetDateIso;
+}
+
+export function activityBelongsToDay(activity: { encontros: Array<{ inicio: string }> }, targetDateIso: string): boolean {
+  return activity.encontros.some(enc => encounterBelongsToDay(enc, targetDateIso));
+}
+
+export function filterActivities<T extends { tipo: string; encontros: Array<{ inicio: string }> }>(
+  activities: T[],
+  filters: { dia?: string; tipo?: string }
+): T[] {
+  return activities.filter(activity => {
+    if (filters.tipo && activity.tipo !== filters.tipo) {
+      return false;
+    }
+    if (filters.dia && !activityBelongsToDay(activity, filters.dia)) {
+      return false;
+    }
+    return true;
+  });
+}
