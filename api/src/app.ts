@@ -10,7 +10,9 @@ import { NeutralM2Adapter, M2IntegrationPort } from './integrations/m2-port.js';
 import { UserRepository } from './repositories/user-repository.js';
 import { RoomRepository } from './repositories/room-repository.js';
 import { ActivityRepository } from './repositories/activity-repository.js';
-import { CreateActivityUseCase, NotFoundError } from './application/create-activity.js';
+import { CreateActivityUseCase } from './application/create-activity.js';
+import { GetActivityUseCase } from './application/get-activity.js';
+import { NotFoundError } from './application/errors.js';
 import { DomainError, ConflictError } from './domain/activity.js';
 import { mapActivityResponse } from './http/activity-response.js';
 
@@ -49,6 +51,7 @@ export function createApp(options?: AppOptions | string) {
   const roomRepository = new RoomRepository(db);
   const activityRepository = new ActivityRepository(db);
   const createActivityUseCase = new CreateActivityUseCase(activityRepository, roomRepository);
+  const getActivityUseCase = new GetActivityUseCase(activityRepository);
 
   // Modo de teste routes (when MODO_TESTE=1)
   if (modoTeste) {
@@ -116,6 +119,16 @@ export function createApp(options?: AppOptions | string) {
     const atividades = activityRepository.findAll();
     const result = atividades.map((atv) => mapActivityResponse(atv, m2Port));
     res.json(result);
+  });
+
+  app.get('/atividades/:id', requireUser, (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const activity = getActivityUseCase.execute(req.params.id);
+      const result = mapActivityResponse(activity, m2Port);
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
   });
 
   const createActivitySchema = z.object({
