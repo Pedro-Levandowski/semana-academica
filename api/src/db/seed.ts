@@ -1,6 +1,12 @@
 import Database from 'better-sqlite3';
+import { Clock } from '../clock/clock.js';
+import { DatabaseControllableClock } from '../clock/controllable-clock.js';
 
-export function runSeed(db: Database.Database): void {
+export function runSeed(db: Database.Database, clock?: Clock): void {
+  runReset(db, clock);
+}
+
+export function runReset(db: Database.Database, clock?: Clock): void {
   const insertUsuario = db.prepare('INSERT OR REPLACE INTO usuarios (id, nome, papel) VALUES (?, ?, ?)');
   const usuarios = [
     ['org-ana', 'Ana Beatriz Lima', 'organizacao'],
@@ -26,12 +32,20 @@ export function runSeed(db: Database.Database): void {
   const insertRelogio = db.prepare('INSERT OR REPLACE INTO relogio_estado (id, agora) VALUES (1, ?)');
 
   db.transaction(() => {
+    db.prepare('DELETE FROM encontros').run();
+    db.prepare('DELETE FROM atividades').run();
+
     for (const u of usuarios) {
       insertUsuario.run(u[0], u[1], u[2]);
     }
     for (const s of salas) {
       insertSala.run(s[0], s[1], s[2]);
     }
-    insertRelogio.run('2026-10-13T09:00:00-03:00');
+
+    if (clock && clock instanceof DatabaseControllableClock) {
+      clock.reset();
+    } else {
+      insertRelogio.run('2026-10-13T09:00:00-03:00');
+    }
   })();
 }

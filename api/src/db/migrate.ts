@@ -21,7 +21,7 @@ export function runMigrations(db: Database.Database): void {
       sala_id TEXT NOT NULL,
       vagas INTEGER NOT NULL,
       carga_horaria_minutos INTEGER NOT NULL,
-      situacao TEXT NOT NULL,
+      cancelada INTEGER NOT NULL DEFAULT 0,
       FOREIGN KEY (sala_id) REFERENCES salas(id)
     );
 
@@ -38,4 +38,14 @@ export function runMigrations(db: Database.Database): void {
       agora TEXT NOT NULL
     );
   `);
+
+  const tableInfo = db.prepare("PRAGMA table_info(atividades)").all() as Array<{ name: string }>;
+  const hasSituacao = tableInfo.some(col => col.name === 'situacao');
+  const hasCancelada = tableInfo.some(col => col.name === 'cancelada');
+  if (hasSituacao && !hasCancelada) {
+    db.exec(`
+      ALTER TABLE atividades ADD COLUMN cancelada INTEGER NOT NULL DEFAULT 0;
+      UPDATE atividades SET cancelada = 1 WHERE situacao = 'cancelada';
+    `);
+  }
 }
