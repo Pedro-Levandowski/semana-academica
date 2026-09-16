@@ -1,0 +1,101 @@
+{
+ "info": {
+  "id": "ses_f571ad25effehd2Dm3yYu2QkDf",
+  "slug": "gentle-falcon",
+  "projectID": "08a8850750a50d17a216613ef31c5f0b0d1b31ca",
+  "directory": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica",
+  "path": "",
+  "title": "Cliente API e seletor de usuário para M1",
+  "agent": "build",
+  "model": {
+   "id": "gemini-3.7-flash",
+   "providerID": "google"
+  },
+  "version": "1.18.31",
+  "summary": {
+   "additions": 0,
+   "deletions": 0,
+   "files": 0
+  },
+  "cost": 0,
+  "tokens": {
+   "input": 0,
+   "output": 0,
+   "reasoning": 0,
+   "cache": {
+    "read": 0,
+    "write": 0
+   }
+  },
+  "time": {
+   "created": 1789539986850,
+   "updated": 1789539987187
+  }
+ },
+ "messages": [
+  {
+   "info": {
+    "role": "user",
+    "time": {
+     "created": 1789539986878
+    },
+    "agent": "build",
+    "model": {
+     "providerID": "google",
+     "modelID": "gemini-3.7-flash"
+    },
+    "summary": {
+     "diffs": []
+    },
+    "id": "msg_0a8e52dbd001W0xYizwLfPoTwC",
+    "sessionID": "ses_f571ad25effehd2Dm3yYu2QkDf"
+   },
+   "parts": [
+    {
+     "type": "text",
+     "text": "Estamos na branch `feat/m1-interface`, criada a partir da `main` atualizada.\n\nImplemente somente o primeiro bloco da Fatia 5: fundação do cliente da API e seletor de usuário de demonstração, cobrindo R38 e preparando R40.\n\nAntes de alterar:\n\n1. Leia `AGENTS.md`, `app/AGENTS.md`, `.opencode/skills/tdd/SKILL.md`, R38 e R40 de `specs/M1-grade.md` e os tipos públicos de `contrato-api.md`.\n2. Execute `git status --short`.\n3. Confirme o teste atual da interface aprovado.\n4. Não altere a API, contrato, specs ou entrevistas.\n\nUse TDD para implementar:\n\n- catálogo centralizado com exatamente os 10 usuários iniciais;\n- seletor visível e acessível de usuário;\n- primeira utilização sem usuário escolhido automaticamente;\n- opção inicial “Selecione um usuário”;\n- exibição de nome e papel nas opções;\n- persistência somente do ID escolhido no `localStorage`;\n- restauração de uma seleção válida após nova renderização;\n- mensagem clara enquanto nenhum usuário estiver selecionado;\n- cliente HTTP centralizado;\n- cliente adicionando `X-Usuario` automaticamente quando houver usuário selecionado;\n- componentes não podem montar headers nem chamar `fetch` diretamente;\n- erros da API representados por um tipo contendo `erro` e `mensagem`;\n- URL-base configurável por `VITE_API_URL`, usando `http://localhost:3000` como padrão.\n\nDefina no cliente os métodos necessários para o M1, conforme o contrato:\n\n- listar salas;\n- listar atividades com filtros opcionais;\n- consultar detalhe;\n- criar;\n- editar;\n- cancelar.\n\nNão implemente ainda as páginas que consomem esses métodos.\n\nOs testes devem comprovar:\n\n1. O título existente continua visível.\n2. Na primeira utilização, nenhuma pessoa está selecionada e aparece a orientação para selecionar um usuário.\n3. O seletor contém exatamente os 10 usuários e um placeholder.\n4. Escolher uma organização atualiza a interface e grava seu ID no `localStorage`.\n5. Uma seleção válida armazenada é restaurada ao renderizar novamente.\n6. O cliente HTTP adiciona `X-Usuario` sem que componentes construam o cabeçalho.\n7. Os testes não realizam requisições reais: use cliente falso ou `fetch` mockado.\n\nLimpe o `localStorage` entre testes. Preserve HTML semântico, rótulo associado ao seletor e navegação por teclado.\n\nOrganização sugerida:\n\n- `app/src/api/types.ts`;\n- `app/src/api/client.ts`;\n- `app/src/api/client.test.ts`;\n- `app/src/users.ts`;\n- `app/src/components/UserSelector.tsx`;\n- `app/src/hooks/useSelectedUser.ts`;\n- `app/src/App.tsx`;\n- `app/src/App.test.tsx`;\n- `app/src/styles.css`, se necessário;\n- `app/src/main.tsx`, apenas para importar estilos ou ajustar a composição.\n\nNão adicione bibliotecas. Não faça commit nem push.\n\nAo terminar, execute:\n\n- testes da interface;\n- typecheck da interface;\n- build de produção;\n- `git diff --check`;\n- `git status --short`;\n- `git diff --stat`.\n\nResultado esperado: 7 testes aprovados na interface, contando o teste inicial preservado. Relate cada ciclo vermelho/verde, a prova do header centralizado, os arquivos alterados e confirme que nenhuma chamada real de rede ocorreu. ",
+     "id": "prt_0a8e52dbe001dZ8b1z5UH5Q7TD",
+     "sessionID": "ses_f571ad25effehd2Dm3yYu2QkDf",
+     "messageID": "msg_0a8e52dbd001W0xYizwLfPoTwC"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0a8e52dbd001W0xYizwLfPoTwC",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica",
+     "root": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "input": 0,
+     "output": 0,
+     "reasoning": 0,
+     "cache": {
+      "read": 0,
+      "write": 0
+     }
+    },
+    "modelID": "gemini-3.7-flash",
+    "providerID": "google",
+    "time": {
+     "created": 1789539986892,
+     "completed": 1789540104910
+    },
+    "error": {
+     "name": "MessageAbortedError",
+     "data": {
+      "message": "Aborted"
+     }
+    },
+    "id": "msg_0a8e52dcc001H394dVIDf5Zyrk",
+    "sessionID": "ses_f571ad25effehd2Dm3yYu2QkDf"
+   },
+   "parts": []
+  }
+ ]
+}

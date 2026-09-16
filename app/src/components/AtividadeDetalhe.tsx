@@ -11,25 +11,41 @@ interface AtividadeDetalheProps {
   apiClient?: typeof api;
 }
 
-export function AtividadeDetalhe({ selectedUserId, userPapel, apiClient = api }: AtividadeDetalheProps) {
+export function AtividadeDetalhe({
+  selectedUserId,
+  userPapel,
+  apiClient = api,
+}: AtividadeDetalheProps) {
   const { id } = useParams<{ id: string }>();
-  const { atividade, salas, loading, error, reload } = useAtividadeDetalhe(id, selectedUserId, apiClient);
+  const { atividade, salas, loading, error, reload } = useAtividadeDetalhe(
+    id,
+    selectedUserId,
+    apiClient,
+  );
+
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelling, setCancelling] = useState(false);
-  const [cancelError, setCancelError] = useState<{ erro: string; mensagem: string } | null>(null);
-  const [cancelSuccessMessage, setCancelSuccessMessage] = useState<string | null>(null);
+  const [cancelError, setCancelError] = useState<{
+    erro: string;
+    mensagem: string;
+  } | null>(null);
+  const [cancelSuccessMessage, setCancelSuccessMessage] = useState<string | null>(
+    null,
+  );
 
   const isCancelada = atividade?.situacao === 'cancelada';
 
   const getSalaNome = (salaId: string) => {
-    const sala = salas.find((s) => s.id === salaId);
+    const sala = salas.find((item) => item.id === salaId);
     return sala ? sala.nome : salaId;
   };
 
   const handleConfirmCancel = async () => {
     if (cancelling || !atividade) return;
+
     setCancelling(true);
     setCancelError(null);
+
     try {
       await apiClient.cancelAtividade(atividade.id);
       setCancelSuccessMessage('Atividade cancelada com sucesso!');
@@ -39,7 +55,8 @@ export function AtividadeDetalhe({ selectedUserId, userPapel, apiClient = api }:
     } catch (err: any) {
       setCancelError({
         erro: err.erro || 'ERRO_DESCONHECIDO',
-        mensagem: err.mensagem || err.message || 'Erro ao cancelar atividade',
+        mensagem:
+          err.mensagem || err.message || 'Erro ao cancelar atividade',
       });
       setCancelling(false);
     }
@@ -47,153 +64,251 @@ export function AtividadeDetalhe({ selectedUserId, userPapel, apiClient = api }:
 
   if (!selectedUserId) {
     return (
-      <div>
-        <p>Nenhum usuário selecionado. Por favor, selecione um usuário de demonstração para acessar o sistema.</p>
+      <section className="state-panel">
+        <span className="eyebrow">Seleção necessária</span>
+        <h2>Escolha um usuário para continuar</h2>
         <p>
-          <Link to="/">Voltar para a programação</Link>
+          Nenhum usuário selecionado. Por favor, selecione um usuário de
+          demonstração para acessar o sistema.
         </p>
-      </div>
+
+        <Link to="/" className="button button--secondary">
+          Voltar para a programação
+        </Link>
+      </section>
     );
   }
 
   return (
-    <div className="atividade-detalhe-container" style={{ padding: '1rem 0' }}>
-      <p>
-        <Link to="/" className="voltar-link">Voltar para a programação</Link>
-      </p>
+    <section className="atividade-detalhe-container">
+      <Link to="/" className="back-link voltar-link">
+        Voltar para a programação
+      </Link>
 
-      {userPapel === 'organizacao' && atividade && !isCancelada && !cancelSuccessMessage && (
-        <div style={{ margin: '1rem 0', display: 'flex', gap: '1rem' }}>
-          <Link
-            to={`/atividades/${atividade.id}/editar`}
-            className="editar-atividade-link"
-            style={{
-              padding: '0.4rem 0.8rem',
-              backgroundColor: '#ffc107',
-              color: '#000',
-              borderRadius: '4px',
-              textDecoration: 'none',
-              display: 'inline-block',
-            }}
-          >
-            Editar atividade
-          </Link>
-
-          <button
-            type="button"
-            onClick={() => setShowCancelConfirm(true)}
-            className="cancelar-atividade-btn"
-            style={{
-              padding: '0.4rem 0.8rem',
-              backgroundColor: '#dc3545',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
-          >
-            Cancelar atividade
-          </button>
+      {loading && (
+        <div className="state-message state-message--loading" role="status" aria-live="polite">
+          <span className="loading-indicator" aria-hidden="true" />
+          <span>Carregando atividade...</span>
         </div>
       )}
-
-      {showCancelConfirm && (
-        <div
-          className="cancel-confirm-box"
-          role="alertdialog"
-          aria-labelledby="cancel-dialog-title"
-          aria-modal="true"
-          style={{ border: '1px solid #dc3545', padding: '1rem', margin: '1rem 0', borderRadius: '4px', backgroundColor: '#fff5f5' }}
-        >
-          <p id="cancel-dialog-title">Tem certeza de que deseja cancelar esta atividade?</p>
-          {cancelError && (
-            <div className="error-message" role="alert" style={{ color: 'red', margin: '0.5rem 0' }}>
-              Erro ({cancelError.erro}): {cancelError.mensagem}
-            </div>
-          )}
-          <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-            <button
-              type="button"
-              disabled={cancelling}
-              onClick={handleConfirmCancel}
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: cancelling ? '#cccccc' : '#dc3545',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: cancelling ? 'not-allowed' : 'pointer',
-              }}
-            >
-              {cancelling ? 'Cancelando atividade...' : 'Confirmar cancelamento'}
-            </button>
-            <button
-              type="button"
-              disabled={cancelling}
-              onClick={() => setShowCancelConfirm(false)}
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: '#6c757d',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: cancelling ? 'not-allowed' : 'pointer',
-              }}
-            >
-              Manter atividade
-            </button>
-          </div>
-        </div>
-      )}
-
-      {cancelSuccessMessage && (
-        <div className="success-message" role="status" aria-live="polite" style={{ color: 'green', margin: '1rem 0' }}>
-          {cancelSuccessMessage}
-        </div>
-      )}
-
-      {loading && <p role="status" aria-live="polite">Carregando atividade...</p>}
 
       {error && (
         <div className="error-message" role="alert">
-          Erro ({error.erro}): {error.mensagem}
+          <strong>Não foi possível carregar a atividade.</strong>
+          <span>
+            Erro ({error.erro}): {error.mensagem}
+          </span>
         </div>
       )}
 
       {!loading && !error && atividade && (
-        <div>
-          {isCancelada && (
-            <div style={{ color: 'red', fontWeight: 'bold', marginBottom: '1rem' }}>
-              Atividade Cancelada
+        <article className="detail-card">
+          <header className="detail-hero">
+            <div className="detail-hero__content">
+              <span className="eyebrow">Detalhes da atividade</span>
+
+              <h2 id="activity-title" data-testid="detalhe-titulo">
+                {atividade.titulo}
+              </h2>
+
+              <div className="detail-hero__badges">
+                <span className="type-badge" data-testid="detalhe-tipo">
+                  {atividade.tipo}
+                </span>
+
+                <span
+                  className={`status-badge status-badge--${atividade.situacao}`}
+                  data-testid="detalhe-situacao"
+                >
+                  {atividade.situacao}
+                </span>
+
+                {isCancelada && (
+                  <span className="cancelled-detail-marker">
+                    Atividade Cancelada
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {userPapel === 'organizacao' &&
+              !isCancelada &&
+              !cancelSuccessMessage && (
+                <div className="detail-actions">
+                  <Link
+                    to={`/atividades/${atividade.id}/editar`}
+                    className="button button--secondary editar-atividade-link"
+                  >
+                    Editar atividade
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowCancelConfirm(true)}
+                    className="button button--danger cancelar-atividade-btn"
+                  >
+                    Cancelar atividade
+                  </button>
+                </div>
+              )}
+          </header>
+
+          {showCancelConfirm && (
+            <div
+              className="cancel-confirm-box"
+              role="alertdialog"
+              aria-labelledby="cancel-dialog-title"
+              aria-modal="true"
+            >
+              <div className="cancel-confirm-box__content">
+                <span className="cancel-confirm-box__icon" aria-hidden="true">
+                  !
+                </span>
+
+                <div>
+                  <h3 id="cancel-dialog-title">
+                    Tem certeza de que deseja cancelar esta atividade?
+                  </h3>
+                  <p>
+                    O cancelamento é definitivo e a atividade continuará visível
+                    na programação.
+                  </p>
+                </div>
+              </div>
+
+              {cancelError && (
+                <div className="error-message" role="alert">
+                  Erro ({cancelError.erro}): {cancelError.mensagem}
+                </div>
+              )}
+
+              <div className="cancel-confirm-box__actions">
+                <button
+                  type="button"
+                  disabled={cancelling}
+                  onClick={handleConfirmCancel}
+                  className="button button--danger"
+                >
+                  {cancelling
+                    ? 'Cancelando atividade...'
+                    : 'Confirmar cancelamento'}
+                </button>
+
+                <button
+                  type="button"
+                  disabled={cancelling}
+                  onClick={() => setShowCancelConfirm(false)}
+                  className="button button--ghost"
+                >
+                  Manter atividade
+                </button>
+              </div>
             </div>
           )}
 
-          <h2 data-testid="detalhe-titulo">{atividade.titulo}</h2>
-          <p><strong>Tipo:</strong> <span data-testid="detalhe-tipo">{atividade.tipo}</span></p>
-          <p><strong>Sala:</strong> <span data-testid="detalhe-sala">{getSalaNome(atividade.salaId)}</span></p>
-          <p><strong>Vagas:</strong> <span data-testid="detalhe-vagas">{atividade.vagas}</span></p>
-          <p><strong>Carga Horária:</strong> <span data-testid="detalhe-carga">{atividade.cargaHorariaMinutos}</span> minutos</p>
-          <p><strong>Situação:</strong> <span data-testid="detalhe-situacao">{atividade.situacao}</span></p>
-          <p><strong>Ocupadas:</strong> <span data-testid="detalhe-ocupadas">{atividade.ocupadas}</span></p>
-          <p><strong>Vagas Restantes:</strong> <span data-testid="detalhe-vagas-restantes">{atividade.vagasRestantes}</span></p>
-          <p><strong>Pessoas em Espera:</strong> <span data-testid="detalhe-em-espera">{atividade.emEspera}</span></p>
-
-          <h3>Encontros</h3>
-          {atividade.encontros && atividade.encontros.length > 0 ? (
-            <ul>
-              {atividade.encontros.map((enc) => (
-                <li key={enc.id}>
-                  Início: {formatarDataHoraBrasilia(enc.inicio)} | Fim: {formatarDataHoraBrasilia(enc.fim)}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>Nenhum encontro cadastrado.</p>
+          {cancelSuccessMessage && (
+            <div
+              className="success-message"
+              role="status"
+              aria-live="polite"
+            >
+              {cancelSuccessMessage}
+            </div>
           )}
 
+          <section className="detail-section" aria-labelledby="metricas-title">
+            <div className="section-heading">
+              <span className="eyebrow">Disponibilidade</span>
+              <h3 id="metricas-title">Vagas da atividade</h3>
+            </div>
+
+            <div className="metrics-grid">
+              <div className="metric-card">
+                <span>Total de vagas</span>
+                <strong data-testid="detalhe-vagas">{atividade.vagas}</strong>
+              </div>
+
+              <div className="metric-card">
+                <span>Ocupadas</span>
+                <strong data-testid="detalhe-ocupadas">
+                  {atividade.ocupadas}
+                </strong>
+              </div>
+
+              <div className="metric-card metric-card--highlight">
+                <span>Vagas restantes</span>
+                <strong data-testid="detalhe-vagas-restantes">
+                  {atividade.vagasRestantes}
+                </strong>
+              </div>
+
+              <div className="metric-card">
+                <span>Pessoas em espera</span>
+                <strong data-testid="detalhe-em-espera">
+                  {atividade.emEspera}
+                </strong>
+              </div>
+            </div>
+          </section>
+
+          <section className="detail-section" aria-labelledby="informacoes-title">
+            <div className="section-heading">
+              <span className="eyebrow">Informações gerais</span>
+              <h3 id="informacoes-title">Sobre a atividade</h3>
+            </div>
+
+            <dl className="info-grid">
+              <div>
+                <dt>Sala</dt>
+                <dd data-testid="detalhe-sala">
+                  {getSalaNome(atividade.salaId)}
+                </dd>
+              </div>
+
+              <div>
+                <dt>Carga Horária</dt>
+                <dd>
+                  <span data-testid="detalhe-carga">
+                    {atividade.cargaHorariaMinutos}
+                  </span>{' '}
+                  minutos
+                </dd>
+              </div>
+            </dl>
+          </section>
+
+          <section className="detail-section" aria-labelledby="encontros-title">
+            <div className="section-heading">
+              <span className="eyebrow">Agenda</span>
+              <h3 id="encontros-title">Encontros</h3>
+            </div>
+
+            {atividade.encontros && atividade.encontros.length > 0 ? (
+              <ul className="encounter-list">
+                {atividade.encontros.map((encontro, index) => (
+                  <li key={encontro.id} className="encounter-card">
+                    <span className="encounter-card__number" aria-hidden="true">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+
+                    <div>
+                      <strong>Encontro {index + 1}</strong>
+                      <p>
+                        Início: {formatarDataHoraBrasilia(encontro.inicio)} | Fim:{' '}
+                        {formatarDataHoraBrasilia(encontro.fim)}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="empty-inline">Nenhum encontro cadastrado.</p>
+            )}
+          </section>
+
           <M2ExtensionPoint />
-        </div>
+        </article>
       )}
-    </div>
+    </section>
   );
 }
