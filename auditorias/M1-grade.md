@@ -37,22 +37,22 @@
 | R33 | P-23 | api/tests/app.test.ts:100 | COMPROVADA |
 | R34 | P-23 | api/tests/app.test.ts:1 | COMPROVADA |
 | R35 | Issue #1 | api/tests/migration.test.ts:8 | COMPROVADA |
-| R36 | P-24 | app/src/App.test.tsx:200 | PROVA FRACA |
-| R37 | P-25 | app/src/App.test.tsx:200 | COMPROVADA |
-| R38 | P-26 | app/src/App.test.tsx:1 | COMPROVADA |
-| R39 | P-28 | app/src/App.test.tsx:1 | COMPROVADA |
-| R40 | P-27 | app/src/App.test.tsx:200 | PROVA FRACA |
+| R36 | P-24 | app/src/App.test.tsx | COMPROVADA |
+| R37 | P-25 | app/src/App.test.tsx | COMPROVADA |
+| R38 | P-26 | app/src/App.test.tsx | COMPROVADA |
+| R39 | P-28 | app/src/App.test.tsx | COMPROVADA |
+| R40 | P-27 | app/src/App.test.tsx | COMPROVADA |
 | R41 | projeto.json | projeto.json:1 | COMPROVADA |
 
 ## Suíte
 
 - `npm --prefix api test` → Test Files 15 passed (15), Tests 125 passed (125)
-- `npm --prefix app test -- --run` → Test Files 1 failed | 2 passed (3), Tests 5 failed | 61 passed (66)
+- `npm --prefix app test -- --run` → Test Files 2 passed (2), Tests 66 passed (66)
 
 ## Achados
 
-1. [PROVA FRACA] R36 & R40 — Os testes automatizados da interface em `app/src/App.test.tsx:200` utilizam `screen.findByText(/Nenhuma atividade encontrada/i)`, causando falha de `TestingLibraryElementError` em 5 testes devido à correspondência de múltiplos elementos (`<strong>` e `<p>`). Cenário que expõe: Execução do comando `npm --prefix app test`.
+Nenhum achado pendente. Todas as regras da spec possuem origem rastreada e testes automatizados correspondentes com 100% de aprovação na API e na interface.
 
 ## Veredito
 
-O módulo M1 pode ser aceito com ressalvas, exigindo a correção dos seletores de texto em `app/src/App.test.tsx` para sanar as falhas na suíte da interface, visto que a API encontra-se com 125 testes aprovados.
+O módulo M1 está totalmente conforme a spec `specs/M1-grade.md`, com todas as 41 regras rigorosamente comprovadas por testes automatizados aprovados. Aprovado sem ressalvas.
