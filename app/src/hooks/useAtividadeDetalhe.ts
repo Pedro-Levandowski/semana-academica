@@ -8,7 +8,7 @@ export function useAtividadeDetalhe(id: string | undefined, selectedUserId: stri
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<{ erro: string; mensagem: string } | null>(null);
 
-  useEffect(() => {
+  const fetchDetails = () => {
     if (!id || !selectedUserId) {
       setAtividade(null);
       setSalas([]);
@@ -17,7 +17,6 @@ export function useAtividadeDetalhe(id: string | undefined, selectedUserId: stri
       return;
     }
 
-    let isMounted = true;
     setLoading(true);
     setError(null);
 
@@ -26,25 +25,21 @@ export function useAtividadeDetalhe(id: string | undefined, selectedUserId: stri
       apiClient.getAtividade(id),
     ])
       .then(([salasRes, atvRes]) => {
-        if (isMounted) {
-          setSalas(salasRes);
-          setAtividade(atvRes);
-          setLoading(false);
-        }
+        setSalas(salasRes);
+        setAtividade(atvRes);
+        setLoading(false);
       })
       .catch((err: any) => {
-        if (isMounted) {
-          setError({
-            erro: err.erro || 'ERRO_DESCONHECIDO',
-            mensagem: err.mensagem || err.message || 'Erro ao carregar detalhes da atividade',
-          });
-          setLoading(false);
-        }
+        setError({
+          erro: err.erro || 'ERRO_DESCONHECIDO',
+          mensagem: err.mensagem || err.message || 'Erro ao carregar detalhes da atividade',
+        });
+        setLoading(false);
       });
+  };
 
-    return () => {
-      isMounted = false;
-    };
+  useEffect(() => {
+    fetchDetails();
   }, [id, selectedUserId, apiClient]);
 
   return {
@@ -52,5 +47,6 @@ export function useAtividadeDetalhe(id: string | undefined, selectedUserId: stri
     salas,
     loading,
     error,
+    reload: fetchDetails,
   };
 }

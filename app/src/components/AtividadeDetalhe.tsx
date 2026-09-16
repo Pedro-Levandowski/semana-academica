@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAtividadeDetalhe } from '../hooks/useAtividadeDetalhe';
 import { M2ExtensionPoint } from './M2ExtensionPoint';
@@ -12,7 +12,13 @@ interface AtividadeDetalheProps {
 
 export function AtividadeDetalhe({ selectedUserId, userPapel, apiClient = api }: AtividadeDetalheProps) {
   const { id } = useParams<{ id: string }>();
-  const { atividade, salas, loading, error } = useAtividadeDetalhe(id, selectedUserId, apiClient);
+  const { atividade, salas, loading, error, reload } = useAtividadeDetalhe(id, selectedUserId, apiClient);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<{ erro: string; mensagem: string } | null>(null);
+  const [cancelSuccessMessage, setCancelSuccessMessage] = useState<string | null>(null);
+
+  const isCancelada = atividade?.situacao === 'cancelada';
 
   const getSalaNome = (salaId: string) => {
     const sala = salas.find((s) => s.id === salaId);
@@ -26,6 +32,25 @@ export function AtividadeDetalhe({ selectedUserId, userPapel, apiClient = api }:
       return date.toLocaleString();
     } catch {
       return isoString;
+    }
+  };
+
+  const handleConfirmCancel = async () => {
+    if (cancelling || !atividade) return;
+    setCancelling(true);
+    setCancelError(null);
+    try {
+      await apiClient.cancelAtividade(atividade.id);
+      setCancelSuccessMessage('Atividade cancelada com sucesso!');
+      setCancelling(false);
+      setShowCancelConfirm(false);
+      reload();
+    } catch (err: any) {
+      setCancelError({
+        erro: err.erro || 'ERRO_DESCONHECIDO',
+        mensagem: err.mensagem || err.message || 'Erro ao cancelar atividade',
+      });
+      setCancelling(false);
     }
   };
 
@@ -46,8 +71,8 @@ export function AtividadeDetalhe({ selectedUserId, userPapel, apiClient = api }:
         <Link to="/" className="voltar-link">Voltar para a programação</Link>
       </p>
 
-      {userPapel === 'organizacao' && atividade && (
-        <p style={{ margin: '1rem 0' }}>
+      {userPapel === 'organizacao' && atividade && !isCancelada && !cancelSuccessMessage && (
+        <div style={{ margin: '1rem 0', display: 'flex', gap: '1rem' }}>
           <Link
             to={`/atividades/${atividade.id}/editar`}
             className="editar-atividade-link"
@@ -62,7 +87,72 @@ export function AtividadeDetalhe({ selectedUserId, userPapel, apiClient = api }:
           >
             Editar atividade
           </Link>
-        </p>
+
+          <button
+            type="button"
+            onClick={() => setShowCancelConfirm(true)}
+            className="cancelar-atividade-btn"
+            style={{
+              padding: '0.4rem 0.8rem',
+              backgroundColor: '#dc3545',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+            }}
+          >
+            Cancelar atividade
+          </button>
+        </div>
+      )}
+
+      {showCancelConfirm && (
+        <div className="cancel-confirm-box" style={{ border: '1px solid #dc3545', padding: '1rem', margin: '1rem 0', borderRadius: '4px', backgroundColor: '#fff5f5' }}>
+          <p>Tem certeza de que deseja cancelar esta atividade?</p>
+          {cancelError && (
+            <div className="error-message" style={{ color: 'red', margin: '0.5rem 0' }}>
+              Erro ({cancelError.erro}): {cancelError.mensagem}
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+            <button
+              type="button"
+              disabled={cancelling}
+              onClick={handleConfirmCancel}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: cancelling ? '#cccccc' : '#dc3545',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: cancelling ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {cancelling ? 'Cancelando atividade...' : 'Confirmar cancelamento'}
+            </button>
+            <button
+              type="button"
+              disabled={cancelling}
+              onClick={() => setShowCancelConfirm(false)}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: '#6c757d',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: cancelling ? 'not-allowed' : 'pointer',
+              }}
+            >
+              Manter atividade
+            </button>
+          </div>
+        </div>
+      )}
+
+      {cancelSuccessMessage && (
+        <div className="success-message" style={{ color: 'green', margin: '1rem 0' }}>
+          {cancelSuccessMessage}
+        </div>
       )}
 
       {loading && <p>Carregando atividade...</p>}
@@ -75,7 +165,7 @@ export function AtividadeDetalhe({ selectedUserId, userPapel, apiClient = api }:
 
       {!loading && !error && atividade && (
         <div>
-          {atividade.situacao === 'cancelada' && (
+          {isCancelada && (
             <div style={{ color: 'red', fontWeight: 'bold', marginBottom: '1rem' }}>
               Atividade Cancelada
             </div>

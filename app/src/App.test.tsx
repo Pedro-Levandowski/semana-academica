@@ -1090,4 +1090,320 @@ describe('App Shell', () => {
     expect(updateMock).not.toHaveBeenCalled();
     expect(await screen.findByTestId('detalhe-titulo')).toHaveTextContent('Original');
   });
+
+  it('participante não vê a ação de cancelamento na página de detalhes', async () => {
+    localStorage.setItem('selectedUserId', 'p-carla');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividade: vi.fn().mockResolvedValue({
+        id: 'atv_1',
+        titulo: 'Atv Part',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 40,
+        encontros: [],
+        cargaHorariaMinutos: 60,
+        situacao: 'prevista',
+        ocupadas: 0,
+        vagasRestantes: 40,
+        emEspera: 0,
+      }),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/atv_1']} />);
+
+    expect(await screen.findByText('Atv Part')).toBeInTheDocument();
+    expect(screen.queryByText('Cancelar atividade')).not.toBeInTheDocument();
+  });
+
+  it('organização vê a ação de cancelamento quando a atividade não está cancelada', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividade: vi.fn().mockResolvedValue({
+        id: 'atv_1',
+        titulo: 'Atv Org',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 40,
+        encontros: [],
+        cargaHorariaMinutos: 60,
+        situacao: 'prevista',
+        ocupadas: 0,
+        vagasRestantes: 40,
+        emEspera: 0,
+      }),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/atv_1']} />);
+
+    expect(await screen.findByText('Cancelar atividade')).toBeInTheDocument();
+  });
+
+  it('atividade já cancelada não mostra edição nem cancelamento', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividade: vi.fn().mockResolvedValue({
+        id: 'atv_1',
+        titulo: 'Atv Cancelada',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 40,
+        encontros: [],
+        cargaHorariaMinutos: 60,
+        situacao: 'cancelada',
+        ocupadas: 0,
+        vagasRestantes: 40,
+        emEspera: 0,
+      }),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/atv_1']} />);
+
+    expect(await screen.findByText('Atv Cancelada')).toBeInTheDocument();
+    expect(screen.queryByText('Editar atividade')).not.toBeInTheDocument();
+    expect(screen.queryByText('Cancelar atividade')).not.toBeInTheDocument();
+  });
+
+  it('abrir confirmação de cancelamento não chama a API', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const cancelMock = vi.fn();
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividade: vi.fn().mockResolvedValue({
+        id: 'atv_1',
+        titulo: 'Atv',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 40,
+        encontros: [],
+        cargaHorariaMinutos: 60,
+        situacao: 'prevista',
+        ocupadas: 0,
+        vagasRestantes: 40,
+        emEspera: 0,
+      }),
+      cancelAtividade: cancelMock,
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/atv_1']} />);
+
+    const btnCancelar = await screen.findByText('Cancelar atividade');
+    fireEvent.click(btnCancelar);
+
+    expect(cancelMock).not.toHaveBeenCalled();
+    expect(screen.getByText('Confirmar cancelamento')).toBeInTheDocument();
+    expect(screen.getByText('Manter atividade')).toBeInTheDocument();
+  });
+
+  it('desistir do cancelamento fecha a confirmação sem chamada à API', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const cancelMock = vi.fn();
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividade: vi.fn().mockResolvedValue({
+        id: 'atv_1',
+        titulo: 'Atv',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 40,
+        encontros: [],
+        cargaHorariaMinutos: 60,
+        situacao: 'prevista',
+        ocupadas: 0,
+        vagasRestantes: 40,
+        emEspera: 0,
+      }),
+      cancelAtividade: cancelMock,
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/atv_1']} />);
+
+    const btnCancelar = await screen.findByText('Cancelar atividade');
+    fireEvent.click(btnCancelar);
+
+    const btnManter = screen.getByText('Manter atividade');
+    fireEvent.click(btnManter);
+
+    expect(cancelMock).not.toHaveBeenCalled();
+    expect(screen.queryByText('Confirmar cancelamento')).not.toBeInTheDocument();
+  });
+
+  it('confirmar o cancelamento envia o ID correto para a API', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const cancelMock = vi.fn().mockResolvedValue({
+      id: 'atv_target',
+      situacao: 'cancelada',
+    });
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividade: vi.fn().mockResolvedValue({
+        id: 'atv_target',
+        titulo: 'Atv',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 40,
+        encontros: [],
+        cargaHorariaMinutos: 60,
+        situacao: 'prevista',
+        ocupadas: 0,
+        vagasRestantes: 40,
+        emEspera: 0,
+      }),
+      cancelAtividade: cancelMock,
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/atv_target']} />);
+
+    const btnCancelar = await screen.findByText('Cancelar atividade');
+    fireEvent.click(btnCancelar);
+
+    const btnConfirmar = screen.getByText('Confirmar cancelamento');
+    fireEvent.click(btnConfirmar);
+
+    expect(cancelMock).toHaveBeenCalledWith('atv_target');
+  });
+
+  it('promessa pendente bloqueia duplicação de chamadas de cancelamento', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    let resolvePromise: any;
+    const pendingPromise = new Promise((resolve) => {
+      resolvePromise = resolve;
+    });
+    const cancelMock = vi.fn().mockReturnValue(pendingPromise);
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividade: vi.fn().mockResolvedValue({
+        id: 'atv_1',
+        titulo: 'Atv',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 40,
+        encontros: [],
+        cargaHorariaMinutos: 60,
+        situacao: 'prevista',
+        ocupadas: 0,
+        vagasRestantes: 40,
+        emEspera: 0,
+      }),
+      cancelAtividade: cancelMock,
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/atv_1']} />);
+
+    const btnCancelar = await screen.findByText('Cancelar atividade');
+    fireEvent.click(btnCancelar);
+
+    const btnConfirmar = screen.getByText('Confirmar cancelamento');
+    fireEvent.click(btnConfirmar);
+    fireEvent.click(btnConfirmar);
+
+    expect(cancelMock).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('Cancelando atividade...')).toBeDisabled();
+
+    resolvePromise({ id: 'atv_1', situacao: 'cancelada' });
+  });
+
+  it('erro no cancelamento mostra código e mensagem e reabilita controles', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividade: vi.fn().mockResolvedValue({
+        id: 'atv_1',
+        titulo: 'Atv',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 40,
+        encontros: [],
+        cargaHorariaMinutos: 60,
+        situacao: 'prevista',
+        ocupadas: 0,
+        vagasRestantes: 40,
+        emEspera: 0,
+      }),
+      cancelAtividade: vi.fn().mockRejectedValue({
+        erro: 'ATIVIDADE_JA_INICIADA',
+        mensagem: 'Atividade já iniciada',
+      }),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/atv_1']} />);
+
+    const btnCancelar = await screen.findByText('Cancelar atividade');
+    fireEvent.click(btnCancelar);
+
+    const btnConfirmar = screen.getByText('Confirmar cancelamento');
+    fireEvent.click(btnConfirmar);
+
+    expect(await screen.findByText(/ATIVIDADE_JA_INICIADA/)).toBeInTheDocument();
+    expect(screen.getByText(/Atividade já iniciada/)).toBeInTheDocument();
+    expect(screen.getByText('Confirmar cancelamento')).not.toBeDisabled();
+  });
+
+  it('sucesso atualiza o detalhe para cancelada e remove controles administrativos', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividade: vi.fn().mockResolvedValueOnce({
+        id: 'atv_1',
+        titulo: 'Atv',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 40,
+        encontros: [],
+        cargaHorariaMinutos: 60,
+        situacao: 'prevista',
+        ocupadas: 0,
+        vagasRestantes: 40,
+        emEspera: 0,
+      }).mockResolvedValueOnce({
+        id: 'atv_1',
+        titulo: 'Atv',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 40,
+        encontros: [],
+        cargaHorariaMinutos: 60,
+        situacao: 'cancelada',
+        ocupadas: 0,
+        vagasRestantes: 40,
+        emEspera: 0,
+      }),
+      cancelAtividade: vi.fn().mockResolvedValue({
+        id: 'atv_1',
+        titulo: 'Atv',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 40,
+        encontros: [],
+        cargaHorariaMinutos: 60,
+        situacao: 'cancelada',
+        ocupadas: 0,
+        vagasRestantes: 40,
+        emEspera: 0,
+      }),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/atv_1']} />);
+
+    const btnCancelar = await screen.findByText('Cancelar atividade');
+    fireEvent.click(btnCancelar);
+
+    const btnConfirmar = screen.getByText('Confirmar cancelamento');
+    fireEvent.click(btnConfirmar);
+
+    expect(await screen.findByText('Atividade cancelada com sucesso!')).toBeInTheDocument();
+    expect(screen.queryByText('Editar atividade')).not.toBeInTheDocument();
+    expect(screen.queryByText('Cancelar atividade')).not.toBeInTheDocument();
+  });
 });
