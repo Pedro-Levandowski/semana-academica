@@ -86,7 +86,7 @@ export function EditarAtividade({ selectedUserId, userPapel, apiClient = api }: 
   };
 
   if (loading) {
-    return <p>Carregando atividade...</p>;
+    return <p role="status" aria-live="polite">Carregando atividade...</p>;
   }
 
   return (
@@ -97,10 +97,10 @@ export function EditarAtividade({ selectedUserId, userPapel, apiClient = api }: 
 
       <h2>Editar Atividade</h2>
 
-      {successMessage && <div className="success-message" style={{ color: 'green' }}>{successMessage}</div>}
+      {successMessage && <div className="success-message" role="status" aria-live="polite" style={{ color: 'green' }}>{successMessage}</div>}
 
       {error && (
-        <div className="error-message" style={{ color: 'red', margin: '1rem 0' }}>
+        <div className="error-message" role="alert" style={{ color: 'red', margin: '1rem 0' }}>
           Erro ({error.erro}): {error.mensagem}
         </div>
       )}

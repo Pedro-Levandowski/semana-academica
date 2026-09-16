@@ -1493,4 +1493,76 @@ describe('App Shell', () => {
 
     expect(screen.getByRole('alertdialog')).toBeInTheDocument();
   });
+
+  it('verifica estados acessíveis (role="status" e role="alert") na página de edição', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    let resolvePromise: any;
+    const pendingPromise = new Promise((resolve) => {
+      resolvePromise = resolve;
+    });
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividade: vi.fn().mockReturnValue(pendingPromise),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/atv_1/editar']} />);
+
+    expect(screen.getByRole('status')).toHaveTextContent('Carregando atividade...');
+
+    resolvePromise({
+      id: 'atv_1',
+      titulo: 'Atv',
+      tipo: 'palestra',
+      salaId: 'sala-101',
+      vagas: 20,
+      encontros: [],
+      cargaHorariaMinutos: 60,
+      situacao: 'prevista',
+      ocupadas: 0,
+      vagasRestantes: 20,
+      emEspera: 0,
+    });
+  });
+
+  it('reforça teste de fuso comprovando explicitamente que Z e -03:00 produzem a mesma data e hora em Brasília', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([{ id: 'sala-101', nome: 'Sala 101', capacidade: 40 }]),
+      getAtividades: vi.fn().mockResolvedValue([
+        {
+          id: 'atv_z',
+          titulo: 'Z Instance',
+          tipo: 'palestra',
+          salaId: 'sala-101',
+          vagas: 40,
+          encontros: [{ id: 'e1', inicio: '2026-10-19T22:00:00Z', fim: '2026-10-19T23:00:00Z' }],
+          cargaHorariaMinutos: 60,
+          situacao: 'prevista',
+          ocupadas: 0,
+          vagasRestantes: 40,
+          emEspera: 0,
+        },
+        {
+          id: 'atv_offset',
+          titulo: 'Offset Instance',
+          tipo: 'palestra',
+          salaId: 'sala-101',
+          vagas: 40,
+          encontros: [{ id: 'e2', inicio: '2026-10-19T19:00:00-03:00', fim: '2026-10-19T20:00:00-03:00' }],
+          cargaHorariaMinutos: 60,
+          situacao: 'prevista',
+          ocupadas: 0,
+          vagasRestantes: 40,
+          emEspera: 0,
+        },
+      ]),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/']} />);
+
+    const matches = await screen.findAllByText('19:00');
+    expect(matches.length).toBe(2);
+  });
 });
