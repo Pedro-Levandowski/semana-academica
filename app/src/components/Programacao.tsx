@@ -12,6 +12,7 @@ interface ProgramacaoProps {
   loading: boolean;
   error: { erro: string; mensagem: string } | null;
   dias: Array<{ data: string; label: string }>;
+  userPapel?: string;
 }
 
 export function Programacao({
@@ -24,6 +25,7 @@ export function Programacao({
   loading,
   error,
   dias,
+  userPapel,
 }: ProgramacaoProps) {
   const getSalaNome = (salaId: string) => {
     const sala = salas.find((s) => s.id === salaId);
@@ -43,6 +45,25 @@ export function Programacao({
   return (
     <div className="programacao-container" style={{ marginTop: '2rem' }}>
       <h2>Programação</h2>
+
+      {userPapel === 'organizacao' && (
+        <div style={{ margin: '1rem 0' }}>
+          <Link
+            to="/atividades/nova"
+            className="criar-atividade-link"
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: '#28a745',
+              color: '#fff',
+              borderRadius: '4px',
+              textDecoration: 'none',
+              display: 'inline-block',
+            }}
+          >
+            Criar atividade
+          </Link>
+        </div>
+      )}
 
       <div className="filtros-container" style={{ margin: '1rem 0', display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
         <div className="dias-navegacao" style={{ display: 'flex', gap: '0.5rem' }}>

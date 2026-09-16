@@ -534,4 +534,232 @@ describe('App Shell', () => {
 
     expect(await screen.findByRole('heading', { name: 'Programação' })).toBeInTheDocument();
   });
+
+  it('participante não vê a ação de criação de atividade', async () => {
+    localStorage.setItem('selectedUserId', 'p-carla');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividades: vi.fn().mockResolvedValue([]),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/']} />);
+
+    await screen.findByText(/Nenhuma atividade encontrada/i);
+    expect(screen.queryByText('Criar atividade')).not.toBeInTheDocument();
+  });
+
+  it('organização visualiza a ação de criação de atividade', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividades: vi.fn().mockResolvedValue([]),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/']} />);
+
+    expect(await screen.findByText('Criar atividade')).toBeInTheDocument();
+  });
+
+  it('navegação para o formulário ao clicar na ação de criação', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([{ id: 'sala-101', nome: 'Sala 101', capacidade: 40 }]),
+      getAtividades: vi.fn().mockResolvedValue([]),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/']} />);
+
+    const linkCriar = await screen.findByText('Criar atividade');
+    fireEvent.click(linkCriar);
+
+    expect(await screen.findByRole('heading', { name: 'Criar Atividade' })).toBeInTheDocument();
+  });
+
+  it('o formulário possui campos e rótulos acessíveis para título, tipo, sala, vagas e encontros', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([{ id: 'sala-101', nome: 'Sala 101', capacidade: 40 }]),
+      getAtividades: vi.fn().mockResolvedValue([]),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/nova']} />);
+
+    expect(await screen.findByLabelText('Título:')).toBeInTheDocument();
+    expect(screen.getByLabelText('Tipo:')).toBeInTheDocument();
+    expect(screen.getByLabelText('Sala:')).toBeInTheDocument();
+    expect(screen.getByLabelText('Vagas:')).toBeInTheDocument();
+    expect(screen.getByLabelText('Início:')).toBeInTheDocument();
+    expect(screen.getByLabelText('Fim:')).toBeInTheDocument();
+  });
+
+  it('as salas do formulário são provenientes do cliente falso', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([{ id: 'lab-3', nome: 'Laboratório 3', capacidade: 20 }]),
+      getAtividades: vi.fn().mockResolvedValue([]),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/nova']} />);
+
+    expect(await screen.findByText('Laboratório 3 (Capacidade: 20)')).toBeInTheDocument();
+  });
+
+  it('permite adicionar e remover encontros dinamicamente', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([{ id: 'sala-101', nome: 'Sala 101', capacidade: 40 }]),
+      getAtividades: vi.fn().mockResolvedValue([]),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/nova']} />);
+
+    await screen.findByLabelText('Título:');
+
+    const btnAdd = screen.getByText('Adicionar Encontro');
+    fireEvent.click(btnAdd);
+
+    const inicioInputs = screen.getAllByLabelText('Início:');
+    expect(inicioInputs.length).toBe(2);
+
+    const btnRemove = screen.getAllByText('Remover')[0];
+    fireEvent.click(btnRemove);
+
+    expect(screen.getAllByLabelText('Início:').length).toBe(1);
+  });
+
+  it('envia o payload conforme o contrato, incluindo conversão de datas datetime-local para ISO 8601 com -03:00', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const createMock = vi.fn().mockResolvedValue({ id: 'atv_new', titulo: 'Teste Payload' });
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([{ id: 'sala-101', nome: 'Sala 101', capacidade: 40 }]),
+      createAtividade: createMock,
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/nova']} />);
+
+    fireEvent.change(await screen.findByLabelText('Título:'), { target: { value: 'Teste Payload' } });
+    fireEvent.change(screen.getByLabelText('Vagas:'), { target: { value: '30' } });
+    fireEvent.change(screen.getAllByLabelText('Início:')[0], { target: { value: '2026-10-19T10:00' } });
+    fireEvent.change(screen.getAllByLabelText('Fim:')[0], { target: { value: '2026-10-19T12:00' } });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar Atividade' }));
+
+    expect(createMock).toHaveBeenCalledWith({
+      titulo: 'Teste Payload',
+      tipo: 'palestra',
+      salaId: 'sala-101',
+      vagas: 30,
+      encontros: [
+        {
+          inicio: '2026-10-19T10:00:00-03:00',
+          fim: '2026-10-19T12:00:00-03:00',
+        },
+      ],
+    });
+  });
+
+  it('bloqueia o botão e impede envio duplicado durante promessa pendente', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    let resolvePromise: any;
+    const pendingPromise = new Promise((resolve) => {
+      resolvePromise = resolve;
+    });
+    const createMock = vi.fn().mockReturnValue(pendingPromise);
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([{ id: 'sala-101', nome: 'Sala 101', capacidade: 40 }]),
+      createAtividade: createMock,
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/nova']} />);
+
+    fireEvent.change(await screen.findByLabelText('Título:'), { target: { value: 'Duplicado' } });
+    fireEvent.change(screen.getAllByLabelText('Início:')[0], { target: { value: '2026-10-19T10:00' } });
+    fireEvent.change(screen.getAllByLabelText('Fim:')[0], { target: { value: '2026-10-19T12:00' } });
+
+    const submitBtn = screen.getByRole('button', { name: 'Salvar Atividade' });
+    fireEvent.click(submitBtn);
+    fireEvent.click(submitBtn);
+
+    expect(createMock).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: 'Criando atividade...' })).toBeDisabled();
+
+    resolvePromise({ id: 'atv_1', titulo: 'Duplicado' });
+  });
+
+  it('exibe erro com código e mensagem da API e reabilita o formulário após falha', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([{ id: 'sala-101', nome: 'Sala 101', capacidade: 40 }]),
+      createAtividade: vi.fn().mockRejectedValue({
+        erro: 'VAGAS_ACIMA_DA_CAPACIDADE',
+        mensagem: 'Vagas acima da capacidade permitida',
+      }),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/nova']} />);
+
+    fireEvent.change(await screen.findByLabelText('Título:'), { target: { value: 'Erro' } });
+    fireEvent.change(screen.getAllByLabelText('Início:')[0], { target: { value: '2026-10-19T10:00' } });
+    fireEvent.change(screen.getAllByLabelText('Fim:')[0], { target: { value: '2026-10-19T12:00' } });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar Atividade' }));
+
+    expect(await screen.findByText(/VAGAS_ACIMA_DA_CAPACIDADE/)).toBeInTheDocument();
+    expect(screen.getByText(/Vagas acima da capacidade permitida/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Salvar Atividade' })).not.toBeDisabled();
+  });
+
+  it('exibe confirmação de sucesso e navega para o detalhe da atividade criada', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([{ id: 'sala-101', nome: 'Sala 101', capacidade: 40 }]),
+      createAtividade: vi.fn().mockResolvedValue({
+        id: 'atv_created',
+        titulo: 'Sucesso Total',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 20,
+        encontros: [],
+        cargaHorariaMinutos: 60,
+        situacao: 'prevista',
+        ocupadas: 0,
+        vagasRestantes: 20,
+        emEspera: 0,
+      }),
+      getAtividade: vi.fn().mockResolvedValue({
+        id: 'atv_created',
+        titulo: 'Sucesso Total',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 20,
+        encontros: [],
+        cargaHorariaMinutos: 60,
+        situacao: 'prevista',
+        ocupadas: 0,
+        vagasRestantes: 20,
+        emEspera: 0,
+      }),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/nova']} />);
+
+    fireEvent.change(await screen.findByLabelText('Título:'), { target: { value: 'Sucesso Total' } });
+    fireEvent.change(screen.getAllByLabelText('Início:')[0], { target: { value: '2026-10-19T10:00' } });
+    fireEvent.change(screen.getAllByLabelText('Fim:')[0], { target: { value: '2026-10-19T12:00' } });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar Atividade' }));
+
+    expect(await screen.findByText('Atividade criada com sucesso!')).toBeInTheDocument();
+    expect(await screen.findByText('Sucesso Total')).toBeInTheDocument();
+  });
 });

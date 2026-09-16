@@ -5,6 +5,7 @@ import { UserSelector } from './components/UserSelector';
 import { useProgramacao, DIAS_SEMANA } from './hooks/useProgramacao';
 import { Programacao } from './components/Programacao';
 import { AtividadeDetalhe } from './components/AtividadeDetalhe';
+import { CriarAtividade } from './components/CriarAtividade';
 import { api } from './api/client';
 
 interface AppProps {
@@ -57,8 +58,13 @@ export function App({ apiClient = api, initialEntries }: AppProps) {
                       loading={loading}
                       error={error}
                       dias={DIAS_SEMANA}
+                      userPapel={selectedUser.papel}
                     />
                   }
+                />
+                <Route
+                  path="/atividades/nova"
+                  element={<CriarAtividade selectedUserId={selectedUser.id} userPapel={selectedUser.papel} apiClient={apiClient} />}
                 />
                 <Route
                   path="/atividades/:id"
@@ -70,6 +76,10 @@ export function App({ apiClient = api, initialEntries }: AppProps) {
             <div>
               <p>Nenhum usuário selecionado. Por favor, selecione um usuário de demonstração para acessar o sistema.</p>
               <Routes>
+                <Route
+                  path="/atividades/nova"
+                  element={<CriarAtividade selectedUserId={null} userPapel={undefined} apiClient={apiClient} />}
+                />
                 <Route
                   path="/atividades/:id"
                   element={<AtividadeDetalhe selectedUserId={null} apiClient={apiClient} />}
