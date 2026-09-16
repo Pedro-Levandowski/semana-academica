@@ -117,7 +117,7 @@ export function Programacao({
             0
           </div>
           <strong>Nenhuma atividade encontrada</strong>
-          <p>Nenhuma atividade encontrada para os filtros selecionados.</p>
+          <p>Não há atividades para os filtros selecionados.</p>
         </div>
       )}
 
