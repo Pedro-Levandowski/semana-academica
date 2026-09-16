@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useAtividadeDetalhe } from '../hooks/useAtividadeDetalhe';
 import { M2ExtensionPoint } from './M2ExtensionPoint';
 import { api } from '../api/client';
+import { formatarDataHoraBrasilia } from '../utils/date';
 
 interface AtividadeDetalheProps {
   selectedUserId: string | null;
@@ -23,16 +24,6 @@ export function AtividadeDetalhe({ selectedUserId, userPapel, apiClient = api }:
   const getSalaNome = (salaId: string) => {
     const sala = salas.find((s) => s.id === salaId);
     return sala ? sala.nome : salaId;
-  };
-
-  const formatarDataHora = (isoString?: string) => {
-    if (!isoString) return '';
-    try {
-      const date = new Date(isoString);
-      return date.toLocaleString();
-    } catch {
-      return isoString;
-    }
   };
 
   const handleConfirmCancel = async () => {
@@ -107,10 +98,16 @@ export function AtividadeDetalhe({ selectedUserId, userPapel, apiClient = api }:
       )}
 
       {showCancelConfirm && (
-        <div className="cancel-confirm-box" style={{ border: '1px solid #dc3545', padding: '1rem', margin: '1rem 0', borderRadius: '4px', backgroundColor: '#fff5f5' }}>
-          <p>Tem certeza de que deseja cancelar esta atividade?</p>
+        <div
+          className="cancel-confirm-box"
+          role="alertdialog"
+          aria-labelledby="cancel-dialog-title"
+          aria-modal="true"
+          style={{ border: '1px solid #dc3545', padding: '1rem', margin: '1rem 0', borderRadius: '4px', backgroundColor: '#fff5f5' }}
+        >
+          <p id="cancel-dialog-title">Tem certeza de que deseja cancelar esta atividade?</p>
           {cancelError && (
-            <div className="error-message" style={{ color: 'red', margin: '0.5rem 0' }}>
+            <div className="error-message" role="alert" style={{ color: 'red', margin: '0.5rem 0' }}>
               Erro ({cancelError.erro}): {cancelError.mensagem}
             </div>
           )}
@@ -150,15 +147,15 @@ export function AtividadeDetalhe({ selectedUserId, userPapel, apiClient = api }:
       )}
 
       {cancelSuccessMessage && (
-        <div className="success-message" style={{ color: 'green', margin: '1rem 0' }}>
+        <div className="success-message" role="status" aria-live="polite" style={{ color: 'green', margin: '1rem 0' }}>
           {cancelSuccessMessage}
         </div>
       )}
 
-      {loading && <p>Carregando atividade...</p>}
+      {loading && <p role="status" aria-live="polite">Carregando atividade...</p>}
 
       {error && (
-        <div className="error-message" style={{ color: 'red', margin: '1rem 0' }}>
+        <div className="error-message" role="alert">
           Erro ({error.erro}): {error.mensagem}
         </div>
       )}
@@ -186,7 +183,7 @@ export function AtividadeDetalhe({ selectedUserId, userPapel, apiClient = api }:
             <ul>
               {atividade.encontros.map((enc) => (
                 <li key={enc.id}>
-                  Início: {formatarDataHora(enc.inicio)} | Fim: {formatarDataHora(enc.fim)}
+                  Início: {formatarDataHoraBrasilia(enc.inicio)} | Fim: {formatarDataHoraBrasilia(enc.fim)}
                 </li>
               ))}
             </ul>

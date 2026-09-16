@@ -31,10 +31,7 @@ export interface CreateAtividadeDTO {
 
 export interface UpdateAtividadeDTO {
   titulo?: string;
-  tipo?: "palestra" | "minicurso";
-  salaId?: string;
   vagas?: number;
-  encontros?: EncontroInput[];
 }
 
 export interface Atividade {

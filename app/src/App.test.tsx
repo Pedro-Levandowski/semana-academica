@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { INITIAL_USERS } from './users';
 import { api } from './api/client';
@@ -1405,5 +1406,91 @@ describe('App Shell', () => {
     expect(await screen.findByText('Atividade cancelada com sucesso!')).toBeInTheDocument();
     expect(screen.queryByText('Editar atividade')).not.toBeInTheDocument();
     expect(screen.queryByText('Cancelar atividade')).not.toBeInTheDocument();
+  });
+
+  it('aplicação inicia sem roteadores aninhados quando montada dentro de um BrowserRouter', () => {
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividades: vi.fn().mockResolvedValue([]),
+    };
+    render(
+      <BrowserRouter>
+        <App apiClient={fakeClient} />
+      </BrowserRouter>
+    );
+    expect(screen.getByRole('heading', { name: 'Semana Acadêmica' })).toBeInTheDocument();
+  });
+
+  it('formata datas independentemente do fuso da máquina usando America/Sao_Paulo', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([{ id: 'sala-101', nome: 'Sala 101', capacidade: 40 }]),
+      getAtividades: vi.fn().mockResolvedValue([
+        {
+          id: 'atv_tz',
+          titulo: 'Teste Timezone',
+          tipo: 'palestra',
+          salaId: 'sala-101',
+          vagas: 40,
+          encontros: [
+            { id: 'enc_1', inicio: '2026-10-19T22:00:00Z', fim: '2026-10-19T23:00:00Z' },
+          ],
+          cargaHorariaMinutos: 60,
+          situacao: 'prevista',
+          ocupadas: 0,
+          vagasRestantes: 40,
+          emEspera: 0,
+        },
+      ]),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/']} />);
+
+    expect(await screen.findByText('19:00')).toBeInTheDocument();
+  });
+
+  it('trata erro de carregamento de salas na criação impedindo submissão e exibindo erro acessível com role="alert"', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockRejectedValue({
+        erro: 'ERRO_SALAS',
+        mensagem: 'Falha ao carregar salas',
+      }),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/nova']} />);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Erro (ERRO_SALAS): Falha ao carregar salas');
+  });
+
+  it('utiliza papéis acessíveis (role="status" e role="alertdialog") para estados e confirmação de cancelamento', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividade: vi.fn().mockResolvedValue({
+        id: 'atv_1',
+        titulo: 'Atv Role Test',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 40,
+        encontros: [],
+        cargaHorariaMinutos: 60,
+        situacao: 'prevista',
+        ocupadas: 0,
+        vagasRestantes: 40,
+        emEspera: 0,
+      }),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/atv_1']} />);
+
+    const btnCancelar = await screen.findByText('Cancelar atividade');
+    fireEvent.click(btnCancelar);
+
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
   });
 });

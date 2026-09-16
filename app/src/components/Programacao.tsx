@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Atividade, Sala } from '../api/types';
+import { formatarHoraBrasilia } from '../utils/date';
 
 interface ProgramacaoProps {
   dia: string;
@@ -30,16 +31,6 @@ export function Programacao({
   const getSalaNome = (salaId: string) => {
     const sala = salas.find((s) => s.id === salaId);
     return sala ? sala.nome : salaId;
-  };
-
-  const formatarHorario = (isoString?: string) => {
-    if (!isoString) return '';
-    try {
-      const date = new Date(isoString);
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } catch {
-      return isoString;
-    }
   };
 
   return (
@@ -102,16 +93,16 @@ export function Programacao({
         </div>
       </div>
 
-      {loading && <p>Carregando programação...</p>}
+      {loading && <p role="status" aria-live="polite">Carregando programação...</p>}
 
       {error && (
-        <div className="error-message" style={{ color: 'red', margin: '1rem 0' }}>
+        <div className="error-message" role="alert">
           Erro ({error.erro}): {error.mensagem}
         </div>
       )}
 
       {!loading && !error && atividades.length === 0 && (
-        <p className="empty-message">Nenhuma atividade encontrada para os filtros selecionados.</p>
+        <p className="empty-message" role="status" aria-live="polite">Nenhuma atividade encontrada para os filtros selecionados.</p>
       )}
 
       {!loading && !error && atividades.length > 0 && (
@@ -144,7 +135,7 @@ export function Programacao({
                     </p>
                     {primeiroEncontro && (
                       <p style={{ margin: '0.2rem 0' }}>
-                        <strong>Início:</strong> {formatarHorario(primeiroEncontro.inicio)}
+                        <strong>Início:</strong> {formatarHoraBrasilia(primeiroEncontro.inicio)}
                       </p>
                     )}
                     <p style={{ margin: '0.2rem 0' }}>

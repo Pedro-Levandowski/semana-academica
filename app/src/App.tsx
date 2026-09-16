@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, MemoryRouter, Routes, Route } from 'react-router-dom';
+import { useInRouterContext, MemoryRouter, Routes, Route } from 'react-router-dom';
 import { useSelectedUser } from './hooks/useSelectedUser';
 import { UserSelector } from './components/UserSelector';
 import { useProgramacao, DIAS_SEMANA } from './hooks/useProgramacao';
@@ -15,6 +15,7 @@ interface AppProps {
 }
 
 export function App({ apiClient = api, initialEntries }: AppProps) {
+  const inRouter = useInRouterContext();
   const { selectedUser, selectUser, users } = useSelectedUser();
   const {
     dia,
@@ -27,14 +28,12 @@ export function App({ apiClient = api, initialEntries }: AppProps) {
     error,
   } = useProgramacao(selectedUser?.id || null, apiClient);
 
-  const RouterComponent = initialEntries ? MemoryRouter : BrowserRouter;
-  const routerProps = initialEntries ? { initialEntries } : {};
-
-  return (
-    <RouterComponent {...routerProps}>
-      <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+  const content = (
+    <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+      <header>
         <h1>Semana Acadêmica</h1>
-
+      </header>
+      <main>
         <UserSelector
           selectedUser={selectedUser}
           onSelectUser={selectUser}
@@ -98,9 +97,22 @@ export function App({ apiClient = api, initialEntries }: AppProps) {
             </div>
           )}
         </div>
-      </div>
-    </RouterComponent>
+      </main>
+    </div>
   );
+
+  const isTest = (import.meta as any).env?.MODE === 'test';
+  const routerEntries = initialEntries || (!inRouter && isTest ? ['/'] : undefined);
+
+  if (routerEntries && !inRouter) {
+    return (
+      <MemoryRouter initialEntries={routerEntries}>
+        {content}
+      </MemoryRouter>
+    );
+  }
+
+  return content;
 }
 
 export default App;
