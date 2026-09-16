@@ -1,0 +1,811 @@
+{
+ "info": {
+  "id": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+  "slug": "curious-squid",
+  "projectID": "08a8850750a50d17a216613ef31c5f0b0d1b31ca",
+  "directory": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica",
+  "path": "",
+  "title": "Adaptação da skill TDD para Vitest e Supertest",
+  "agent": "build",
+  "model": {
+   "id": "gemini-3.5-flash-lite",
+   "providerID": "google"
+  },
+  "version": "1.18.23",
+  "summary": {
+   "additions": 0,
+   "deletions": 0,
+   "files": 0
+  },
+  "cost": 0.04579831,
+  "tokens": {
+   "input": 89676,
+   "output": 1656,
+   "reasoning": 5293,
+   "cache": {
+    "read": 50767,
+    "write": 0
+   }
+  },
+  "time": {
+   "created": 1789444600930,
+   "updated": 1789444640811
+  }
+ },
+ "messages": [
+  {
+   "info": {
+    "role": "user",
+    "time": {
+     "created": 1789444600985
+    },
+    "agent": "build",
+    "model": {
+     "providerID": "google",
+     "modelID": "gemini-3.5-flash-lite"
+    },
+    "summary": {
+     "diffs": [
+      {
+       "file": ".opencode/skills/tdd/SKILL.md",
+       "patch": "Index: .opencode/skills/tdd/SKILL.md\n===================================================================\n--- .opencode/skills/tdd/SKILL.md\t\n+++ .opencode/skills/tdd/SKILL.md\t\n@@ -1,62 +1,62 @@\n----\n-name: tdd\n-description: Implementa uma spec em fatias verticais, teste primeiro — vermelho, verde, próxima fatia. Use quando existir uma spec para implementar, ou quando pedirem \"TDD\", \"teste primeiro\", \"red-green\".\n----\n-\n-# Teste primeiro, uma fatia por vez\n-\n-O ciclo é: **um teste que falha → o código mínimo que faz ele passar → a próxima fatia.**\n-Nada de escrever a suíte inteira e depois o código inteiro.\n-\n-Você precisa de uma spec com regras numeradas. Sem ela, pare: você vai acabar testando o\n-que você mesmo inventou. Sem contrato, verde não significa nada.\n-\n-## Onde o teste mora\n-\n-Teste verifica **comportamento pela interface pública**, nunca implementação. Aqui a\n-interface é HTTP: suba o servidor com `criarServidor()` e fale por `fetch`. Não importe\n-serviço nem repositório no teste — se importar, o teste quebra quando você refatorar\n-sem que o comportamento tenha mudado.\n-\n-Padrão do projeto: `node --test`, `node:assert/strict`, um arquivo em `verificacoes/`,\n-espelhando `verificacoes/livros.spec.js`. Sem framework, sem dependência, sem mock.\n-\n-## O ciclo, por fatia\n-\n-Para cada fatia da spec, nesta ordem:\n-\n-1. Escreva **um** teste que prova **um** critério de aceite. O nome do teste é a regra\n-   em português: `it('recusa o quarto empréstimo ativo do mesmo leitor')`.\n-2. Rode. **Ele tem que falhar.** Teste que passa antes do código existir não está\n-   testando nada — descubra por quê antes de seguir.\n-3. Escreva o mínimo de código que faz ele passar. Nada de já implementar a regra\n-   seguinte \"que eu vou precisar mesmo\".\n-4. Rode a suíte inteira. Verde? Próxima fatia.\n-\n-Só passe para a fatia seguinte com a suíte inteira verde.\n-\n-## A regra que não se quebra\n-\n-**Quando o teste falha, o suspeito é o código.**\n-\n-Se você mudar um teste para ele passar, você trocou o contrato pela sua implementação e\n-o verde virou enfeite. Só se altera um teste quando a **spec** mudou — e aí você diz, em\n-voz alta, qual regra da spec mudou e por quê.\n-\n-Vale para o valor esperado, para o status HTTP e para o cenário. Trocar\n-`assert.equal(dias, 14)` por `assert.equal(dias, 7)` porque o código deu 7 é a forma mais\n-comum de mentir sozinho.\n-\n-## Três testes que não valem nada\n-\n-- **Acoplado à implementação** — chama serviço ou repositório direto, ou confere o dado\n-  espiando o `Map` em vez de pedir pela API. Quebra em refatoração, não em regressão.\n-- **Tautológico** — o esperado é calculado do mesmo jeito que o código calcula\n-  (`assert.equal(multa, dias * 1.5)`). Passa por construção, nunca discorda do código.\n-  O valor esperado vem da spec, escrito na mão: `assert.equal(multa, 4.5)`.\n-- **Frouxo** — confere só o status e ignora o corpo. `201` com o prazo errado passa.\n-\n-## Fechamento\n-\n-Terminada a última fatia, rode a suíte inteira uma vez e relate o número real que\n-apareceu na saída. Não estime, não arredonde, não repita um número de outra rodada.\n+---\r\n+name: tdd\r\n+description: Implementa uma spec em fatias verticais, teste primeiro — vermelho, verde, próxima fatia. Use quando existir uma spec para implementar, ou quando pedirem \"TDD\", \"teste primeiro\", \"red-green\".\r\n+---\r\n+\r\n+# Teste primeiro, uma fatia por vez\r\n+\r\n+O ciclo é: **um teste que falha → o código mínimo que faz ele passar → a próxima fatia.**\r\n+Nada de escrever a suíte inteira e depois o código inteiro.\r\n+\r\n+Você precisa de uma spec com regras numeradas. Sem ela, pare: você vai acabar testando o\r\n+que você mesmo inventou. Sem contrato, verde não significa nada.\r\n+\r\n+## Onde o teste mora\r\n+\r\n+Teste verifica **comportamento pela interface pública**, nunca implementação. Aqui a\r\n+interface é HTTP: utilize a aplicação Express criada por `createApp()`, sem abrir porta, e faça testes HTTP pela interface pública utilizando Supertest. Não importe\r\n+serviço nem repositório no teste — se importar, o teste quebra quando você refatorar\r\n+sem que o comportamento tenha mudado.\r\n+\r\n+Padrão do projeto: Vitest, Supertest para a API, arquivos de teste em `api/tests/`.\r\n+Para executar a suíte da API, utilize `npm --prefix api test`.\r\n+\r\n+## O ciclo, por fatia\r\n+\r\n+Para cada fatia da spec, nesta ordem:\r\n+\r\n+1. Escreva **um** teste que prova **um** critério de aceite. O nome do teste é a regra\r\n+   em português: `it('recusa o quarto empréstimo ativo do mesmo leitor')`.\r\n+2. Rode. **Ele tem que falhar.** Teste que passa antes do código existir não está\r\n+   testando nada — descubra por quê antes de seguir.\r\n+3. Escreva o mínimo de código que faz ele passar. Nada de já implementar a regra\r\n+   seguinte \"que eu vou precisar mesmo\".\r\n+4. Rode a suíte inteira. Verde? Próxima fatia.\r\n+\r\n+Só passe para a fatia seguinte com a suíte inteira verde.\r\n+\r\n+## A regra que não se quebra\r\n+\r\n+**Quando o teste falha, o suspeito é o código.**\r\n+\r\n+Se você mudar um teste para ele passar, você trocou o contrato pela sua implementação e\r\n+o verde virou enfeite. Só se altera um teste quando a **spec** mudou — e aí você diz, em\r\n+voz alta, qual regra da spec mudou e por quê.\r\n+\r\n+Vale para o valor esperado, para o status HTTP e para o cenário. Trocar\r\n+`expect(dias).toBe(14)` por `expect(dias).toBe(7)` porque o código deu 7 é a forma mais\r\n+comum de mentir sozinho.\r\n+\r\n+## Três testes que não valem nada\r\n+\r\n+- **Acoplado à implementação** — chama serviço ou repositório direto, ou confere o dado\r\n+  espiando o `Map` em vez de pedir pela API. Quebra em refatoração, não em regressão.\r\n+- **Tautológico** — o esperado é calculado do mesmo jeito que o código calcula\r\n+  (`expect(multa).toBe(dias * 1.5)`). Passa por construção, nunca discorda do código.\r\n+  O valor esperado vem da spec, escrito na mão: `expect(multa).toBe(4.5)`.\r\n+- **Frouxo** — confere só o status e ignora o corpo. `201` com o prazo errado passa.\r\n+\r\n+## Fechamento\r\n+\r\n+Terminada a última fatia, rode a suíte inteira uma vez e relate o número real que\r\n+apareceu na saída. Não estime, não arredonde, não repita um número de outra rodada.\r\n",
+       "additions": 62,
+       "deletions": 62,
+       "status": "modified"
+      }
+     ]
+    },
+    "id": "msg_0a335b499001extYKDckKQxv2y",
+    "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM"
+   },
+   "parts": [
+    {
+     "type": "text",
+     "text": "Adapte somente a skill existente .opencode/skills/tdd/SKILL.md para a stack\naprovada pelo grupo.\n\nSubstitua as instruções específicas de:\n- node --test;\n- node:assert;\n- pasta verificacoes/;\n- fetch contra criarServidor();\n\npor:\n- Vitest;\n- Supertest para a API;\n- testes da API em api/tests/;\n- aplicação Express criada por createApp(), sem abrir porta;\n- testes HTTP pela interface pública;\n- npm --prefix api test para a suíte da API.\n\nPreserve integralmente os princípios:\n- teste falhando antes do código;\n- uma fatia por vez;\n- código mínimo;\n- suíte inteira verde;\n- proibição de afrouxar testes;\n- testes não acoplados à implementação.\n\nNão crie uma nova skill.\nNão altere grilling, to-spec ou novo-subagente.\nNão implemente código do sistema.\nNão faça commit.\nAo final, mostre o diff completo da skill. ",
+     "id": "prt_0a335b49e00123pGA4V0b3aquy",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a335b499001extYKDckKQxv2y"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0a335b499001extYKDckKQxv2y",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica",
+     "root": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica"
+    },
+    "cost": 0.0044303,
+    "tokens": {
+     "total": 11321,
+     "input": 10851,
+     "output": 53,
+     "reasoning": 417,
+     "cache": {
+      "write": 0,
+      "read": 0
+     }
+    },
+    "modelID": "gemini-3.5-flash-lite",
+    "providerID": "google",
+    "time": {
+     "created": 1789444601035,
+     "completed": 1789444608286
+    },
+    "finish": "tool-calls",
+    "id": "msg_0a335b4cb001vryLrihcA261yR",
+    "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM"
+   },
+   "parts": [
+    {
+     "snapshot": "7b62ad5b5d0599071599d2f0e835f7539677c527",
+     "type": "step-start",
+     "id": "prt_0a335cc43001RVUqv1ta6u04jh",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a335b4cb001vryLrihcA261yR"
+    },
+    {
+     "type": "reasoning",
+     "text": "**Analyzing the Request Details**\n\nI'm now carefully dissecting the user's request. My focus is pinpointing the exact modifications needed for the designated skill file. The challenge lies in replacing the specified instructions, particularly `node --test`, `node:assert`, and the ambiguous \"pasta,\" while adhering to the approved stack. I am prioritizing a precise understanding before making any changes.\n\n\n",
+     "time": {
+      "start": 1789444607048,
+      "end": 1789444607459
+     },
+     "id": "prt_0a335cc48001K3IM9ikl7zoDr0",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a335b4cb001vryLrihcA261yR"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "jhYwuPxnjbAa1s10",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica\\.opencode\\skills\\tdd\\SKILL.md"
+      },
+      "output": "[3284 caracteres omitidos]",
+      "title": ".opencode\\skills\\tdd\\SKILL.md",
+      "time": {
+       "start": 1789444607452,
+       "end": 1789444607515
+      }
+     },
+     "metadata": {
+      "google": {
+       "thoughtSignature": "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"
+      }
+     },
+     "id": "prt_0a335cdc9001qLn6jAMedSKB2j",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a335b4cb001vryLrihcA261yR"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "7b62ad5b5d0599071599d2f0e835f7539677c527",
+     "type": "step-finish",
+     "tokens": {
+      "total": 11321,
+      "input": 10851,
+      "output": 53,
+      "reasoning": 417,
+      "cache": {
+       "write": 0,
+       "read": 0
+      }
+     },
+     "cost": 0.0044303,
+     "id": "prt_0a335cf980014ZbJEc8hAajbOz",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a335b4cb001vryLrihcA261yR"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0a335b499001extYKDckKQxv2y",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica",
+     "root": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica"
+    },
+    "cost": 0.0074423,
+    "tokens": {
+     "total": 13991,
+     "input": 12516,
+     "output": 18,
+     "reasoning": 1457,
+     "cache": {
+      "write": 0,
+      "read": 0
+     }
+    },
+    "modelID": "gemini-3.5-flash-lite",
+    "providerID": "google",
+    "time": {
+     "created": 1789444608293,
+     "completed": 1789444614379
+    },
+    "finish": "tool-calls",
+    "id": "msg_0a335d125001DsTooPXALHAjcj",
+    "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM"
+   },
+   "parts": [
+    {
+     "snapshot": "7b62ad5b5d0599071599d2f0e835f7539677c527",
+     "type": "step-start",
+     "id": "prt_0a335e599001UK2EGZ5Y0y0Dx2",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a335d125001DsTooPXALHAjcj"
+    },
+    {
+     "type": "tool",
+     "tool": "glob",
+     "callID": "SFGGTL4nkXIHX2Pg",
+     "state": {
+      "status": "completed",
+      "input": {
+       "pattern": "**/*.test.ts"
+      },
+      "output": "[14 caracteres omitidos]",
+      "title": "",
+      "time": {
+       "start": 1789444613544,
+       "end": 1789444613650
+      }
+     },
+     "metadata": {
+      "google": {
+       "thoughtSignature": "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"
+      }
+     },
+     "id": "prt_0a335e5a0001swzNsuIWLMjXV1",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a335d125001DsTooPXALHAjcj"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "7b62ad5b5d0599071599d2f0e835f7539677c527",
+     "type": "step-finish",
+     "tokens": {
+      "total": 13991,
+      "input": 12516,
+      "output": 18,
+      "reasoning": 1457,
+      "cache": {
+       "write": 0,
+       "read": 0
+      }
+     },
+     "cost": 0.0074423,
+     "id": "prt_0a335e776001sZZ99JvxR6iDB5",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a335d125001DsTooPXALHAjcj"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0a335b499001extYKDckKQxv2y",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica",
+     "root": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica"
+    },
+    "cost": 0.0042783,
+    "tokens": {
+     "total": 14041,
+     "input": 14011,
+     "output": 17,
+     "reasoning": 13,
+     "cache": {
+      "write": 0,
+      "read": 0
+     }
+    },
+    "modelID": "gemini-3.5-flash-lite",
+    "providerID": "google",
+    "time": {
+     "created": 1789444614385,
+     "completed": 1789444616586
+    },
+    "finish": "tool-calls",
+    "id": "msg_0a335e8f1001e2iB43V2QpAbbr",
+    "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM"
+   },
+   "parts": [
+    {
+     "snapshot": "7b62ad5b5d0599071599d2f0e835f7539677c527",
+     "type": "step-start",
+     "id": "prt_0a335ee6900102cV5z2MZuOOqk",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a335e8f1001e2iB43V2QpAbbr"
+    },
+    {
+     "type": "tool",
+     "tool": "glob",
+     "callID": "iOFXSwXycRVJY26H",
+     "state": {
+      "status": "completed",
+      "input": {
+       "pattern": "**/*test*"
+      },
+      "output": "[14 caracteres omitidos]",
+      "title": "",
+      "time": {
+       "start": 1789444615797,
+       "end": 1789444615899
+      }
+     },
+     "metadata": {
+      "google": {
+       "thoughtSignature": "EpsBCpgBARFNMg85wKIWtAU4FdF7N0vRNoG0SFyrzLoTzoBH64db3ySHAkphd+mit013VDEW36dLn568XnKI+dN72pu8tD5vS9Qkcg/eXjq2AF6lFZu0VmDEVDbCRO+Qm4wBZ+22y/wDEjD7Pk39klOzx339rEpuRTzUK1yFxooyZJOPC6r3httzVsyhR/hn8toP+WlGBDJEcBPOPWo="
+      }
+     },
+     "id": "prt_0a335ee6d001yoO7Onv6jGVI5n",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a335e8f1001e2iB43V2QpAbbr"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "7b62ad5b5d0599071599d2f0e835f7539677c527",
+     "type": "step-finish",
+     "tokens": {
+      "total": 14041,
+      "input": 14011,
+      "output": 17,
+      "reasoning": 13,
+      "cache": {
+       "write": 0,
+       "read": 0
+      }
+     },
+     "cost": 0.0042783,
+     "id": "prt_0a335f02a001DAFa2ahMl8rI5o",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a335e8f1001e2iB43V2QpAbbr"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0a335b499001extYKDckKQxv2y",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica",
+     "root": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica"
+    },
+    "cost": 0.0042933,
+    "tokens": {
+     "total": 14091,
+     "input": 14061,
+     "output": 15,
+     "reasoning": 15,
+     "cache": {
+      "write": 0,
+      "read": 0
+     }
+    },
+    "modelID": "gemini-3.5-flash-lite",
+    "providerID": "google",
+    "time": {
+     "created": 1789444616609,
+     "completed": 1789444619999
+    },
+    "finish": "tool-calls",
+    "id": "msg_0a335f1a1001wgbRMLvzi7lKpU",
+    "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM"
+   },
+   "parts": [
+    {
+     "snapshot": "7b62ad5b5d0599071599d2f0e835f7539677c527",
+     "type": "step-start",
+     "id": "prt_0a335f799001dSWSx3r7uoi3V3",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a335f1a1001wgbRMLvzi7lKpU"
+    },
+    {
+     "type": "tool",
+     "tool": "glob",
+     "callID": "kILMlIQnHhqZv5s1",
+     "state": {
+      "status": "completed",
+      "input": {
+       "pattern": "**/*"
+      },
+      "output": "[11962 caracteres omitidos]",
+      "title": "",
+      "time": {
+       "start": 1789444618151,
+       "end": 1789444619272
+      }
+     },
+     "metadata": {
+      "google": {
+       "thoughtSignature": "EqkBCqYBARFNMg8ggSAo9yIK+xyb4N+q7Fg/GhO+8HhNtyQR3sjBUbFn5I6PXdKHL1GmcJSLQ2kSWnlbNrYrYwjVw491R2xFN9tiPzopGdOIpvIa4oJgk7gwoPJY6JI039whyUvAetzgAiqZkFo5rPW3kdaHqgMql7l3zZ5PdilCa+fnYQd8LFSsZOkvBZz2OkaRk4IvdSEILqavpr04SKPyneuL57S5XnWcvg=="
+      }
+     },
+     "id": "prt_0a335f79d001L3NJ5MjFjB296X",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a335f1a1001wgbRMLvzi7lKpU"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "7b62ad5b5d0599071599d2f0e835f7539677c527",
+     "type": "step-finish",
+     "tokens": {
+      "total": 14091,
+      "input": 14061,
+      "output": 15,
+      "reasoning": 15,
+      "cache": {
+       "write": 0,
+       "read": 0
+      }
+     },
+     "cost": 0.0042933,
+     "id": "prt_0a335fd6b00171yD2fxjdAnURP",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a335f1a1001wgbRMLvzi7lKpU"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0a335b499001extYKDckKQxv2y",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica",
+     "root": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica"
+    },
+    "cost": 0.0145361,
+    "tokens": {
+     "total": 22149,
+     "input": 18562,
+     "output": 326,
+     "reasoning": 3261,
+     "cache": {
+      "write": 0,
+      "read": 0
+     }
+    },
+    "modelID": "gemini-3.5-flash-lite",
+    "providerID": "google",
+    "time": {
+     "created": 1789444620006,
+     "completed": 1789444630198
+    },
+    "finish": "tool-calls",
+    "id": "msg_0a335fee6001a7u4mN37ggT6J2",
+    "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM"
+   },
+   "parts": [
+    {
+     "snapshot": "7b62ad5b5d0599071599d2f0e835f7539677c527",
+     "type": "step-start",
+     "id": "prt_0a3360acb001Eb0cf6mc6kIkfW",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a335fee6001a7u4mN37ggT6J2"
+    },
+    {
+     "type": "reasoning",
+     "text": "**Revising Instructions Carefully**\n\nOkay, I'm carefully reviewing the provided instructions again to make absolutely sure I understand the scope of the required changes. My focus is on adapting the existing skill file for a specific stack and replacing some specific instructions with alternatives. I'm noting the need to substitute `node --test` and `node:assert`.\n\n\n**Updating Testing Strategy**\n\nI'm now thinking about how to replace the current testing approach. I will switch from the original instructions to Vitest, use Supertest for the API, and organize the API tests within `api/tests/`. The Express application will be created via `createApp()`, without opening a port. I will ensure HTTP tests use the public interface, and I'll use `npm --prefix api test` for the API test suite. I aim to adhere strictly to the TDD principles.\n\n\n**Analyzing Testing Principles**\n\nI'm now fully immersed in the nuances of effective testing, especially TDD. It's crucial that I only modify tests when the specifications change, not to make the code pass. Tests must not be coupled to the implementation, tautological, or too loose. I will prioritize testing the API through the public interface. I'm focusing on the value of clear specifications, so that I will achieve meaningful tests.\n\n\n**Refining API Tests**\n\nI'm now revising the API tests; the `verificacoes/` directory will become `api/tests/`. I'll use a Supertest-based approach, and the application will be created via `createApp()` without opening any ports. I will use the HTTP public interface for the tests, rather than `fetch` and will use `npm --prefix api test` to run the suite. I aim to replace the old testing style while maintaining test integrity by using `expect()` in place of `assert.equal`.\n\n\n**Adapting Assertions Now**\n\nI'm now implementing the shift to `expect(...).toBe(...)` where applicable, replacing `assert.equal`. I reviewed the changes, and I'm ensuring all constraints are addressed and that the test descriptions reflect the updated assertions. I'm focusing on aligning the tests with Vitest, including the examples in the documentation, for instance, `expect(dias).toBe(14)` replacing `assert.equal(dias, 14)`. I am also ensuring all specifications are addressed.\n\n\n**Implementing Testing Paradigm**\n\nI'm now focusing on completely updating the testing approach. I will replace the existing instructions with a Vitest-Supertest setup. I'm organizing API tests in `api/tests/`, and creating the Express app with `createApp()` without opening any ports, with HTTP tests running through the public interface. I'm also confirming I will use `npm --prefix api test` for the API test suite. I am determined to adhere to TDD principles precisely.\n\n\n**Applying TDD Principles**\n\nI'm now fully focused on applying TDD to the testing process, writing individual tests based on acceptance criteria, in sequence for each spec slice. I'll make sure each test fails initially, write the minimum code to pass it, and then run the whole suite. No test modification unless the specification changes; I will adhere to the \"fail first\" principle strictly and maintain focus on spec-driven development.\n\n\n",
+     "time": {
+      "start": 1789444623056,
+      "end": 1789444628816
+     },
+     "id": "prt_0a3360ad0001pLuxX7DULU4Ybt",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a335fee6001a7u4mN37ggT6J2"
+    },
+    {
+     "type": "tool",
+     "tool": "edit",
+     "callID": "GsSb4Z5vJAQazgyR",
+     "state": {
+      "status": "completed",
+      "input": {
+       "oldString": "## Onde o teste mora\n\nTeste verifica **comportamento pela interface pública**, nunca implementação. Aqui a\ninterface é HTTP: suba o servidor com `criarServidor()` e fale por `fetch`. Não importe\nserviço nem repositório no teste — se importar, o teste quebra quando você refatorar\nsem que o comportamento tenha mudado.\n\nPadrão do projeto: `node --test`, `node:assert/strict`, um arquivo em `verificacoes/`,\nespelhando `verificacoes/livros.spec.js`. Sem framework, sem dependência, sem mock.",
+       "newString": "## Onde o teste mora\n\nTeste verifica **comportamento pela interface pública**, nunca implementação. Aqui a\ninterface é HTTP: utilize a aplicação Express criada por `createApp()`, sem abrir porta, e faça testes HTTP pela interface pública utilizando Supertest. Não importe\nserviço nem repositório no teste — se importar, o teste quebra quando você refatorar\nsem que o comportamento tenha mudado.\n\nPadrão do projeto: Vitest, Supertest para a API, arquivos de teste em `api/tests/`.\nPara executar a suíte da API, utilize `npm --prefix api test`.",
+       "filePath": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica\\.opencode\\skills\\tdd\\SKILL.md"
+      },
+      "output": "Edit applied successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "diff": "Index: C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica\\.opencode\\skills\\tdd\\SKILL.md\n===================================================================\n--- C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica\\.opencode\\skills\\tdd\\SKILL.md\n+++ C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica\\.opencode\\skills\\tdd\\SKILL.md\n@@ -13,14 +13,14 @@\n \n ## Onde o teste mora\n \n Teste verifica **comportamento pela interface pública**, nunca implementação. Aqui a\n-interface é HTTP: suba o servidor com `criarServidor()` e fale por `fetch`. Não importe\n+interface é HTTP: utilize a aplicação Express criada por `createApp()`, sem abrir porta, e faça testes HTTP pela interface pública utilizando Supertest. Não importe\n serviço nem repositório no teste — se importar, o teste quebra quando você refatorar\n sem que o comportamento tenha mudado.\n \n-Padrão do projeto: `node --test`, `node:assert/strict`, um arquivo em `verificacoes/`,\n-espelhando `verificacoes/livros.spec.js`. Sem framework, sem dependência, sem mock.\n+Padrão do projeto: Vitest, Supertest para a API, arquivos de teste em `api/tests/`.\n+Para executar a suíte da API, utilize `npm --prefix api test`.\n \n ## O ciclo, por fatia\n \n Para cada fatia da spec, nesta ordem:\n",
+       "filediff": {
+        "file": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica\\.opencode\\skills\\tdd\\SKILL.md",
+        "patch": "Index: C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica\\.opencode\\skills\\tdd\\SKILL.md\n===================================================================\n--- C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica\\.opencode\\skills\\tdd\\SKILL.md\n+++ C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica\\.opencode\\skills\\tdd\\SKILL.md\n@@ -13,14 +13,14 @@\n \n ## Onde o teste mora\n \n Teste verifica **comportamento pela interface pública**, nunca implementação. Aqui a\n-interface é HTTP: suba o servidor com `criarServidor()` e fale por `fetch`. Não importe\n+interface é HTTP: utilize a aplicação Express criada por `createApp()`, sem abrir porta, e faça testes HTTP pela interface pública utilizando Supertest. Não importe\n serviço nem repositório no teste — se importar, o teste quebra quando você refatorar\n sem que o comportamento tenha mudado.\n \n-Padrão do projeto: `node --test`, `node:assert/strict`, um arquivo em `verificacoes/`,\n-espelhando `verificacoes/livros.spec.js`. Sem framework, sem dependência, sem mock.\n+Padrão do projeto: Vitest, Supertest para a API, arquivos de teste em `api/tests/`.\n+Para executar a suíte da API, utilize `npm --prefix api test`.\n \n ## O ciclo, por fatia\n \n Para cada fatia da spec, nesta ordem:\n",
+        "additions": 3,
+        "deletions": 3
+       },
+       "truncated": false
+      },
+      "title": ".opencode\\skills\\tdd\\SKILL.md",
+      "time": {
+       "start": 1789444628861,
+       "end": 1789444628873
+      }
+     },
+     "metadata": {
+      "google": {
+       "thoughtSignature": "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"
+      }
+     },
+     "id": "prt_0a336213b001tuqjwQRkzfyaFv",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a335fee6001a7u4mN37ggT6J2"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "53e5e5357c5803dc7df2b94fe542999c6d304985",
+     "type": "step-finish",
+     "tokens": {
+      "total": 22149,
+      "input": 18562,
+      "output": 326,
+      "reasoning": 3261,
+      "cache": {
+       "write": 0,
+       "read": 0
+      }
+     },
+     "cost": 0.0145361,
+     "id": "prt_0a3362506001R7IpeLabMuBc8k",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a335fee6001a7u4mN37ggT6J2"
+    },
+    {
+     "type": "patch",
+     "hash": "7b62ad5b5d0599071599d2f0e835f7539677c527",
+     "files": [
+      "C:/Users/pedro/OneDrive/Área de Trabalho/trabalho-final-ia/semana-academica/.opencode/skills/tdd/SKILL.md"
+     ],
+     "id": "prt_0a33626b1001d1cOMQ5TTkvq5n",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a335fee6001a7u4mN37ggT6J2"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0a335b499001extYKDckKQxv2y",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica",
+     "root": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica"
+    },
+    "cost": 0.00350155,
+    "tokens": {
+     "total": 23351,
+     "input": 5919,
+     "output": 455,
+     "reasoning": 32,
+     "cache": {
+      "write": 0,
+      "read": 16945
+     }
+    },
+    "modelID": "gemini-3.5-flash-lite",
+    "providerID": "google",
+    "time": {
+     "created": 1789444630204,
+     "completed": 1789444633950
+    },
+    "finish": "tool-calls",
+    "id": "msg_0a33626bc001cMj82Ix1OXYOJt",
+    "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM"
+   },
+   "parts": [
+    {
+     "snapshot": "53e5e5357c5803dc7df2b94fe542999c6d304985",
+     "type": "step-start",
+     "id": "prt_0a33630cc001eL9aks56BHvSpj",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a33626bc001cMj82Ix1OXYOJt"
+    },
+    {
+     "type": "tool",
+     "tool": "edit",
+     "callID": "1cnqxdzB9HSxnM5U",
+     "state": {
+      "status": "completed",
+      "input": {
+       "newString": "Vale para o valor esperado, para o status HTTP e para o cenário. Trocar\n`expect(dias).toBe(14)` por `expect(dias).toBe(7)` porque o código deu 7 é a forma mais\ncomum de mentir sozinho.\n\n## Três testes que não valem nada\n\n- **Acoplado à implementação** — chama serviço ou repositório direto, ou confere o dado\n  espiando o `Map` em vez de pedir pela API. Quebra em refatoração, não em regressão.\n- **Tautológico** — o esperado é calculado do mesmo jeito que o código calcula\n  (`expect(multa).toBe(dias * 1.5)`). Passa por construção, nunca discorda do código.\n  O valor esperado vem da spec, escrito na mão: `expect(multa).toBe(4.5)`.",
+       "oldString": "Vale para o valor esperado, para o status HTTP e para o cenário. Trocar\n`assert.equal(dias, 14)` por `assert.equal(dias, 7)` porque o código deu 7 é a forma mais\ncomum de mentir sozinho.\n\n## Três testes que não valem nada\n\n- **Acoplado à implementação** — chama serviço ou repositório direto, ou confere o dado\n  espiando o `Map` em vez de pedir pela API. Quebra em refatoração, não em regressão.\n- **Tautológico** — o esperado é calculado do mesmo jeito que o código calcula\n  (`assert.equal(multa, dias * 1.5)`). Passa por construção, nunca discorda do código.\n  O valor esperado vem da spec, escrito na mão: `assert.equal(multa, 4.5)`.",
+       "filePath": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica\\.opencode\\skills\\tdd\\SKILL.md"
+      },
+      "output": "Edit applied successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "diff": "Index: C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica\\.opencode\\skills\\tdd\\SKILL.md\n===================================================================\n--- C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica\\.opencode\\skills\\tdd\\SKILL.md\n+++ C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica\\.opencode\\skills\\tdd\\SKILL.md\n@@ -43,18 +43,18 @@\n o verde virou enfeite. Só se altera um teste quando a **spec** mudou — e aí você diz, em\n voz alta, qual regra da spec mudou e por quê.\n \n Vale para o valor esperado, para o status HTTP e para o cenário. Trocar\n-`assert.equal(dias, 14)` por `assert.equal(dias, 7)` porque o código deu 7 é a forma mais\n+`expect(dias).toBe(14)` por `expect(dias).toBe(7)` porque o código deu 7 é a forma mais\n comum de mentir sozinho.\n \n ## Três testes que não valem nada\n \n - **Acoplado à implementação** — chama serviço ou repositório direto, ou confere o dado\n   espiando o `Map` em vez de pedir pela API. Quebra em refatoração, não em regressão.\n - **Tautológico** — o esperado é calculado do mesmo jeito que o código calcula\n-  (`assert.equal(multa, dias * 1.5)`). Passa por construção, nunca discorda do código.\n-  O valor esperado vem da spec, escrito na mão: `assert.equal(multa, 4.5)`.\n+  (`expect(multa).toBe(dias * 1.5)`). Passa por construção, nunca discorda do código.\n+  O valor esperado vem da spec, escrito na mão: `expect(multa).toBe(4.5)`.\n - **Frouxo** — confere só o status e ignora o corpo. `201` com o prazo errado passa.\n \n ## Fechamento\n \n",
+       "filediff": {
+        "file": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica\\.opencode\\skills\\tdd\\SKILL.md",
+        "patch": "Index: C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica\\.opencode\\skills\\tdd\\SKILL.md\n===================================================================\n--- C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica\\.opencode\\skills\\tdd\\SKILL.md\n+++ C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica\\.opencode\\skills\\tdd\\SKILL.md\n@@ -43,18 +43,18 @@\n o verde virou enfeite. Só se altera um teste quando a **spec** mudou — e aí você diz, em\n voz alta, qual regra da spec mudou e por quê.\n \n Vale para o valor esperado, para o status HTTP e para o cenário. Trocar\n-`assert.equal(dias, 14)` por `assert.equal(dias, 7)` porque o código deu 7 é a forma mais\n+`expect(dias).toBe(14)` por `expect(dias).toBe(7)` porque o código deu 7 é a forma mais\n comum de mentir sozinho.\n \n ## Três testes que não valem nada\n \n - **Acoplado à implementação** — chama serviço ou repositório direto, ou confere o dado\n   espiando o `Map` em vez de pedir pela API. Quebra em refatoração, não em regressão.\n - **Tautológico** — o esperado é calculado do mesmo jeito que o código calcula\n-  (`assert.equal(multa, dias * 1.5)`). Passa por construção, nunca discorda do código.\n-  O valor esperado vem da spec, escrito na mão: `assert.equal(multa, 4.5)`.\n+  (`expect(multa).toBe(dias * 1.5)`). Passa por construção, nunca discorda do código.\n+  O valor esperado vem da spec, escrito na mão: `expect(multa).toBe(4.5)`.\n - **Frouxo** — confere só o status e ignora o corpo. `201` com o prazo errado passa.\n \n ## Fechamento\n \n",
+        "additions": 3,
+        "deletions": 3
+       },
+       "truncated": false
+      },
+      "title": ".opencode\\skills\\tdd\\SKILL.md",
+      "time": {
+       "start": 1789444632840,
+       "end": 1789444632846
+      }
+     },
+     "metadata": {
+      "google": {
+       "thoughtSignature": "EuYBCuMBARFNMg/VuRHG81Di0lZxtS+IGEQLcnd/UGGD1Yf0KAjwP8hvPYBbqRi8ZNI2Y6F0v6DWUEGnge1iF2t1+U6phNNUjlBH5emwsWyzQNLXdmLcsYmePP8vkVv8GtOMVDjWmEhct4oIjc7UF0oUPCM86wDFrocFLbEyaaVLkQeeHcaeqq6224woeqd+le70iTRK2BC8rW2fN2lo2RNWSpwvZMJxiO0hmpgu0ckdBABfdsRxyszY/3bJXvCtcVRvo8XaphXUJc5KNkoiGla3WNCmIo7iWcLOvkhXCYCeCYimO1PXz/E="
+      }
+     },
+     "id": "prt_0a33630d20012R65dk8Or4gQ7b",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a33626bc001cMj82Ix1OXYOJt"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "329d302991d50feda2aa0210e9f26cf0b86b089d",
+     "type": "step-finish",
+     "tokens": {
+      "total": 23351,
+      "input": 5919,
+      "output": 455,
+      "reasoning": 32,
+      "cache": {
+       "write": 0,
+       "read": 16945
+      }
+     },
+     "cost": 0.00350155,
+     "id": "prt_0a33633a8001xsF4qtg8IArhB9",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a33626bc001cMj82Ix1OXYOJt"
+    },
+    {
+     "type": "patch",
+     "hash": "53e5e5357c5803dc7df2b94fe542999c6d304985",
+     "files": [
+      "C:/Users/pedro/OneDrive/Área de Trabalho/trabalho-final-ia/semana-academica/.opencode/skills/tdd/SKILL.md"
+     ],
+     "id": "prt_0a3363550001rMMETFQtbIBsEc",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a33626bc001cMj82Ix1OXYOJt"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0a335b499001extYKDckKQxv2y",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica",
+     "root": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica"
+    },
+    "cost": 0.00263212,
+    "tokens": {
+     "total": 23448,
+     "input": 6448,
+     "output": 27,
+     "reasoning": 49,
+     "cache": {
+      "write": 0,
+      "read": 16924
+     }
+    },
+    "modelID": "gemini-3.5-flash-lite",
+    "providerID": "google",
+    "time": {
+     "created": 1789444633955,
+     "completed": 1789444637071
+    },
+    "finish": "tool-calls",
+    "id": "msg_0a3363563001u1pfTL7nJC8SEz",
+    "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM"
+   },
+   "parts": [
+    {
+     "snapshot": "329d302991d50feda2aa0210e9f26cf0b86b089d",
+     "type": "step-start",
+     "id": "prt_0a3363c70001XY64nTohaofH78",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a3363563001u1pfTL7nJC8SEz"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "CydvVdgjYcCHIenA",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git diff .opencode/skills/tdd/SKILL.md"
+      },
+      "output": "diff --git a/.opencode/skills/tdd/SKILL.md b/.opencode/skills/tdd/SKILL.md\nindex d65e8aa..b204132 100644\n--- a/.opencode/skills/tdd/SKILL.md\n+++ b/.opencode/skills/tdd/SKILL.md\n@@ -14,12 +14,12 @@ que você mesmo inventou. Sem contrato, verde não significa nada.\n ## Onde o teste mora\n \n Teste verifica **comportamento pela interface pública**, nunca implementação. Aqui a\n-interface é HTTP: suba o servidor com `criarServidor()` e fale por `fetch`. Não importe\n+interface é HTTP: utilize a aplicação Express criada por `createApp()`, sem abrir porta, e faça testes HTTP pela interface pública utilizando Supertest. Não importe\n serviço nem repositório no teste — se importar, o teste quebra quando você refatorar\n sem que o comportamento tenha mudado.\n \n-Padrão do projeto: `node --test`, `node:assert/strict`, um arquivo em `verificacoes/`,\n-espelhando `verificacoes/livros.spec.js`. Sem framework, sem dependência, sem mock.\n+Padrão do projeto: Vitest, Supertest para a API, arquivos de teste em `api/tests/`.\n+Para executar a suíte da API, utilize `npm --prefix api test`.\n \n ## O ciclo, por fatia\n \n@@ -44,7 +44,7 @@ o verde virou enfeite. Só se altera um teste quando a **spec** mudou — e aí\n voz alta, qual regra da spec mudou e por quê.\n \n Vale para o valor esperado, para o status HTTP e para o cenário. Trocar\n-`assert.equal(dias, 14)` por `assert.equal(dias, 7)` porque o código deu 7 é a forma mais\n+`expect(dias).toBe(14)` por `expect(dias).toBe(7)` porque o código deu 7 é a forma mais\n comum de mentir sozinho.\n \n ## Três testes que não valem nada\n@@ -52,8 +52,8 @@ comum de mentir sozinho.\n - **Acoplado à implementação** — chama serviço ou repositório direto, ou confere o dado\n   espiando o `Map` em vez de pedir pela API. Quebra em refatoração, não em regressão.\n - **Tautológico** — o esperado é calculado do mesmo jeito que o código calcula\n-  (`assert.equal(multa, dias * 1.5)`). Passa por construção, nunca discorda do código.\n-  O valor esperado vem da spec, escrito na mão: `assert.equal(multa, 4.5)`.\n+  (`expect(multa).toBe(dias * 1.5)`). Passa por construção, nunca discorda do código.\n+  O valor esperado vem da spec, escrito na mão: `expect(multa).toBe(4.5)`.\n - **Frouxo** — confere só o status e ignora o corpo. `201` com o prazo errado passa.\n \n ## Fechamento\n",
+      "metadata": {
+       "output": "diff --git a/.opencode/skills/tdd/SKILL.md b/.opencode/skills/tdd/SKILL.md\nindex d65e8aa..b204132 100644\n--- a/.opencode/skills/tdd/SKILL.md\n+++ b/.opencode/skills/tdd/SKILL.md\n@@ -14,12 +14,12 @@ que você mesmo inventou. Sem contrato, verde não significa nada.\n ## Onde o teste mora\n \n Teste verifica **comportamento pela interface pública**, nunca implementação. Aqui a\n-interface é HTTP: suba o servidor com `criarServidor()` e fale por `fetch`. Não importe\n+interface é HTTP: utilize a aplicação Express criada por `createApp()`, sem abrir porta, e faça testes HTTP pela interface pública utilizando Supertest. Não importe\n serviço nem repositório no teste — se importar, o teste quebra quando você refatorar\n sem que o comportamento tenha mudado.\n \n-Padrão do projeto: `node --test`, `node:assert/strict`, um arquivo em `verificacoes/`,\n-espelhando `verificacoes/livros.spec.js`. Sem framework, sem dependência, sem mock.\n+Padrão do projeto: Vitest, Supertest para a API, arquivos de teste em `api/tests/`.\n+Para executar a suíte da API, utilize `npm --prefix api test`.\n \n ## O ciclo, por fatia\n \n@@ -44,7 +44,7 @@ o verde virou enfeite. Só se altera um teste quando a **spec** mudou — e aí\n voz alta, qual regra da spec mudou e por quê.\n \n Vale para o valor esperado, para o status HTTP e para o cenário. Trocar\n-`assert.equal(dias, 14)` por `assert.equal(dias, 7)` porque o código deu 7 é a forma mais\n+`expect(dias).toBe(14)` por `expect(dias).toBe(7)` porque o código deu 7 é a forma mais\n comum de mentir sozinho.\n \n ## Três testes que não valem nada\n@@ -52,8 +52,8 @@ comum de mentir sozinho.\n - **Acoplado à implementação** — chama serviço ou repositório direto, ou confere o dado\n   espiando o `Map` em vez de pedir pela API. Quebra em refatoração, não em regressão.\n - **Tautológico** — o esperado é calculado do mesmo jeito que o código calcula\n-  (`assert.equal(multa, dias * 1.5)`). Passa por construção, nunca discorda do código.\n-  O valor esperado vem da spec, escrito na mão: `assert.equal(multa, 4.5)`.\n+  (`expect(multa).toBe(dias * 1.5)`). Passa por construção, nunca discorda do código.\n+  O valor esperado vem da spec, escrito na mão: `expect(multa).toBe(4.5)`.\n - **Frouxo** — confere só o status e ignora o corpo. `201` com o prazo errado passa.\n \n ## Fechamento\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git diff .opencode/skills/tdd/SKILL.md",
+      "time": {
+       "start": 1789444636341,
+       "end": 1789444636369
+      }
+     },
+     "metadata": {
+      "google": {
+       "thoughtSignature": "Es0CCsoCARFNMg8+z2eyhxQwTFdvHUmDOm76XcSwuOVRDf5uJCTDxRYciTFdOXkx5DbvuKEqQcHd0DllQF6WVcm0SB2JzUZmi0a6bzxeqi48cbX9fqGFsa5FcpEsHHHWPuNPXe7fpIJnlkhOzUhS3oCjmEjwHlDGBFG80KnYurSavPBfGtislhhFA7h76tvWhJE9dq96gFqQL7ntWc6WwTeR2Q3I8sW/j+SVMdOuZ4tcCWXCaOineGvY0givLHet+HGh/RnhbTG2x5OKVPRfPbZEcXPm8Jb8UTV5Gsb7nYr0M1tdAhuD3X/oVpDOImy4QRBn39BomfVl0MOnZzzSw9HjwUslh28766EcY5B76OXPGgc+0b4zi5VhqVpP0u/k00J9w3RqnfB9Xlr84nxkdf8A7sO3xBH6Hgliy2A4rhmriYJSIOcXX8Tv3GIOi10Z"
+      }
+     },
+     "id": "prt_0a3363c730017sXXNviUVO1iGd",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a3363563001u1pfTL7nJC8SEz"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "329d302991d50feda2aa0210e9f26cf0b86b089d",
+     "type": "step-finish",
+     "tokens": {
+      "total": 23448,
+      "input": 6448,
+      "output": 27,
+      "reasoning": 49,
+      "cache": {
+       "write": 0,
+       "read": 16924
+      }
+     },
+     "cost": 0.00263212,
+     "id": "prt_0a336402f0018dwOYz5vEgd2pv",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a3363563001u1pfTL7nJC8SEz"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0a335b499001extYKDckKQxv2y",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica",
+     "root": "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\trabalho-final-ia\\semana-academica"
+    },
+    "cost": 0.00468434,
+    "tokens": {
+     "total": 25000,
+     "input": 7308,
+     "output": 745,
+     "reasoning": 49,
+     "cache": {
+      "write": 0,
+      "read": 16898
+     }
+    },
+    "modelID": "gemini-3.5-flash-lite",
+    "providerID": "google",
+    "time": {
+     "created": 1789444637079,
+     "completed": 1789444640783
+    },
+    "finish": "stop",
+    "id": "msg_0a3364197001jsyS4tcHImy5I9",
+    "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM"
+   },
+   "parts": [
+    {
+     "snapshot": "329d302991d50feda2aa0210e9f26cf0b86b089d",
+     "type": "step-start",
+     "id": "prt_0a3364806001wK65BU9bdAt6nj",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a3364197001jsyS4tcHImy5I9"
+    },
+    {
+     "type": "text",
+     "text": "```diff\ndiff --git a/.opencode/skills/tdd/SKILL.md b/.opencode/skills/tdd/SKILL.md\nindex d65e8aa..b204132 100644\n--- a/.opencode/skills/tdd/SKILL.md\n+++ b/.opencode/skills/tdd/SKILL.md\n@@ -14,12 +14,12 @@ que você mesmo inventou. Sem contrato, verde não significa nada.\n ## Onde o teste mora\n \n Teste verifica **comportamento pela interface pública**, nunca implementação. Aqui a\n-interface é HTTP: suba o servidor com `criarServidor()` e fale por `fetch`. Não importe\n+interface é HTTP: utilize a aplicação Express criada por `createApp()`, sem abrir porta, e faça testes HTTP pela interface pública utilizando Supertest. Não importe\n serviço nem repositório no teste — se importar, o teste quebra quando você refatorar\n sem que o comportamento tenha mudado.\n \n-Padrão do projeto: `node --test`, `node:assert/strict`, um arquivo em `verificacoes/`,\n-espelhando `verificacoes/livros.spec.js`. Sem framework, sem dependência, sem mock.\n+Padrão do projeto: Vitest, Supertest para a API, arquivos de teste em `api/tests/`.\n+Para executar a suíte da API, utilize `npm --prefix api test`.\n \n ## O ciclo, por fatia\n \n@@ -44,7 +44,7 @@ o verde virou enfeite. Só se altera um teste quando a **spec** mudou — e aí\n voz alta, qual regra da spec mudou e por quê.\n \n Vale para o valor esperado, para o status HTTP e para o cenário. Trocar\n-`assert.equal(dias, 14)` por `assert.equal(dias, 7)` porque o código deu 7 é a forma mais\n+`expect(dias).toBe(14)` por `expect(dias).toBe(7)` porque o código deu 7 é a forma mais\n comum de mentir sozinho.\n \n ## Três testes que não valem nada\n@@ -52,8 +52,8 @@ comum de mentir sozinho.\n - **Acoplado à implementação** — chama serviço ou repositório direto, ou confere o dado\n   espiando o `Map` em vez de pedir pela API. Quebra em refatoração, não em regressão.\n - **Tautológico** — o esperado é calculado do mesmo jeito que o código calcula\n-  (`assert.equal(multa, dias * 1.5)`). Passa por construção, nunca discorda do código.\n-  O valor esperado vem da spec, escrito na mão: `assert.equal(multa, 4.5)`.\n+  (`expect(multa).toBe(dias * 1.5)`). Passa por construção, nunca discorda do código.\n+  O valor esperado vem da spec, escrito na mão: `expect(multa).toBe(4.5)`.\n - **Frouxo** — confere só o status e ignora o corpo. `201` com o prazo errado passa.\n \n ## Fechamento\n```",
+     "time": {
+      "start": 1789444638731,
+      "end": 1789444640155
+     },
+     "id": "prt_0a336480b001AdjXc0DYa4iYDs",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a3364197001jsyS4tcHImy5I9"
+    },
+    {
+     "reason": "stop",
+     "snapshot": "329d302991d50feda2aa0210e9f26cf0b86b089d",
+     "type": "step-finish",
+     "tokens": {
+      "total": 25000,
+      "input": 7308,
+      "output": 745,
+      "reasoning": 49,
+      "cache": {
+       "write": 0,
+       "read": 16898
+      }
+     },
+     "cost": 0.00468434,
+     "id": "prt_0a3364ed4001o6alI3CbjVRLNg",
+     "sessionID": "ses_f5cca4b9dffeI7dKXH25Yf2AIM",
+     "messageID": "msg_0a3364197001jsyS4tcHImy5I9"
+    }
+   ]
+  }
+ ]
+}

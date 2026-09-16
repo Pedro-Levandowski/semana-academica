@@ -9,36 +9,44 @@ interface EditarAtividadeProps {
   apiClient?: typeof api;
 }
 
-export function EditarAtividade({ selectedUserId, userPapel, apiClient = api }: EditarAtividadeProps) {
+export function EditarAtividade({
+  selectedUserId,
+  userPapel,
+  apiClient = api,
+}: EditarAtividadeProps) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+
   const [atividade, setAtividade] = useState<Atividade | null>(null);
   const [salas, setSalas] = useState<Sala[]>([]);
   const [titulo, setTitulo] = useState('');
   const [vagas, setVagas] = useState(1);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<{ erro: string; mensagem: string } | null>(null);
+  const [error, setError] = useState<{
+    erro: string;
+    mensagem: string;
+  } | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id || !selectedUserId || userPapel !== 'organizacao') return;
+
     setLoading(true);
-    Promise.all([
-      apiClient.getSalas(),
-      apiClient.getAtividade(id),
-    ])
-      .then(([salasRes, atvRes]) => {
-        setSalas(salasRes);
-        setAtividade(atvRes);
-        setTitulo(atvRes.titulo);
-        setVagas(atvRes.vagas);
+
+    Promise.all([apiClient.getSalas(), apiClient.getAtividade(id)])
+      .then(([salasResponse, atividadeResponse]) => {
+        setSalas(salasResponse);
+        setAtividade(atividadeResponse);
+        setTitulo(atividadeResponse.titulo);
+        setVagas(atividadeResponse.vagas);
         setLoading(false);
       })
       .catch((err: any) => {
         setError({
           erro: err.erro || 'ERRO_DESCONHECIDO',
-          mensagem: err.mensagem || err.message || 'Erro ao carregar atividade',
+          mensagem:
+            err.mensagem || err.message || 'Erro ao carregar atividade',
         });
         setLoading(false);
       });
@@ -46,20 +54,26 @@ export function EditarAtividade({ selectedUserId, userPapel, apiClient = api }: 
 
   if (!selectedUserId || userPapel !== 'organizacao') {
     return (
-      <div>
+      <section className="state-panel">
+        <span className="eyebrow">Acesso restrito</span>
+        <h2>Área exclusiva da organização</h2>
         <p>Acesso negado ou usuário não autorizado.</p>
-        <Link to="/">Voltar para a programação</Link>
-      </div>
+
+        <Link to="/" className="button button--secondary">
+          Voltar para a programação
+        </Link>
+      </section>
     );
   }
 
   const getSalaNome = (salaId: string) => {
-    const sala = salas.find((s) => s.id === salaId);
+    const sala = salas.find((item) => item.id === salaId);
     return sala ? sala.nome : salaId;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
     if (submitting || !id) return;
 
     setSubmitting(true);
@@ -73,6 +87,7 @@ export function EditarAtividade({ selectedUserId, userPapel, apiClient = api }: 
       });
 
       setSuccessMessage('Atividade alterada com sucesso!');
+
       setTimeout(() => {
         navigate(`/atividades/${id}`);
       }, 100);
@@ -86,90 +101,125 @@ export function EditarAtividade({ selectedUserId, userPapel, apiClient = api }: 
   };
 
   if (loading) {
-    return <p role="status" aria-live="polite">Carregando atividade...</p>;
+    return (
+      <div className="state-message state-message--loading" role="status" aria-live="polite">
+        <span className="loading-indicator" aria-hidden="true" />
+        <span>Carregando atividade...</span>
+      </div>
+    );
   }
 
   return (
-    <div className="editar-atividade-container" style={{ padding: '1rem 0' }}>
-      <p>
-        <Link to={`/atividades/${id}`} className="voltar-detalhe-link">Voltar ao detalhe</Link>
-      </p>
+    <section className="form-page editar-atividade-container">
+      <Link to={`/atividades/${id}`} className="back-link voltar-detalhe-link">
+        Voltar ao detalhe
+      </Link>
 
-      <h2>Editar Atividade</h2>
+      <div className="page-heading">
+        <div>
+          <span className="eyebrow">Gerenciamento</span>
+          <h2>Editar Atividade</h2>
+          <p>Atualize o título ou a quantidade de vagas disponíveis.</p>
+        </div>
+      </div>
 
-      {successMessage && <div className="success-message" role="status" aria-live="polite" style={{ color: 'green' }}>{successMessage}</div>}
+      {successMessage && (
+        <div className="success-message" role="status" aria-live="polite">
+          {successMessage}
+        </div>
+      )}
 
       {error && (
-        <div className="error-message" role="alert" style={{ color: 'red', margin: '1rem 0' }}>
-          Erro ({error.erro}): {error.mensagem}
+        <div className="error-message" role="alert">
+          <strong>Não foi possível salvar as alterações.</strong>
+          <span>
+            Erro ({error.erro}): {error.mensagem}
+          </span>
         </div>
       )}
 
       {atividade && (
-        <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem', maxWidth: '600px' }}>
-          <div>
-            <label htmlFor="edit-titulo-input">Título:</label>
-            <input
-              id="edit-titulo-input"
-              type="text"
-              value={titulo}
-              onChange={(e) => setTitulo(e.target.value)}
-              required
-              style={{ display: 'block', width: '100%', padding: '0.5rem' }}
-            />
+        <form onSubmit={handleSubmit} className="form-card">
+          <div className="form-card__header">
+            <span className="form-card__step">01</span>
+
+            <div>
+              <h3>Campos editáveis</h3>
+              <p>Somente título e vagas podem ser modificados.</p>
+            </div>
           </div>
 
-          <div>
-            <label htmlFor="edit-vagas-input">Vagas:</label>
-            <input
-              id="edit-vagas-input"
-              type="number"
-              value={vagas}
-              onChange={(e) => setVagas(Number(e.target.value))}
-              min={1}
-              required
-              style={{ display: 'block', width: '100%', padding: '0.5rem' }}
-            />
+          <div className="form-grid">
+            <div className="field field--wide">
+              <label htmlFor="edit-titulo-input">Título:</label>
+              <input
+                id="edit-titulo-input"
+                type="text"
+                value={titulo}
+                onChange={(event) => setTitulo(event.target.value)}
+                required
+              />
+            </div>
+
+            <div className="field">
+              <label htmlFor="edit-vagas-input">Vagas:</label>
+              <input
+                id="edit-vagas-input"
+                type="number"
+                value={vagas}
+                onChange={(event) => setVagas(Number(event.target.value))}
+                min={1}
+                required
+              />
+            </div>
           </div>
 
-          <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '4px' }}>
-            <p><strong>Tipo (Não editável):</strong> <span>{atividade.tipo}</span></p>
-            <p><strong>Sala (Não editável):</strong> <span>{getSalaNome(atividade.salaId)}</span></p>
-            <p><strong>Carga Horária (Não editável):</strong> <span>{atividade.cargaHorariaMinutos} minutos</span></p>
-          </div>
+          <section className="readonly-panel" aria-labelledby="readonly-title">
+            <div className="readonly-panel__heading">
+              <span className="form-card__step">02</span>
 
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <button
-              type="submit"
-              disabled={submitting}
-              style={{
-                padding: '0.75rem 1.5rem',
-                backgroundColor: submitting ? '#cccccc' : '#007bff',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: submitting ? 'not-allowed' : 'pointer',
-              }}
-            >
-              {submitting ? 'Salvando...' : 'Salvar Alterações'}
-            </button>
+              <div>
+                <h3 id="readonly-title">Informações fixas</h3>
+                <p>Estes dados não podem ser alterados depois da criação.</p>
+              </div>
+            </div>
+
+            <dl className="info-grid">
+              <div>
+                <dt>Tipo (Não editável)</dt>
+                <dd>{atividade.tipo}</dd>
+              </div>
+
+              <div>
+                <dt>Sala (Não editável)</dt>
+                <dd>{getSalaNome(atividade.salaId)}</dd>
+              </div>
+
+              <div>
+                <dt>Carga Horária (Não editável)</dt>
+                <dd>{atividade.cargaHorariaMinutos} minutos</dd>
+              </div>
+            </dl>
+          </section>
+
+          <div className="form-actions">
             <Link
               to={`/atividades/${id}`}
-              className="voltar-sem-salvar"
-              style={{
-                padding: '0.75rem 1.5rem',
-                backgroundColor: '#6c757d',
-                color: '#fff',
-                borderRadius: '4px',
-                textDecoration: 'none',
-                display: 'inline-block',
-              }}
+              className="button button--ghost voltar-sem-salvar"
             >
               Voltar sem salvar
             </Link>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="button button--primary"
+            >
+              {submitting ? 'Salvando...' : 'Salvar Alterações'}
+            </button>
           </div>
         </form>
       )}
-    </div>
+    </section>
   );
 }
