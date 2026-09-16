@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Atividade, Sala } from '../api/types';
 
 interface ProgramacaoProps {
@@ -130,6 +131,11 @@ export function Programacao({
                     </p>
                     <p style={{ margin: '0.2rem 0' }}>
                       <strong>Situação:</strong> {atv.situacao}
+                    </p>
+                    <p style={{ marginTop: '0.5rem' }}>
+                      <Link to={`/atividades/${atv.id}`} className="ver-detalhes-link">
+                        Ver detalhes
+                      </Link>
                     </p>
                   </div>
                 </div>
