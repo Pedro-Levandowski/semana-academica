@@ -101,4 +101,26 @@ export class ActivityRepository {
       WHERE a.sala_id = ? AND a.cancelada = 0
     `).all(salaId) as Array<{ inicio: string; fim: string }>;
   }
+
+  update(id: string, fields: { titulo?: string; vagas?: number }): void {
+    const sets: string[] = [];
+    const params: any[] = [];
+    if (fields.titulo !== undefined) {
+      sets.push('titulo = ?');
+      params.push(fields.titulo);
+    }
+    if (fields.vagas !== undefined) {
+      sets.push('vagas = ?');
+      params.push(fields.vagas);
+    }
+    if (sets.length === 0) {
+      return;
+    }
+    params.push(id);
+    this.db.prepare(`UPDATE atividades SET ${sets.join(', ')} WHERE id = ?`).run(...params);
+  }
+
+  cancel(id: string): void {
+    this.db.prepare(`UPDATE atividades SET cancelada = 1 WHERE id = ?`).run(id);
+  }
 }
