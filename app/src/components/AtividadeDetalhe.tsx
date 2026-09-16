@@ -6,10 +6,11 @@ import { api } from '../api/client';
 
 interface AtividadeDetalheProps {
   selectedUserId: string | null;
+  userPapel?: string;
   apiClient?: typeof api;
 }
 
-export function AtividadeDetalhe({ selectedUserId, apiClient = api }: AtividadeDetalheProps) {
+export function AtividadeDetalhe({ selectedUserId, userPapel, apiClient = api }: AtividadeDetalheProps) {
   const { id } = useParams<{ id: string }>();
   const { atividade, salas, loading, error } = useAtividadeDetalhe(id, selectedUserId, apiClient);
 
@@ -44,6 +45,25 @@ export function AtividadeDetalhe({ selectedUserId, apiClient = api }: AtividadeD
       <p>
         <Link to="/" className="voltar-link">Voltar para a programação</Link>
       </p>
+
+      {userPapel === 'organizacao' && atividade && (
+        <p style={{ margin: '1rem 0' }}>
+          <Link
+            to={`/atividades/${atividade.id}/editar`}
+            className="editar-atividade-link"
+            style={{
+              padding: '0.4rem 0.8rem',
+              backgroundColor: '#ffc107',
+              color: '#000',
+              borderRadius: '4px',
+              textDecoration: 'none',
+              display: 'inline-block',
+            }}
+          >
+            Editar atividade
+          </Link>
+        </p>
+      )}
 
       {loading && <p>Carregando atividade...</p>}
 

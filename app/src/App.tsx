@@ -6,6 +6,7 @@ import { useProgramacao, DIAS_SEMANA } from './hooks/useProgramacao';
 import { Programacao } from './components/Programacao';
 import { AtividadeDetalhe } from './components/AtividadeDetalhe';
 import { CriarAtividade } from './components/CriarAtividade';
+import { EditarAtividade } from './components/EditarAtividade';
 import { api } from './api/client';
 
 interface AppProps {
@@ -67,8 +68,12 @@ export function App({ apiClient = api, initialEntries }: AppProps) {
                   element={<CriarAtividade selectedUserId={selectedUser.id} userPapel={selectedUser.papel} apiClient={apiClient} />}
                 />
                 <Route
+                  path="/atividades/:id/editar"
+                  element={<EditarAtividade selectedUserId={selectedUser.id} userPapel={selectedUser.papel} apiClient={apiClient} />}
+                />
+                <Route
                   path="/atividades/:id"
-                  element={<AtividadeDetalhe selectedUserId={selectedUser?.id || null} apiClient={apiClient} />}
+                  element={<AtividadeDetalhe selectedUserId={selectedUser.id} userPapel={selectedUser.papel} apiClient={apiClient} />}
                 />
               </Routes>
             </div>
@@ -79,6 +84,10 @@ export function App({ apiClient = api, initialEntries }: AppProps) {
                 <Route
                   path="/atividades/nova"
                   element={<CriarAtividade selectedUserId={null} userPapel={undefined} apiClient={apiClient} />}
+                />
+                <Route
+                  path="/atividades/:id/editar"
+                  element={<EditarAtividade selectedUserId={null} userPapel={undefined} apiClient={apiClient} />}
                 />
                 <Route
                   path="/atividades/:id"

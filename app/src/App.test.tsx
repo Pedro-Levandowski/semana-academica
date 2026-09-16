@@ -762,4 +762,332 @@ describe('App Shell', () => {
     expect(await screen.findByText('Atividade criada com sucesso!')).toBeInTheDocument();
     expect(await screen.findByText('Sucesso Total')).toBeInTheDocument();
   });
+
+  it('participante não vê "Editar atividade" na página de detalhes', async () => {
+    localStorage.setItem('selectedUserId', 'p-carla');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividade: vi.fn().mockResolvedValue({
+        id: 'atv_1',
+        titulo: 'Atividade Teste',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 40,
+        encontros: [],
+        cargaHorariaMinutos: 60,
+        situacao: 'prevista',
+        ocupadas: 0,
+        vagasRestantes: 40,
+        emEspera: 0,
+      }),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/atv_1']} />);
+
+    expect(await screen.findByText('Atividade Teste')).toBeInTheDocument();
+    expect(screen.queryByText('Editar atividade')).not.toBeInTheDocument();
+  });
+
+  it('organização vê a ação "Editar atividade" e navega para a rota correta', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividade: vi.fn().mockResolvedValue({
+        id: 'atv_1',
+        titulo: 'Atividade Org',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 40,
+        encontros: [],
+        cargaHorariaMinutos: 60,
+        situacao: 'prevista',
+        ocupadas: 0,
+        vagasRestantes: 40,
+        emEspera: 0,
+      }),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/atv_1']} />);
+
+    const btnEditar = await screen.findByText('Editar atividade');
+    fireEvent.click(btnEditar);
+
+    expect(await screen.findByRole('heading', { name: 'Editar Atividade' })).toBeInTheDocument();
+  });
+
+  it('carregamento dos dados atuais na página de edição', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    let resolvePromise: any;
+    const pendingPromise = new Promise((resolve) => {
+      resolvePromise = resolve;
+    });
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividade: vi.fn().mockReturnValue(pendingPromise),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/atv_1/editar']} />);
+
+    expect(screen.getByText('Carregando atividade...')).toBeInTheDocument();
+
+    resolvePromise({
+      id: 'atv_1',
+      titulo: 'Atividade',
+      tipo: 'palestra',
+      salaId: 'sala-101',
+      vagas: 40,
+      encontros: [],
+      cargaHorariaMinutos: 60,
+      situacao: 'prevista',
+      ocupadas: 0,
+      vagasRestantes: 40,
+      emEspera: 0,
+    });
+  });
+
+  it('formulário de edição preenchido com título e vagas existentes', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([{ id: 'sala-101', nome: 'Sala 101', capacidade: 40 }]),
+      getAtividade: vi.fn().mockResolvedValue({
+        id: 'atv_1',
+        titulo: 'Flutter Summit',
+        tipo: 'minicurso',
+        salaId: 'sala-101',
+        vagas: 35,
+        encontros: [],
+        cargaHorariaMinutos: 120,
+        situacao: 'prevista',
+        ocupadas: 0,
+        vagasRestantes: 35,
+        emEspera: 0,
+      }),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/atv_1/editar']} />);
+
+    const inputTitulo = await screen.findByLabelText('Título:') as HTMLInputElement;
+    const inputVagas = screen.getByLabelText('Vagas:') as HTMLInputElement;
+
+    expect(inputTitulo.value).toBe('Flutter Summit');
+    expect(inputVagas.value).toBe('35');
+  });
+
+  it('ausência de controles editáveis para tipo, sala, encontros e carga horária', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([{ id: 'sala-101', nome: 'Sala 101', capacidade: 40 }]),
+      getAtividade: vi.fn().mockResolvedValue({
+        id: 'atv_1',
+        titulo: 'Flutter Summit',
+        tipo: 'minicurso',
+        salaId: 'sala-101',
+        vagas: 35,
+        encontros: [],
+        cargaHorariaMinutos: 120,
+        situacao: 'prevista',
+        ocupadas: 0,
+        vagasRestantes: 35,
+        emEspera: 0,
+      }),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/atv_1/editar']} />);
+
+    await screen.findByLabelText('Título:');
+
+    expect(screen.queryByLabelText('Tipo:')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Sala:')).not.toBeInTheDocument();
+    expect(screen.getByText('minicurso')).toBeInTheDocument();
+    expect(screen.getByText('Sala 101')).toBeInTheDocument();
+    expect(screen.getByText('120 minutos')).toBeInTheDocument();
+  });
+
+  it('envia payload contendo exclusivamente título e vagas via PATCH /atividades/:id', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const updateMock = vi.fn().mockResolvedValue({ id: 'atv_1', titulo: 'Novo Título' });
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([{ id: 'sala-101', nome: 'Sala 101', capacidade: 40 }]),
+      getAtividade: vi.fn().mockResolvedValue({
+        id: 'atv_1',
+        titulo: 'Antigo',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 20,
+        encontros: [],
+        cargaHorariaMinutos: 60,
+        situacao: 'prevista',
+        ocupadas: 0,
+        vagasRestantes: 20,
+        emEspera: 0,
+      }),
+      updateAtividade: updateMock,
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/atv_1/editar']} />);
+
+    const inputTitulo = await screen.findByLabelText('Título:');
+    fireEvent.change(inputTitulo, { target: { value: 'Novo Título' } });
+
+    const inputVagas = screen.getByLabelText('Vagas:');
+    fireEvent.change(inputVagas, { target: { value: '25' } });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar Alterações' }));
+
+    expect(updateMock).toHaveBeenCalledWith('atv_1', {
+      titulo: 'Novo Título',
+      vagas: 25,
+    });
+  });
+
+  it('bloqueia o botão durante promessa pendente e impede envio duplicado', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    let resolvePromise: any;
+    const pendingPromise = new Promise((resolve) => {
+      resolvePromise = resolve;
+    });
+    const updateMock = vi.fn().mockReturnValue(pendingPromise);
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividade: vi.fn().mockResolvedValue({
+        id: 'atv_1',
+        titulo: 'Atv',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 20,
+        encontros: [],
+        cargaHorariaMinutos: 60,
+        situacao: 'prevista',
+        ocupadas: 0,
+        vagasRestantes: 20,
+        emEspera: 0,
+      }),
+      updateAtividade: updateMock,
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/atv_1/editar']} />);
+
+    const submitBtn = await screen.findByRole('button', { name: 'Salvar Alterações' });
+    fireEvent.click(submitBtn);
+    fireEvent.click(submitBtn);
+
+    expect(updateMock).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('button', { name: 'Salvando...' })).toBeDisabled();
+
+    resolvePromise({ id: 'atv_1', titulo: 'Atv' });
+  });
+
+  it('exibe erro com código/mensagem da API e reabilita o formulário após falha', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividade: vi.fn().mockResolvedValue({
+        id: 'atv_1',
+        titulo: 'Atv',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 20,
+        encontros: [],
+        cargaHorariaMinutos: 60,
+        situacao: 'prevista',
+        ocupadas: 0,
+        vagasRestantes: 20,
+        emEspera: 0,
+      }),
+      updateAtividade: vi.fn().mockRejectedValue({
+        erro: 'CAMPO_NAO_EDITAVEL',
+        mensagem: 'Campo não editável',
+      }),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/atv_1/editar']} />);
+
+    const submitBtn = await screen.findByRole('button', { name: 'Salvar Alterações' });
+    fireEvent.click(submitBtn);
+
+    expect(await screen.findByText(/CAMPO_NAO_EDITAVEL/)).toBeInTheDocument();
+    expect(screen.getByText(/Campo não editável/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Salvar Alterações' })).not.toBeDisabled();
+  });
+
+  it('exibe sucesso com confirmação e redireciona para o detalhe atualizado', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([{ id: 'sala-101', nome: 'Sala 101', capacidade: 40 }]),
+      getAtividade: vi.fn().mockResolvedValue({
+        id: 'atv_1',
+        titulo: 'Editada Sucesso',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 20,
+        encontros: [],
+        cargaHorariaMinutos: 60,
+        situacao: 'prevista',
+        ocupadas: 0,
+        vagasRestantes: 20,
+        emEspera: 0,
+      }),
+      updateAtividade: vi.fn().mockResolvedValue({
+        id: 'atv_1',
+        titulo: 'Editada Sucesso',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 20,
+        encontros: [],
+        cargaHorariaMinutos: 60,
+        situacao: 'prevista',
+        ocupadas: 0,
+        vagasRestantes: 20,
+        emEspera: 0,
+      }),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/atv_1/editar']} />);
+
+    const submitBtn = await screen.findByRole('button', { name: 'Salvar Alterações' });
+    fireEvent.click(submitBtn);
+
+    expect(await screen.findByText('Atividade alterada com sucesso!')).toBeInTheDocument();
+    expect(await screen.findByTestId('detalhe-titulo')).toHaveTextContent('Editada Sucesso');
+  });
+
+  it('voltar sem salvar não executa PATCH e retorna ao detalhe', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const updateMock = vi.fn();
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([{ id: 'sala-101', nome: 'Sala 101', capacidade: 40 }]),
+      getAtividade: vi.fn().mockResolvedValue({
+        id: 'atv_1',
+        titulo: 'Original',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 20,
+        encontros: [],
+        cargaHorariaMinutos: 60,
+        situacao: 'prevista',
+        ocupadas: 0,
+        vagasRestantes: 20,
+        emEspera: 0,
+      }),
+      updateAtividade: updateMock,
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/atv_1/editar']} />);
+
+    const btnVoltar = await screen.findByText('Voltar sem salvar');
+    fireEvent.click(btnVoltar);
+
+    expect(updateMock).not.toHaveBeenCalled();
+    expect(await screen.findByTestId('detalhe-titulo')).toHaveTextContent('Original');
+  });
 });
