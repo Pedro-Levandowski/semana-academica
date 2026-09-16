@@ -1,0 +1,216 @@
+import { DateTime } from 'luxon';
+
+export class DomainError extends Error {
+  constructor(public code: string, message: string) {
+    super(message);
+    this.name = 'DomainError';
+  }
+}
+
+export class ConflictError extends Error {
+  constructor(public code: string, message: string) {
+    super(message);
+    this.name = 'ConflictError';
+  }
+}
+
+export interface ActivityData {
+  id: string;
+  titulo: string;
+  tipo: string;
+  salaId: string;
+  vagas: number;
+  cargaHorariaMinutos: number;
+  cancelada: number;
+  encontros: Array<{ id: string; inicio: string; fim: string }>;
+}
+
+export function validateActivityEncounterCount(tipo: string, encontrosCount: number): void {
+  if (tipo === 'palestra' && encontrosCount !== 1) {
+    throw new DomainError('QUANTIDADE_DE_ENCONTROS', 'Palestra deve ter exatamente 1 encontro');
+  }
+  if (tipo === 'minicurso' && (encontrosCount < 2 || encontrosCount > 5)) {
+    throw new DomainError('QUANTIDADE_DE_ENCONTROS', 'Minicurso deve ter entre 2 e 5 encontros');
+  }
+}
+
+export function validateVagas(vagas: number, capacidadeSala: number): void {
+  if (vagas < 1 || vagas > capacidadeSala) {
+    throw new DomainError('VAGAS_ACIMA_DA_CAPACIDADE', 'Número de vagas excede a capacidade da sala ou é menor que 1');
+  }
+}
+
+export interface ParsedEncounter {
+  inicio: DateTime;
+  fim: DateTime;
+}
+
+export function parseAndValidateEncounter(enc: { inicio: string; fim: string }): ParsedEncounter {
+  if (typeof enc.inicio !== 'string' || typeof enc.fim !== 'string') {
+    throw new DomainError('ENCONTRO_INVALIDO', 'Início e fim devem ser strings');
+  }
+
+  const hasOffset = /Z|[+-]\d{2}:?\d{2}$/i.test(enc.inicio) && /Z|[+-]\d{2}:?\d{2}$/i.test(enc.fim);
+  if (!hasOffset) {
+    throw new DomainError('ENCONTRO_INVALIDO', 'Data deve incluir Z ou offset explícito');
+  }
+
+  const inicioDt = DateTime.fromISO(enc.inicio, { setZone: true });
+  const fimDt = DateTime.fromISO(enc.fim, { setZone: true });
+
+  if (!inicioDt.isValid || !fimDt.isValid) {
+    throw new DomainError('ENCONTRO_INVALIDO', 'Data ISO inválida');
+  }
+
+  const duracaoMinutos = fimDt.diff(inicioDt, 'minutes').minutes;
+  if (duracaoMinutos < 60 || duracaoMinutos > 240) {
+    throw new DomainError('ENCONTRO_INVALIDO', 'Duração do encontro deve ser entre 60 e 240 minutos');
+  }
+
+  const inicioLocal = inicioDt.setZone('America/Sao_Paulo');
+  const fimLocal = fimDt.setZone('America/Sao_Paulo');
+
+  const inicioDate = inicioLocal.toISODate();
+  const fimDate = fimLocal.toISODate();
+
+  const minDate = '2026-10-19';
+  const maxDate = '2026-10-23';
+
+  if (!inicioDate || !fimDate || inicioDate < minDate || inicioDate > maxDate || fimDate < minDate || fimDate > maxDate) {
+    throw new DomainError('ENCONTRO_INVALIDO', 'Encontro fora do período do evento (19/10 a 23/10/2026)');
+  }
+
+  if (inicioDate !== fimDate) {
+    throw new DomainError('ENCONTRO_INVALIDO', 'Encontro não pode atravessar a meia-noite');
+  }
+
+  return { inicio: inicioDt, fim: fimDt };
+}
+
+export function validateEncounterRules(encontros: Array<{ inicio: string; fim: string }>): void {
+  const parsed = encontros.map(parseAndValidateEncounter);
+
+  const sorted = [...parsed].sort((a, b) => a.inicio.toMillis() - b.inicio.toMillis());
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const current = sorted[i];
+    const next = sorted[i + 1];
+    if (next.inicio < current.fim) {
+      throw new DomainError('ENCONTRO_INVALIDO', 'Sobreposição entre encontros da mesma atividade');
+    }
+  }
+}
+
+export function validateRoomConflict(
+  newEncontros: Array<{ inicio: string; fim: string }>,
+  existingEncontros: Array<{ inicio: string; fim: string }>
+): void {
+  const newParsed = newEncontros.map(enc => ({
+    inicio: DateTime.fromISO(enc.inicio, { setZone: true }),
+    fim: DateTime.fromISO(enc.fim, { setZone: true })
+  }));
+
+  const existingParsed = existingEncontros.map(enc => ({
+    inicio: DateTime.fromISO(enc.inicio, { setZone: true }),
+    fim: DateTime.fromISO(enc.fim, { setZone: true })
+  }));
+
+  for (const n of newParsed) {
+    for (const e of existingParsed) {
+      const hasConflict = n.inicio < e.fim.plus({ minutes: 15 }) && n.fim > e.inicio.minus({ minutes: 15 });
+      if (hasConflict) {
+        throw new ConflictError('CONFLITO_DE_SALA', 'Conflito de horário na mesma sala (intervalo mínimo de 15 minutos necessário)');
+      }
+    }
+  }
+}
+
+export function calculateCargaHoraria(encontros: Array<{ inicio: string; fim: string }>): number {
+  let total = 0;
+  for (const enc of encontros) {
+    const inicioDt = DateTime.fromISO(enc.inicio, { setZone: true });
+    const fimDt = DateTime.fromISO(enc.fim, { setZone: true });
+    const duracaoMinutos = fimDt.diff(inicioDt, 'minutes').minutes;
+    total += duracaoMinutos;
+  }
+  return total;
+}
+
+export function sortEncontros<T extends { inicio: string }>(encontros: T[]): T[] {
+  return [...encontros].sort((a, b) => {
+    const dtA = DateTime.fromISO(a.inicio, { setZone: true });
+    const dtB = DateTime.fromISO(b.inicio, { setZone: true });
+    return dtA.toMillis() - dtB.toMillis();
+  });
+}
+
+export function calculateActivityStatus(activity: ActivityData, now: DateTime): string {
+  if (activity.cancelada) {
+    return 'cancelada';
+  }
+  if (!activity.encontros || activity.encontros.length === 0) {
+    return 'prevista';
+  }
+  const sorted = sortEncontros(activity.encontros);
+  const primeiroInicio = DateTime.fromISO(sorted[0].inicio, { setZone: true });
+  const ultimoFim = DateTime.fromISO(sorted[sorted.length - 1].fim, { setZone: true });
+
+  if (now < primeiroInicio) {
+    return 'prevista';
+  }
+  if (now >= ultimoFim) {
+    return 'encerrada';
+  }
+  return 'em_andamento';
+}
+
+export function getEarliestEncontroInicio(encontros: Array<{ inicio: string }>): DateTime {
+  if (!encontros || encontros.length === 0) {
+    return DateTime.fromMillis(0);
+  }
+  let earliest = DateTime.fromISO(encontros[0].inicio, { setZone: true });
+  for (let i = 1; i < encontros.length; i++) {
+    const dt = DateTime.fromISO(encontros[i].inicio, { setZone: true });
+    if (dt < earliest) {
+      earliest = dt;
+    }
+  }
+  return earliest;
+}
+
+export function sortActivities<T extends { titulo: string; encontros: Array<{ inicio: string }> }>(activities: T[]): T[] {
+  return [...activities].sort((a, b) => {
+    const dtA = getEarliestEncontroInicio(a.encontros);
+    const dtB = getEarliestEncontroInicio(b.encontros);
+    const diff = dtA.toMillis() - dtB.toMillis();
+    if (diff !== 0) {
+      return diff;
+    }
+    return a.titulo.localeCompare(b.titulo);
+  });
+}
+
+export function encounterBelongsToDay(encounter: { inicio: string }, targetDateIso: string): boolean {
+  const dt = DateTime.fromISO(encounter.inicio, { setZone: true });
+  if (!dt.isValid) return false;
+  const saoPauloDt = dt.setZone('America/Sao_Paulo');
+  return saoPauloDt.toISODate() === targetDateIso;
+}
+
+export function activityBelongsToDay(activity: { encontros: Array<{ inicio: string }> }, targetDateIso: string): boolean {
+  return activity.encontros.some(enc => encounterBelongsToDay(enc, targetDateIso));
+}
+
+export function filterActivities<T extends { tipo: string; encontros: Array<{ inicio: string }> }>(
+  activities: T[],
+  filters: { dia?: string; tipo?: string }
+): T[] {
+  return activities.filter(activity => {
+    if (filters.tipo && activity.tipo !== filters.tipo) {
+      return false;
+    }
+    if (filters.dia && !activityBelongsToDay(activity, filters.dia)) {
+      return false;
+    }
+    return true;
+  });
+}

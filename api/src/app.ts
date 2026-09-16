@@ -6,15 +6,24 @@ import { runMigrations } from './db/migrate.js';
 import { runSeed, runReset } from './db/seed.js';
 import { Clock, RealClock } from './clock/clock.js';
 import { DatabaseControllableClock, ControllableClock } from './clock/controllable-clock.js';
-import { NeutralM2Adapter } from './integrations/m2-port.js';
+import { NeutralM2Adapter, M2IntegrationPort } from './integrations/m2-port.js';
 import { UserRepository } from './repositories/user-repository.js';
 import { RoomRepository } from './repositories/room-repository.js';
 import { ActivityRepository } from './repositories/activity-repository.js';
+import { CreateActivityUseCase } from './application/create-activity.js';
+import { GetActivityUseCase } from './application/get-activity.js';
+import { ListActivitiesUseCase } from './application/list-activities.js';
+import { UpdateActivityUseCase } from './application/update-activity.js';
+import { CancelActivityUseCase } from './application/cancel-activity.js';
+import { NotFoundError } from './application/errors.js';
+import { DomainError, ConflictError } from './domain/activity.js';
+import { mapActivityResponse } from './http/activity-response.js';
 
 export interface AppOptions {
   dbPath?: string;
   clock?: Clock;
   modoTeste?: boolean;
+  m2Port?: M2IntegrationPort;
 }
 
 export function createApp(options?: AppOptions | string) {
@@ -28,7 +37,6 @@ export function createApp(options?: AppOptions | string) {
     origin: '*',
     allowedHeaders: ['Content-Type', 'X-Usuario']
   }));
-  app.use(express.json());
 
   const db = createDatabase(dbPath);
   runMigrations(db);
@@ -41,10 +49,15 @@ export function createApp(options?: AppOptions | string) {
     runSeed(db);
   }
 
-  const m2Port = new NeutralM2Adapter();
+  const m2Port = opts.m2Port || new NeutralM2Adapter();
   const userRepository = new UserRepository(db);
   const roomRepository = new RoomRepository(db);
   const activityRepository = new ActivityRepository(db);
+  const createActivityUseCase = new CreateActivityUseCase(activityRepository, roomRepository);
+  const getActivityUseCase = new GetActivityUseCase(activityRepository);
+  const listActivitiesUseCase = new ListActivitiesUseCase(activityRepository);
+  const updateActivityUseCase = new UpdateActivityUseCase(activityRepository, roomRepository, m2Port);
+  const cancelActivityUseCase = new CancelActivityUseCase(activityRepository, m2Port, clock);
 
   // Modo de teste routes (when MODO_TESTE=1)
   if (modoTeste) {
@@ -60,7 +73,7 @@ export function createApp(options?: AppOptions | string) {
 
     const isoSchema = z.string().datetime({ offset: true });
 
-    app.put('/_teste/relogio', (req: Request, res: Response) => {
+    app.put('/_teste/relogio', express.json(), (req: Request, res: Response) => {
       const { agora } = req.body || {};
       const result = isoSchema.safeParse(agora);
       if (!result.success) {
@@ -94,27 +107,123 @@ export function createApp(options?: AppOptions | string) {
     next();
   };
 
+  const requireOrg = (req: Request, res: Response, next: NextFunction) => {
+    const user = (req as any).user;
+    if (!user || user.papel !== 'organizacao') {
+      res.status(403).json({ erro: 'SOMENTE_ORGANIZACAO', mensagem: 'Acesso restrito à organização' });
+      return;
+    }
+    next();
+  };
+
   app.get('/salas', requireUser, (_req: Request, res: Response) => {
     const salas = roomRepository.findAll();
     res.json(salas);
   });
 
-  app.get('/atividades', requireUser, (_req: Request, res: Response) => {
-    const atividades = activityRepository.findAll();
-    const result = atividades.map((atv) => ({
-      id: atv.id,
-      titulo: atv.titulo,
-      tipo: atv.tipo,
-      salaId: atv.salaId,
-      vagas: atv.vagas,
-      cargaHorariaMinutos: atv.cargaHorariaMinutos,
-      situacao: atv.cancelada ? 'cancelada' : 'prevista',
-      ocupadas: m2Port.getOcupadas(atv.id),
-      vagasRestantes: atv.vagas - m2Port.getOcupadas(atv.id),
-      emEspera: m2Port.getEmEspera(atv.id),
-      encontros: atv.encontros
-    }));
+  app.get('/atividades', requireUser, (req: Request, res: Response) => {
+    const agora = clock.now();
+    const dia = typeof req.query.dia === 'string' ? req.query.dia : undefined;
+    const tipo = typeof req.query.tipo === 'string' ? req.query.tipo : undefined;
+    const atividades = listActivitiesUseCase.execute({ dia, tipo });
+    const result = atividades.map((atv) => mapActivityResponse(atv, m2Port, agora));
     res.json(result);
+  });
+
+  app.get('/atividades/:id', requireUser, (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const agora = clock.now();
+      const activity = getActivityUseCase.execute(req.params.id);
+      const result = mapActivityResponse(activity, m2Port, agora);
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  const createActivitySchema = z.object({
+    titulo: z.string(),
+    tipo: z.enum(['palestra', 'minicurso']),
+    salaId: z.string(),
+    vagas: z.number().int(),
+    encontros: z.array(
+      z.object({
+        inicio: z.string(),
+        fim: z.string()
+      })
+    )
+  });
+
+  app.post('/atividades', requireUser, requireOrg, express.json(), (req: Request, res: Response, next: NextFunction) => {
+    const parseResult = createActivitySchema.safeParse(req.body);
+    if (!parseResult.success) {
+      res.status(422).json({ erro: 'DADOS_INVALIDOS', mensagem: 'Dados inválidos' });
+      return;
+    }
+
+    try {
+      const agora = clock.now();
+      const created = createActivityUseCase.execute(parseResult.data);
+      const result = mapActivityResponse(created, m2Port, agora);
+      res.status(201).json(result);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  const updateActivitySchema = z.object({
+    titulo: z.string().optional(),
+    vagas: z.number().int().optional(),
+    tipo: z.any().optional(),
+    salaId: z.any().optional(),
+    encontros: z.any().optional(),
+    cargaHorariaMinutos: z.any().optional()
+  });
+
+  const jsonParser = express.json();
+
+  app.patch('/atividades/:id', requireUser, requireOrg, (req: Request, res: Response, next: NextFunction) => {
+    const activityId = req.params.id;
+    try {
+      getActivityUseCase.execute(activityId);
+    } catch (err) {
+      next(err);
+      return;
+    }
+
+    jsonParser(req, res, (err?: any) => {
+      if (err) {
+        res.status(422).json({ erro: 'DADOS_INVALIDOS', mensagem: 'JSON malformado' });
+        return;
+      }
+
+      const parseResult = updateActivitySchema.safeParse(req.body);
+      if (!parseResult.success) {
+        res.status(422).json({ erro: 'DADOS_INVALIDOS', mensagem: 'Dados inválidos' });
+        return;
+      }
+
+      try {
+        const agora = clock.now();
+        const updated = updateActivityUseCase.execute(activityId, parseResult.data);
+        const result = mapActivityResponse(updated, m2Port, agora);
+        res.json(result);
+      } catch (e) {
+        next(e);
+      }
+    });
+  });
+
+  app.post('/atividades/:id/cancelamento', requireUser, requireOrg, (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const agora = clock.now();
+      const activityId = req.params.id;
+      const updated = cancelActivityUseCase.execute(activityId);
+      const result = mapActivityResponse(updated, m2Port, agora);
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
   });
 
   app.use((_req: Request, res: Response) => {
@@ -122,6 +231,22 @@ export function createApp(options?: AppOptions | string) {
   });
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    if (err instanceof SyntaxError && 'body' in err) {
+      res.status(422).json({ erro: 'DADOS_INVALIDOS', mensagem: 'JSON malformado' });
+      return;
+    }
+    if (err instanceof ConflictError || err.code === 'CONFLITO_DE_SALA') {
+      res.status(409).json({ erro: err.code || 'CONFLITO_DE_SALA', mensagem: err.message });
+      return;
+    }
+    if (err instanceof DomainError) {
+      res.status(422).json({ erro: err.code, mensagem: err.message });
+      return;
+    }
+    if (err instanceof NotFoundError) {
+      res.status(404).json({ erro: 'NAO_ENCONTRADO', mensagem: err.message });
+      return;
+    }
     res.status(422).json({ erro: 'DADOS_INVALIDOS', mensagem: err.message || 'Erro de validação' });
   });
 
