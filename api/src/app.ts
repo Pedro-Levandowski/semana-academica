@@ -184,9 +184,10 @@ export function createApp(options?: AppOptions | string) {
 
   app.patch('/atividades/:id', requireUser, requireOrg, (req: Request, res: Response, next: NextFunction) => {
     const activityId = req.params.id;
-    const existing = activityRepository.findById(activityId);
-    if (!existing) {
-      res.status(404).json({ erro: 'NAO_ENCONTRADO', mensagem: 'Atividade não encontrada' });
+    try {
+      getActivityUseCase.execute(activityId);
+    } catch (err) {
+      next(err);
       return;
     }
 

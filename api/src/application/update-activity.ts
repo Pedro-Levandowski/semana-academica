@@ -52,7 +52,7 @@ export class UpdateActivityUseCase {
         throw new ConflictError('VAGAS_ABAIXO_DOS_INSCRITOS', 'Número de vagas abaixo da quantidade de inscritos');
       }
 
-      if (input.vagas > activity.vagas && activity.vagas <= ocupadas) {
+      if (input.vagas > activity.vagas && input.vagas > ocupadas) {
         shouldConvocar = true;
       }
     }

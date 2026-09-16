@@ -451,6 +451,7 @@ describe('PATCH /atividades/:id — Edição Básica (Fatia 4)', () => {
       getOcupadas(_id: string) { return 10; }
       getEmEspera(_id: string) { return 3; }
       convocarEspera(_id: string) {}
+      cancelarInscricoes(_id: string) {}
     })();
 
     const appWithM2 = createApp({ modoTeste: true, m2Port: fakeM2 });
@@ -506,6 +507,7 @@ describe('PATCH /atividades/:id — Edição Básica (Fatia 4)', () => {
       getOcupadas(_id: string) { return 10; }
       getEmEspera(_id: string) { return 0; }
       convocarEspera(_id: string) {}
+      cancelarInscricoes(_id: string) {}
     })();
 
     const appWithM2 = createApp({ modoTeste: true, m2Port: fakeM2 });
@@ -544,6 +546,7 @@ describe('PATCH /atividades/:id — Edição Básica (Fatia 4)', () => {
       getOcupadas(_id: string) { return 10; }
       getEmEspera(_id: string) { return 0; }
       convocarEspera(_id: string) {}
+      cancelarInscricoes(_id: string) {}
     })();
 
     const appWithM2 = createApp({ modoTeste: true, m2Port: fakeM2 });
@@ -589,6 +592,7 @@ describe('PATCH /atividades/:id — Edição Básica (Fatia 4)', () => {
       getOcupadas(_id: string) { return 10; }
       getEmEspera(_id: string) { return 3; }
       convocarEspera(id: string) { convocadas.push(id); }
+      cancelarInscricoes(_id: string) {}
     })();
 
     const appWithM2 = createApp({ modoTeste: true, m2Port: fakeM2 });
@@ -627,6 +631,7 @@ describe('PATCH /atividades/:id — Edição Básica (Fatia 4)', () => {
       getOcupadas(_id: string) { return 10; }
       getEmEspera(_id: string) { return 3; }
       convocarEspera(id: string) { convocadas.push(id); }
+      cancelarInscricoes(_id: string) {}
     })();
 
     const appWithM2 = createApp({ modoTeste: true, m2Port: fakeM2 });
