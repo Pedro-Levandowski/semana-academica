@@ -15,6 +15,7 @@ import { GetActivityUseCase } from './application/get-activity.js';
 import { ListActivitiesUseCase } from './application/list-activities.js';
 import { UpdateActivityUseCase } from './application/update-activity.js';
 import { CancelActivityUseCase } from './application/cancel-activity.js';
+import { GetCodigoDoEncontroUseCase } from './application/get-codigo-do-encontro.js';
 import { NotFoundError } from './application/errors.js';
 import { DomainError, ConflictError } from './domain/activity.js';
 import { mapActivityResponse } from './http/activity-response.js';
@@ -58,6 +59,7 @@ export function createApp(options?: AppOptions | string) {
   const listActivitiesUseCase = new ListActivitiesUseCase(activityRepository);
   const updateActivityUseCase = new UpdateActivityUseCase(activityRepository, roomRepository, m2Port);
   const cancelActivityUseCase = new CancelActivityUseCase(activityRepository, m2Port, clock);
+  const getCodigoDoEncontroUseCase = new GetCodigoDoEncontroUseCase(activityRepository, clock);
 
   // Modo de teste routes (when MODO_TESTE=1)
   if (modoTeste) {
@@ -136,6 +138,15 @@ export function createApp(options?: AppOptions | string) {
       const activity = getActivityUseCase.execute(req.params.id);
       const result = mapActivityResponse(activity, m2Port, agora);
       res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  app.get('/encontros/:id/codigo', requireUser, requireOrg, (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const codigoDoEncontro = getCodigoDoEncontroUseCase.execute(req.params.id);
+      res.json(codigoDoEncontro);
     } catch (err) {
       next(err);
     }
