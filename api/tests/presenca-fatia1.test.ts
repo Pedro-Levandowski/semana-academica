@@ -151,4 +151,99 @@ describe('M3 - Presença - Fatia 1 (R1)', () => {
     expect(res.status).toBe(422);
     expect(res.body.erro).toBe('FORA_DA_JANELA');
   });
+
+  it('recusa GET /encontros/:id/codigo para atividade cancelada com 422 ATIVIDADE_CANCELADA independentemente da janela', async () => {
+    const atividadeRes = await request(app)
+      .post('/atividades')
+      .set('X-Usuario', 'org-ana')
+      .send({
+        titulo: 'Palestra Cancelada',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 20,
+        encontros: [
+          { inicio: '2026-10-19T10:00:00-03:00', fim: '2026-10-19T11:00:00-03:00' }
+        ]
+      });
+
+    expect(atividadeRes.status).toBe(201);
+    const atividadeId = atividadeRes.body.id;
+    const encontroId = atividadeRes.body.encontros[0].id;
+
+    // Cancela a atividade
+    const cancelRes = await request(app)
+      .post(`/atividades/${atividadeId}/cancelamento`)
+      .set('X-Usuario', 'org-ana');
+    expect(cancelRes.status).toBe(200);
+
+    // Relógio dentro da janela normal (ex: no horário de início)
+    await request(app)
+      .put('/_teste/relogio')
+      .send({ agora: '2026-10-19T10:00:00-03:00' });
+
+    const res = await request(app)
+      .get(`/encontros/${encontroId}/codigo`)
+      .set('X-Usuario', 'org-ana');
+
+    expect(res.status).toBe(422);
+    expect(res.body.erro).toBe('ATIVIDADE_CANCELADA');
+    expect(typeof res.body.mensagem).toBe('string');
+  });
+
+  it('R3 — Rotação e formato do código QR (6 caracteres, sem 0, O, 1, I, rotaciona a cada minuto)', async () => {
+    const atividadeRes = await request(app)
+      .post('/atividades')
+      .set('X-Usuario', 'org-ana')
+      .send({
+        titulo: 'Palestra R3',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 20,
+        encontros: [
+          { inicio: '2026-10-19T10:00:00-03:00', fim: '2026-10-19T11:00:00-03:00' }
+        ]
+      });
+
+    expect(atividadeRes.status).toBe(201);
+    const encontroId = atividadeRes.body.encontros[0].id;
+
+    // Relógio em 10:00:10-03:00
+    await request(app)
+      .put('/_teste/relogio')
+      .send({ agora: '2026-10-19T10:00:10-03:00' });
+
+    const res1 = await request(app)
+      .get(`/encontros/${encontroId}/codigo`)
+      .set('X-Usuario', 'org-ana');
+
+    expect(res1.status).toBe(200);
+    const codigo1 = res1.body.codigo;
+    expect(codigo1).toMatch(/^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{6}$/);
+
+    // Relógio em 10:00:50-03:00 (mesmo minuto)
+    await request(app)
+      .put('/_teste/relogio')
+      .send({ agora: '2026-10-19T10:00:50-03:00' });
+
+    const res2 = await request(app)
+      .get(`/encontros/${encontroId}/codigo`)
+      .set('X-Usuario', 'org-ana');
+
+    expect(res2.status).toBe(200);
+    expect(res2.body.codigo).toBe(codigo1);
+
+    // Relógio em 10:01:00-03:00 (minuto seguinte)
+    await request(app)
+      .put('/_teste/relogio')
+      .send({ agora: '2026-10-19T10:01:00-03:00' });
+
+    const res3 = await request(app)
+      .get(`/encontros/${encontroId}/codigo`)
+      .set('X-Usuario', 'org-ana');
+
+    expect(res3.status).toBe(200);
+    const codigo3 = res3.body.codigo;
+    expect(codigo3).toMatch(/^[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{6}$/);
+    expect(codigo3).not.toBe(codigo1);
+  });
 });
