@@ -33,6 +33,7 @@ import { DomainError, ConflictError } from './domain/activity.js';
 import { processExpirationsAndConvocations } from './domain/inscricao-service.js';
 import { mapActivityResponse } from './http/activity-response.js';
 import { EmitirCertificado } from './certificate/emissao-certificado.js';
+import { abreviarNome } from './certificate/abreviar-nome.js';
 
 export interface AppOptions {
   dbPath?: string;
@@ -420,6 +421,25 @@ const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, in
     }
 
     res.status(resultado.criado ? 201 : 200).json(resultado.certificado);
+  });
+
+  app.get('/certificados/:codigo', (req: Request, res: Response) => {
+    const certificado = certificateRepository.findByCodigo(req.params.codigo);
+    if (!certificado) {
+      res.status(404).json({ erro: 'NAO_ENCONTRADO', mensagem: 'Recurso não encontrado' });
+      return;
+    }
+
+    const atividade = activityRepository.findById(certificado.atividadeId);
+    const participante = userRepository.findById(certificado.participanteId);
+
+    res.status(200).json({
+      codigo: certificado.codigo,
+      participante: participante ? abreviarNome(participante.nome) : '',
+      atividade: atividade ? atividade.titulo : '',
+      cargaHorariaMinutos: certificado.cargaHorariaMinutos,
+      emitidoEm: certificado.emitidoEm
+    });
   });
 
   app.use((_req: Request, res: Response) => {
