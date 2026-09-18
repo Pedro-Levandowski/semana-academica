@@ -47,10 +47,20 @@ export class RegisterPresencaUseCase {
     }
 
     const agora = this.clock.now();
+    const inicio = DateTime.fromISO(result.encounter.inicio, { setZone: true });
+    const fim = DateTime.fromISO(result.encounter.fim, { setZone: true });
 
-    // lidoEm vs agora (R13, R17)
+    // Sincronização tardia (R5): envio até 2 horas depois do fim do encontro
+    const limiteSincronizacao = fim.plus({ hours: 2 });
+    if (agora > limiteSincronizacao) {
+      throw new DomainError('SINCRONIZACAO_TARDIA', 'Sincronização tardia');
+    }
+
+    // lidoEm vs agora (R13, R17) e Origem (R18)
     let refTime = agora;
-    if (input.lidoEm) {
+    let origem = 'qr';
+    if (input.lidoEm !== undefined) {
+      origem = 'qr_offline';
       const parsedLidoEm = DateTime.fromISO(input.lidoEm, { setZone: true });
       if (parsedLidoEm.isValid) {
         if (parsedLidoEm > agora) {
@@ -61,8 +71,7 @@ export class RegisterPresencaUseCase {
       }
     }
 
-    // Window check (R1)
-    const inicio = DateTime.fromISO(result.encounter.inicio, { setZone: true });
+    // Window check (R1, R5)
     const janelaInicio = inicio.minus({ minutes: 15 });
     const janelaFim = inicio.plus({ minutes: 30 });
     if (refTime < janelaInicio || refTime > janelaFim) {
@@ -86,7 +95,7 @@ export class RegisterPresencaUseCase {
       id,
       encontroId,
       participanteId,
-      origem: 'qr',
+      origem,
       lidoEm: refTime.toISO()!,
       registradaEm: agora.toISO()!,
       justificativa: null
