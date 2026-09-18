@@ -27,6 +27,8 @@ export class InscricaoRepository {
       SELECT id, atividadeId, participanteId, status, posicaoNaEspera, convocadaAte, criadaEm
       FROM inscricoes
       WHERE atividadeId = ? AND participanteId = ?
+      ORDER BY CASE WHEN status IN ('confirmada', 'em_espera', 'convocada') THEN 1 ELSE 2 END, criadaEm DESC
+      LIMIT 1
     `).get(atividadeId, participanteId) as InscricaoData | undefined;
 
     return row || null;

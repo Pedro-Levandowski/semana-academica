@@ -470,4 +470,41 @@ describe('M2 - Inscrições - Fatia 3', () => {
     expect(checkCarlaA.body.status).toBe('convocada');
     expect(checkCarlaA.body.convocadaAte).toBe('2026-10-19T12:00:00-03:00');
   });
+
+  it('R20 (Critério 36) — recusa confirmação de convocação feita por usuário com papel organizacao com 403 SOMENTE_PARTICIPANTE', async () => {
+    // 1. Cria atividade e convocação
+    const atvRes = await request(app)
+      .post('/atividades')
+      .set('X-Usuario', 'org-ana')
+      .send({
+        titulo: 'Palestra para Confirmar por Org',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 1,
+        encontros: [
+          { inicio: '2026-10-19T10:00:00-03:00', fim: '2026-10-19T11:00:00-03:00' }
+        ]
+      });
+    const atvId = atvRes.body.id;
+
+    // p-fabio -> confirmada
+    await request(app).post(`/atividades/${atvId}/inscricoes`).set('X-Usuario', 'p-fabio');
+    // p-carla -> em_espera
+    const insCarla = await request(app).post(`/atividades/${atvId}/inscricoes`).set('X-Usuario', 'p-carla');
+
+    // Libera vaga -> p-carla é convocada
+    await request(app)
+      .patch(`/atividades/${atvId}`)
+      .set('X-Usuario', 'org-ana')
+      .send({ vagas: 2 });
+
+    // Organização (org-ana) tenta confirmar a inscrição do participante
+    const resOrg = await request(app)
+      .post(`/inscricoes/${insCarla.body.id}/confirmacao`)
+      .set('X-Usuario', 'org-ana');
+
+    expect(resOrg.status).toBe(403);
+    expect(resOrg.body.erro).toBe('SOMENTE_PARTICIPANTE');
+    expect(typeof resOrg.body.mensagem).toBe('string');
+  });
 });

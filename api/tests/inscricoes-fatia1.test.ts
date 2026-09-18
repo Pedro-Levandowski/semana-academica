@@ -131,6 +131,67 @@ describe('M2 - Inscrições - Fatia 1', () => {
     expect(typeof res2.body.mensagem).toBe('string');
   });
 
+  it('R3 (Critério 6) — permite re-inscrição de participante com inscrição anterior cancelada ou expirada, inserindo ao final da fila ou como confirmada', async () => {
+    // 1. Cria atividade com 1 vaga
+    const atividadeRes = await request(app)
+      .post('/atividades')
+      .set('X-Usuario', 'org-ana')
+      .send({
+        titulo: 'Palestra Re-Inscrição',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 1,
+        encontros: [
+          { inicio: '2026-10-19T10:00:00-03:00', fim: '2026-10-19T11:00:00-03:00' }
+        ]
+      });
+
+    const atvId = atividadeRes.body.id;
+
+    // Participante p-carla se inscreve (confirmada)
+    const ins1 = await request(app)
+      .post(`/atividades/${atvId}/inscricoes`)
+      .set('X-Usuario', 'p-carla');
+    expect(ins1.status).toBe(201);
+    expect(ins1.body.status).toBe('confirmada');
+
+    // Participante p-diego se inscreve (entra na espera: posicao 1)
+    const ins2 = await request(app)
+      .post(`/atividades/${atvId}/inscricoes`)
+      .set('X-Usuario', 'p-diego');
+    expect(ins2.status).toBe(201);
+    expect(ins2.body.status).toBe('em_espera');
+    expect(ins2.body.posicaoNaEspera).toBe(1);
+
+    // p-carla cancela sua inscrição -> p-diego é convocado automaticamente (convocada)
+    await request(app)
+      .post(`/inscricoes/${ins1.body.id}/cancelamento`)
+      .set('X-Usuario', 'p-carla');
+
+    // p-carla (cuja inscrição anterior foi cancelada) se inscreve novamente
+    const reInsCarla = await request(app)
+      .post(`/atividades/${atvId}/inscricoes`)
+      .set('X-Usuario', 'p-carla');
+
+    expect(reInsCarla.status).toBe(201);
+    expect(reInsCarla.body.status).toBe('em_espera');
+    expect(reInsCarla.body.posicaoNaEspera).toBe(1);
+
+    // Agora testa re-inscrição de participante cuja convocação expirou:
+    // Relógio avança para expirar convocação de p-diego (convocadaAte = +2h)
+    await request(app)
+      .put('/_teste/relogio')
+      .send({ agora: '2026-10-19T05:00:00-03:00' });
+
+    // p-diego tenta se inscrever novamente após ter convocação expirada
+    const reInsDiego = await request(app)
+      .post(`/atividades/${atvId}/inscricoes`)
+      .set('X-Usuario', 'p-diego');
+
+    expect(reInsDiego.status).toBe(201);
+    expect(['confirmada', 'em_espera']).toContain(reInsDiego.body.status);
+  });
+
   it('R18 — lista inscrições filtrando por perfil do usuário e por atividadeId', async () => {
     // Cria Atividade 1
     const atv1Res = await request(app)
@@ -318,5 +379,38 @@ describe('M2 - Inscrições - Fatia 1', () => {
     expect(get3.body.ocupadas).toBe(2);
     expect(get3.body.vagasRestantes).toBe(0);
     expect(get3.body.emEspera).toBe(1);
+  });
+
+  it('R22 (Critério 39) — recusa tentativa de inscrição por participante em atividade inexistente com 404 NAO_ENCONTRADO', async () => {
+    const res = await request(app)
+      .post('/atividades/atv_inexistente/inscricoes')
+      .set('X-Usuario', 'p-carla');
+
+    expect(res.status).toBe(404);
+    expect(res.body.erro).toBe('NAO_ENCONTRADO');
+    expect(typeof res.body.mensagem).toBe('string');
+  });
+
+  it('R22 — recusa requisição de inscrição com corpo JSON malformado com 422 DADOS_INVALIDOS', async () => {
+    const atvRes = await request(app)
+      .post('/atividades')
+      .set('X-Usuario', 'org-ana')
+      .send({
+        titulo: 'Palestra Corpo Malformado',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 10,
+        encontros: [{ inicio: '2026-10-19T10:00:00-03:00', fim: '2026-10-19T11:00:00-03:00' }]
+      });
+
+    const res = await request(app)
+      .post(`/atividades/${atvRes.body.id}/inscricoes`)
+      .set('X-Usuario', 'p-carla')
+      .set('Content-Type', 'application/json')
+      .send('{ malformed json');
+
+    expect(res.status).toBe(422);
+    expect(res.body.erro).toBe('DADOS_INVALIDOS');
+    expect(typeof res.body.mensagem).toBe('string');
   });
 });

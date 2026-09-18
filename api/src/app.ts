@@ -172,7 +172,7 @@ const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, in
     }
   });
 
-  app.post('/atividades/:id/inscricoes', requireUser, requireParticipant, (req: Request, res: Response, next: NextFunction) => {
+  app.post('/atividades/:id/inscricoes', requireUser, requireParticipant, express.json(), (req: Request, res: Response, next: NextFunction) => {
     try {
       const user = (req as any).user;
       const inscricao = createInscricaoUseCase.execute(req.params.id, user.id);
