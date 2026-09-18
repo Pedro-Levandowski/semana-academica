@@ -1,4 +1,4 @@
-import { Sala, Atividade, CreateAtividadeDTO, UpdateAtividadeDTO, ApiError } from "./types";
+import { Sala, Atividade, CreateAtividadeDTO, UpdateAtividadeDTO, CodigoDoEncontro, Presenca, RegistrarPresencaDTO, RegistrarPresencaManualDTO, ApiError } from "./types";
 
 const getBaseUrl = () => {
   return (import.meta as any).env?.VITE_API_URL || "http://localhost:3000";
@@ -78,5 +78,27 @@ export const api = {
     return request<Atividade>(`/atividades/${id}/cancelamento`, {
       method: "POST",
     });
+  },
+
+  getCodigoEncontro: async (id: string): Promise<CodigoDoEncontro> => {
+    return request<CodigoDoEncontro>(`/encontros/${id}/codigo`);
+  },
+
+  registrarPresenca: async (id: string, data: RegistrarPresencaDTO): Promise<Presenca> => {
+    return request<Presenca>(`/encontros/${id}/presencas`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  registrarPresencaManual: async (id: string, data: RegistrarPresencaManualDTO): Promise<Presenca> => {
+    return request<Presenca>(`/encontros/${id}/presencas/manual`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  getPresencas: async (id: string): Promise<Presenca[]> => {
+    return request<Presenca[]>(`/encontros/${id}/presencas`);
   },
 };
