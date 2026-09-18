@@ -102,6 +102,42 @@ export class ActivityRepository {
     `).all(salaId) as Array<{ inicio: string; fim: string }>;
   }
 
+  findEncounterWithActivity(encontroId: string): {
+    encounter: EncounterRow;
+    activity: ActivityRow;
+  } | null {
+    const row = this.db.prepare(`
+      SELECT 
+        e.id as enc_id, e.inicio as enc_inicio, e.fim as enc_fim,
+        a.id as atv_id, a.titulo as atv_titulo, a.tipo as atv_tipo, a.sala_id as atv_salaId, 
+        a.vagas as atv_vagas, a.carga_horaria_minutos as atv_cargaHorariaMinutos, a.cancelada as atv_cancelada
+      FROM encontros e
+      JOIN atividades a ON e.atividade_id = a.id
+      WHERE e.id = ?
+    `).get(encontroId) as any;
+
+    if (!row) {
+      return null;
+    }
+
+    return {
+      encounter: {
+        id: row.enc_id,
+        inicio: row.enc_inicio,
+        fim: row.enc_fim
+      },
+      activity: {
+        id: row.atv_id,
+        titulo: row.atv_titulo,
+        tipo: row.atv_tipo,
+        salaId: row.atv_salaId,
+        vagas: row.atv_vagas,
+        cargaHorariaMinutos: row.atv_cargaHorariaMinutos,
+        cancelada: row.atv_cancelada
+      }
+    };
+  }
+
   update(id: string, fields: { titulo?: string; vagas?: number }): void {
     const sets: string[] = [];
     const params: any[] = [];

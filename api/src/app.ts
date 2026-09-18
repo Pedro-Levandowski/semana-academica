@@ -6,17 +6,28 @@ import { runMigrations } from './db/migrate.js';
 import { runSeed, runReset } from './db/seed.js';
 import { Clock, RealClock } from './clock/clock.js';
 import { DatabaseControllableClock, ControllableClock } from './clock/controllable-clock.js';
-import { NeutralM2Adapter, M2IntegrationPort } from './integrations/m2-port.js';
+import { NeutralM2Adapter, SQLiteM2Adapter, M2IntegrationPort } from './integrations/m2-port.js';
+import { NeutralM5Adapter, SQLiteM5Adapter, M5IntegrationPort } from './integrations/m5-port.js';
 import { UserRepository } from './repositories/user-repository.js';
 import { RoomRepository } from './repositories/room-repository.js';
 import { ActivityRepository } from './repositories/activity-repository.js';
+import { InscricaoRepository } from './repositories/inscricao-repository.js';
+import { PresencaRepository } from './repositories/presenca-repository.js';
 import { CreateActivityUseCase } from './application/create-activity.js';
 import { GetActivityUseCase } from './application/get-activity.js';
 import { ListActivitiesUseCase } from './application/list-activities.js';
 import { UpdateActivityUseCase } from './application/update-activity.js';
 import { CancelActivityUseCase } from './application/cancel-activity.js';
+import { GetCodigoDoEncontroUseCase } from './application/get-codigo-do-encontro.js';
+import { RegisterPresencaUseCase } from './application/register-presenca.js';
+import { RegisterPresencaManualUseCase } from './application/register-presenca-manual.js';
+import { ListPresencasUseCase } from './application/list-presencas.js';
+import { CreateInscricaoUseCase } from './application/create-inscricao.js';
+import { ConfirmInscricaoUseCase } from './application/confirm-inscricao.js';
+import { CancelInscricaoUseCase } from './application/cancel-inscricao.js';
 import { NotFoundError } from './application/errors.js';
 import { DomainError, ConflictError } from './domain/activity.js';
+import { processExpirationsAndConvocations } from './domain/inscricao-service.js';
 import { mapActivityResponse } from './http/activity-response.js';
 
 export interface AppOptions {
@@ -24,6 +35,7 @@ export interface AppOptions {
   clock?: Clock;
   modoTeste?: boolean;
   m2Port?: M2IntegrationPort;
+  m5Port?: M5IntegrationPort;
 }
 
 export function createApp(options?: AppOptions | string) {
@@ -49,15 +61,25 @@ export function createApp(options?: AppOptions | string) {
     runSeed(db);
   }
 
-  const m2Port = opts.m2Port || new NeutralM2Adapter();
+  const inscricaoRepository = new InscricaoRepository(db);
   const userRepository = new UserRepository(db);
   const roomRepository = new RoomRepository(db);
   const activityRepository = new ActivityRepository(db);
+  const m2Port = opts.m2Port || new SQLiteM2Adapter(inscricaoRepository, activityRepository, clock);
+  const m5Port = opts.m5Port || new SQLiteM5Adapter(inscricaoRepository);
   const createActivityUseCase = new CreateActivityUseCase(activityRepository, roomRepository);
   const getActivityUseCase = new GetActivityUseCase(activityRepository);
   const listActivitiesUseCase = new ListActivitiesUseCase(activityRepository);
   const updateActivityUseCase = new UpdateActivityUseCase(activityRepository, roomRepository, m2Port);
   const cancelActivityUseCase = new CancelActivityUseCase(activityRepository, m2Port, clock);
+  const getCodigoDoEncontroUseCase = new GetCodigoDoEncontroUseCase(activityRepository, clock);
+  const presencaRepository = new PresencaRepository(db);
+  const registerPresencaUseCase = new RegisterPresencaUseCase(activityRepository, inscricaoRepository, presencaRepository, clock);
+const registerPresencaManualUseCase = new RegisterPresencaManualUseCase(activityRepository, inscricaoRepository, presencaRepository, clock);
+const listPresencasUseCase = new ListPresencasUseCase(activityRepository, presencaRepository);
+const createInscricaoUseCase = new CreateInscricaoUseCase(activityRepository, inscricaoRepository, clock, m5Port);
+const confirmInscricaoUseCase = new ConfirmInscricaoUseCase(activityRepository, inscricaoRepository, clock);
+const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, inscricaoRepository, clock);
 
   // Modo de teste routes (when MODO_TESTE=1)
   if (modoTeste) {
@@ -116,6 +138,15 @@ export function createApp(options?: AppOptions | string) {
     next();
   };
 
+  const requireParticipant = (req: Request, res: Response, next: NextFunction) => {
+    const user = (req as any).user;
+    if (!user || user.papel !== 'participante') {
+      res.status(403).json({ erro: 'SOMENTE_PARTICIPANTE', mensagem: 'Acesso restrito ao participante' });
+      return;
+    }
+    next();
+  };
+
   app.get('/salas', requireUser, (_req: Request, res: Response) => {
     const salas = roomRepository.findAll();
     res.json(salas);
@@ -136,6 +167,129 @@ export function createApp(options?: AppOptions | string) {
       const activity = getActivityUseCase.execute(req.params.id);
       const result = mapActivityResponse(activity, m2Port, agora);
       res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  app.post('/atividades/:id/inscricoes', requireUser, requireParticipant, express.json(), (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = (req as any).user;
+      const inscricao = createInscricaoUseCase.execute(req.params.id, user.id);
+      res.status(201).json(inscricao);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  app.get('/inscricoes', requireUser, (req: Request, res: Response) => {
+    const user = (req as any).user;
+    const atividadeId = typeof req.query.atividadeId === 'string' ? req.query.atividadeId : undefined;
+    processExpirationsAndConvocations(activityRepository, inscricaoRepository, clock.now(), atividadeId);
+    if (user.papel === 'participante') {
+      const list = inscricaoRepository.findByParticipant(user.id, atividadeId);
+      res.json(list);
+    } else {
+      const list = inscricaoRepository.findAll(atividadeId);
+      res.json(list);
+    }
+  });
+
+  app.get('/inscricoes/:id', requireUser, (req: Request, res: Response) => {
+    const user = (req as any).user;
+    let inscricao = inscricaoRepository.findById(req.params.id);
+    if (!inscricao) {
+      res.status(404).json({ erro: 'NAO_ENCONTRADO', mensagem: 'Inscrição não encontrada' });
+      return;
+    }
+    processExpirationsAndConvocations(activityRepository, inscricaoRepository, clock.now(), inscricao.atividadeId);
+    inscricao = inscricaoRepository.findById(req.params.id);
+    if (!inscricao) {
+      res.status(404).json({ erro: 'NAO_ENCONTRADO', mensagem: 'Inscrição não encontrada' });
+      return;
+    }
+    if (user.papel === 'participante' && inscricao.participanteId !== user.id) {
+      res.status(404).json({ erro: 'NAO_ENCONTRADO', mensagem: 'Inscrição não encontrada' });
+      return;
+    }
+    res.json(inscricao);
+  });
+
+  app.post('/inscricoes/:id/confirmacao', requireUser, requireParticipant, (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = (req as any).user;
+      const confirmada = confirmInscricaoUseCase.execute(req.params.id, user.id);
+      res.json(confirmada);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  app.post('/inscricoes/:id/cancelamento', requireUser, requireParticipant, (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = (req as any).user;
+      const cancelada = cancelInscricaoUseCase.execute(req.params.id, user.id);
+      res.json(cancelada);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  app.get('/encontros/:id/codigo', requireUser, requireOrg, (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const codigoDoEncontro = getCodigoDoEncontroUseCase.execute(req.params.id);
+      res.json(codigoDoEncontro);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  app.get('/encontros/:id/presencas', requireUser, requireOrg, (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const presencas = listPresencasUseCase.execute(req.params.id);
+      res.json(presencas);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  const registerPresencaSchema = z.object({
+    codigo: z.string(),
+    lidoEm: z.string().optional()
+  });
+
+  app.post('/encontros/:id/presencas', requireUser, requireParticipant, express.json(), (req: Request, res: Response, next: NextFunction) => {
+    const parseResult = registerPresencaSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      res.status(422).json({ erro: 'DADOS_INVALIDOS', mensagem: 'Dados inválidos' });
+      return;
+    }
+
+    try {
+      const user = (req as any).user;
+      const { presenca, statusCode } = registerPresencaUseCase.execute(req.params.id, user.id, parseResult.data);
+      res.status(statusCode).json(presenca);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  const registerPresencaManualSchema = z.object({
+    participanteId: z.string(),
+    justificativa: z.string().optional()
+  });
+
+  app.post('/encontros/:id/presencas/manual', requireUser, requireOrg, express.json(), (req: Request, res: Response, next: NextFunction) => {
+    const parseResult = registerPresencaManualSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      res.status(422).json({ erro: 'DADOS_INVALIDOS', mensagem: 'Dados inválidos' });
+      return;
+    }
+
+    try {
+      const { participanteId, justificativa } = parseResult.data;
+      const { presenca, statusCode } = registerPresencaManualUseCase.execute(req.params.id, participanteId, { participanteId, justificativa });
+      res.status(statusCode).json(presenca);
     } catch (err) {
       next(err);
     }
@@ -235,11 +389,15 @@ export function createApp(options?: AppOptions | string) {
       res.status(422).json({ erro: 'DADOS_INVALIDOS', mensagem: 'JSON malformado' });
       return;
     }
-    if (err instanceof ConflictError || err.code === 'CONFLITO_DE_SALA') {
+    if (err instanceof ConflictError || err.code === 'CONFLITO_DE_SALA' || err.code === 'JA_INSCRITO' || err.code === 'CONFLITO_DE_HORARIO') {
       res.status(409).json({ erro: err.code || 'CONFLITO_DE_SALA', mensagem: err.message });
       return;
     }
     if (err instanceof DomainError) {
+      if (err.code === 'NAO_INSCRITO') {
+        res.status(403).json({ erro: err.code, mensagem: err.message });
+        return;
+      }
       res.status(422).json({ erro: err.code, mensagem: err.message });
       return;
     }
