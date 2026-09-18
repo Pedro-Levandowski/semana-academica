@@ -21,7 +21,7 @@ export interface Certificado {
 }
 
 export type EmissaoResult =
-  | { ok: true; certificado: Certificado }
+  | { ok: true; certificado: Certificado; criado: boolean }
   | { ok: false; erro: 'ATIVIDADE_NAO_ENCERRADA' | 'PRESENCA_INSUFICIENTE' };
 
 export class EmitirCertificado {
@@ -47,7 +47,7 @@ export class EmitirCertificado {
 
     const existente = this.repository.findByAtividadeEParticipante(atividade.id, participanteId);
     if (existente) {
-      return { ok: true, certificado: existente };
+      return { ok: true, certificado: existente, criado: false };
     }
 
     const emitidoEm = agora.toISO();
@@ -65,6 +65,6 @@ export class EmitirCertificado {
       emitidoEm
     };
     this.repository.create(certificado);
-    return { ok: true, certificado };
+    return { ok: true, certificado, criado: true };
   }
 }

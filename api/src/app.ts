@@ -419,7 +419,7 @@ const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, in
       return;
     }
 
-    res.status(201).json(resultado.certificado);
+    res.status(resultado.criado ? 201 : 200).json(resultado.certificado);
   });
 
   app.use((_req: Request, res: Response) => {

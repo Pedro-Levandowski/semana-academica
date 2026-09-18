@@ -171,4 +171,24 @@ describe('M4 - Certificados - Fatia 1 (R1 e R2)', () => {
       expect(res.body.participanteId).toBe(PARTICIPANTE);
     });
   });
+
+  describe('R9 - Idempotência da emissão', () => {
+    it('retorna 201 na primeira emissão e 200 com o mesmo certificado e código nas seguintes', async () => {
+      const { atividadeId } = await montarCenario(
+        [19, 20, 21, 22],
+        [19, 20, 21, 22],
+        '2026-10-24T10:00:00-03:00'
+      );
+
+      const primeira = await solicitarCertificado(atividadeId);
+      expect(primeira.status).toBe(201);
+
+      const segunda = await solicitarCertificado(atividadeId);
+      expect(segunda.status).toBe(200);
+      expect(segunda.body.codigo).toBe(primeira.body.codigo);
+      expect(segunda.body.emitidoEm).toBe(primeira.body.emitidoEm);
+      expect(segunda.body.atividadeId).toBe(atividadeId);
+      expect(segunda.body.participanteId).toBe(PARTICIPANTE);
+    });
+  });
 });
