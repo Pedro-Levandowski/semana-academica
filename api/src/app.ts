@@ -380,6 +380,26 @@ const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, in
     }
   });
 
+  app.get('/painel/atividades', requireUser, requireOrg, (_req: Request, res: Response) => {
+    res.status(204).send();
+  });
+
+  app.get('/painel/atividades/:id/sem-chance', requireUser, requireOrg, (_req: Request, res: Response) => {
+    res.status(204).send();
+  });
+
+  app.get('/painel/atividades/:id/frequencia.csv', requireUser, requireOrg, (_req: Request, res: Response) => {
+    res.status(204).send();
+  });
+
+  app.get('/painel/bloqueios', requireUser, requireOrg, (_req: Request, res: Response) => {
+    res.status(204).send();
+  });
+
+  app.delete('/painel/bloqueios/:participanteId', requireUser, requireOrg, (_req: Request, res: Response) => {
+    res.status(204).send();
+  });
+
   app.use((_req: Request, res: Response) => {
     res.status(404).json({ erro: 'NAO_ENCONTRADO', mensagem: 'Recurso não encontrado' });
   });
