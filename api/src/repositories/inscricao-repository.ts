@@ -197,6 +197,22 @@ export class InscricaoRepository {
     `).run(id);
   }
 
+  cancelInscricao(id: string): void {
+    this.db.prepare(`
+      UPDATE inscricoes
+      SET status = 'cancelada', convocadaAte = NULL, posicaoNaEspera = NULL
+      WHERE id = ?
+    `).run(id);
+  }
+
+  cancelActiveInscricoesForActivity(atividadeId: string): void {
+    this.db.prepare(`
+      UPDATE inscricoes
+      SET status = 'cancelada', convocadaAte = NULL, posicaoNaEspera = NULL
+      WHERE atividadeId = ? AND status IN ('confirmada', 'em_espera', 'convocada')
+    `).run(atividadeId);
+  }
+
   promoteToConvocada(id: string, convocadaAte: string): void {
     this.db.prepare(`
       UPDATE inscricoes

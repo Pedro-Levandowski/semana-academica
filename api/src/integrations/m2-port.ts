@@ -55,7 +55,7 @@ export class SQLiteM2Adapter implements M2IntegrationPort {
     }
   }
 
-  cancelarInscricoes(_atividadeId: string): void {
-    // no-op
+  cancelarInscricoes(atividadeId: string): void {
+    this.inscricaoRepository.cancelActiveInscricoesForActivity(atividadeId);
   }
 }

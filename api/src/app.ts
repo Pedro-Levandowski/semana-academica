@@ -23,6 +23,7 @@ import { RegisterPresencaUseCase } from './application/register-presenca.js';
 import { RegisterPresencaManualUseCase } from './application/register-presenca-manual.js';
 import { CreateInscricaoUseCase } from './application/create-inscricao.js';
 import { ConfirmInscricaoUseCase } from './application/confirm-inscricao.js';
+import { CancelInscricaoUseCase } from './application/cancel-inscricao.js';
 import { NotFoundError } from './application/errors.js';
 import { DomainError, ConflictError } from './domain/activity.js';
 import { processExpirationsAndConvocations } from './domain/inscricao-service.js';
@@ -76,6 +77,7 @@ export function createApp(options?: AppOptions | string) {
 const registerPresencaManualUseCase = new RegisterPresencaManualUseCase(activityRepository, inscricaoRepository, presencaRepository, clock);
 const createInscricaoUseCase = new CreateInscricaoUseCase(activityRepository, inscricaoRepository, clock, m5Port);
 const confirmInscricaoUseCase = new ConfirmInscricaoUseCase(activityRepository, inscricaoRepository, clock);
+const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, inscricaoRepository, clock);
 
   // Modo de teste routes (when MODO_TESTE=1)
   if (modoTeste) {
@@ -216,6 +218,16 @@ const confirmInscricaoUseCase = new ConfirmInscricaoUseCase(activityRepository, 
       const user = (req as any).user;
       const confirmada = confirmInscricaoUseCase.execute(req.params.id, user.id);
       res.json(confirmada);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  app.post('/inscricoes/:id/cancelamento', requireUser, requireParticipant, (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = (req as any).user;
+      const cancelada = cancelInscricaoUseCase.execute(req.params.id, user.id);
+      res.json(cancelada);
     } catch (err) {
       next(err);
     }
