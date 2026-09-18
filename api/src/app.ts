@@ -7,6 +7,7 @@ import { runSeed, runReset } from './db/seed.js';
 import { Clock, RealClock } from './clock/clock.js';
 import { DatabaseControllableClock, ControllableClock } from './clock/controllable-clock.js';
 import { NeutralM2Adapter, SQLiteM2Adapter, M2IntegrationPort } from './integrations/m2-port.js';
+import { NeutralM5Adapter, SQLiteM5Adapter, M5IntegrationPort } from './integrations/m5-port.js';
 import { UserRepository } from './repositories/user-repository.js';
 import { RoomRepository } from './repositories/room-repository.js';
 import { ActivityRepository } from './repositories/activity-repository.js';
@@ -30,6 +31,7 @@ export interface AppOptions {
   clock?: Clock;
   modoTeste?: boolean;
   m2Port?: M2IntegrationPort;
+  m5Port?: M5IntegrationPort;
 }
 
 export function createApp(options?: AppOptions | string) {
@@ -57,6 +59,7 @@ export function createApp(options?: AppOptions | string) {
 
   const inscricaoRepository = new InscricaoRepository(db);
   const m2Port = opts.m2Port || new SQLiteM2Adapter(inscricaoRepository);
+  const m5Port = opts.m5Port || new SQLiteM5Adapter(inscricaoRepository);
   const userRepository = new UserRepository(db);
   const roomRepository = new RoomRepository(db);
   const activityRepository = new ActivityRepository(db);
@@ -68,8 +71,8 @@ export function createApp(options?: AppOptions | string) {
   const getCodigoDoEncontroUseCase = new GetCodigoDoEncontroUseCase(activityRepository, clock);
   const presencaRepository = new PresencaRepository(db);
   const registerPresencaUseCase = new RegisterPresencaUseCase(activityRepository, inscricaoRepository, presencaRepository, clock);
-  const registerPresencaManualUseCase = new RegisterPresencaManualUseCase(activityRepository, presencaRepository, clock);
-  const createInscricaoUseCase = new CreateInscricaoUseCase(activityRepository, inscricaoRepository, clock);
+const registerPresencaManualUseCase = new RegisterPresencaManualUseCase(activityRepository, presencaRepository, clock);
+const createInscricaoUseCase = new CreateInscricaoUseCase(activityRepository, inscricaoRepository, clock, m5Port);
 
   // Modo de teste routes (when MODO_TESTE=1)
   if (modoTeste) {
