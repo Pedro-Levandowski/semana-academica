@@ -154,4 +154,60 @@ describe('M3 - Presença - Fatia 4 (Presença Manual e Limites)', () => {
     expect(res.status).toBe(403);
     expect(res.body.erro).toBe('NAO_INSCRITO');
   });
+
+  it('critério 11 (R8) — tentativa de presença manual que excede o limite de 10% das inscrições confirmadas deve retornar 422 LIMITE_DE_MANUAIS', async () => {
+    const atividadeRes = await request(app)
+      .post('/atividades')
+      .set('X-Usuario', 'org-ana')
+      .send({
+        titulo: 'Palestra Limite Manuais',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 20,
+        encontros: [
+          { inicio: '2026-10-19T10:00:00-03:00', fim: '2026-10-19T11:00:00-03:00' }
+        ]
+      });
+
+    const atividadeId = atividadeRes.body.id;
+    const encontroId = atividadeRes.body.encontros[0].id;
+
+    // 5 confirmados -> 10% = 0.5 -> ceil = 1 manual permitida
+    const db = new Database(dbPath);
+    const participantes = ['p-carla', 'p-diego', 'p-elisa', 'p-fabio', 'p-gabriela'];
+    participantes.forEach((pId, idx) => {
+      db.prepare(`
+        INSERT INTO inscricoes (id, atividadeId, participanteId, status, posicaoNaEspera, convocadaAte, criadaEm)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).run(`ins-${idx}`, atividadeId, pId, 'confirmada', null, null, '2026-10-18T10:00:00-03:00');
+    });
+    db.close();
+
+    await request(app)
+      .put('/_teste/relogio')
+      .send({ agora: '2026-10-19T10:05:00-03:00' });
+
+    // Primeira presença manual (permitida)
+    const res1 = await request(app)
+      .post(`/encontros/${encontroId}/presencas/manual`)
+      .set('X-Usuario', 'org-ana')
+      .send({
+        participanteId: 'p-carla',
+        justificativa: 'Primeira justificativa valida'
+      });
+
+    expect(res1.status).toBe(201);
+
+    // Segunda presença manual (excede limite de 1)
+    const res2 = await request(app)
+      .post(`/encontros/${encontroId}/presencas/manual`)
+      .set('X-Usuario', 'org-ana')
+      .send({
+        participanteId: 'p-diego',
+        justificativa: 'Segunda justificativa valida'
+      });
+
+    expect(res2.status).toBe(422);
+    expect(res2.body.erro).toBe('LIMITE_DE_MANUAIS');
+  });
 });

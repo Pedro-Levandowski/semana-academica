@@ -55,6 +55,14 @@ export class InscricaoRepository {
     return row.count;
   }
 
+  countConfirmed(atividadeId: string): number {
+    const row = this.db.prepare(`
+      SELECT COUNT(*) as count FROM inscricoes
+      WHERE atividadeId = ? AND status = 'confirmada'
+    `).get(atividadeId) as { count: number };
+    return row.count;
+  }
+
   countInWaitlist(atividadeId: string): number {
     const row = this.db.prepare(`
       SELECT COUNT(*) as count FROM inscricoes

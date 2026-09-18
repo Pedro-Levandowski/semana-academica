@@ -37,4 +37,12 @@ export class PresencaRepository {
       presenca.justificativa
     );
   }
+
+  countManualByEncontro(encontroId: string): number {
+    const row = this.db.prepare(`
+      SELECT COUNT(*) as count FROM presencas
+      WHERE encontroId = ? AND origem = 'manual'
+    `).get(encontroId) as { count: number };
+    return row.count;
+  }
 }

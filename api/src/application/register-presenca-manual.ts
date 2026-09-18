@@ -46,6 +46,13 @@ export class RegisterPresencaManualUseCase {
       throw new DomainError('FORA_DA_JANELA', 'Fora da janela de presença manual');
     }
 
+    const confirmados = this.inscricaoRepository.countConfirmed(result.activity.id);
+    const limiteManuais = Math.ceil(confirmados * 0.1);
+    const manuaisAtuais = this.presencaRepository.countManualByEncontro(encontroId);
+    if (manuaisAtuais >= limiteManuais) {
+      throw new DomainError('LIMITE_DE_MANUAIS', 'Limite de presenças manuais atingido');
+    }
+
     const id = 'pre_' + crypto.randomBytes(4).toString('hex');
     const presenca: PresencaRow = {
       id,
