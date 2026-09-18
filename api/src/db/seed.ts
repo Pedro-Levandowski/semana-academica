@@ -55,6 +55,7 @@ export function runReset(db: Database.Database, clock?: Clock): void {
   const insertRelogio = db.prepare('INSERT OR REPLACE INTO relogio_estado (id, agora) VALUES (1, ?)');
 
   db.transaction(() => {
+    db.prepare('DELETE FROM certificados').run();
     db.prepare('DELETE FROM encontros').run();
     db.prepare('DELETE FROM atividades').run();
     db.prepare('DELETE FROM usuarios').run();

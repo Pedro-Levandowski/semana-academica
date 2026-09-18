@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { z } from 'zod';
+import { DateTime } from 'luxon';
 import { createDatabase } from './db/connection.js';
 import { runMigrations } from './db/migrate.js';
 import { runSeed, runReset } from './db/seed.js';
@@ -8,11 +9,13 @@ import { Clock, RealClock } from './clock/clock.js';
 import { DatabaseControllableClock, ControllableClock } from './clock/controllable-clock.js';
 import { NeutralM2Adapter, SQLiteM2Adapter, M2IntegrationPort } from './integrations/m2-port.js';
 import { NeutralM5Adapter, SQLiteM5Adapter, M5IntegrationPort } from './integrations/m5-port.js';
+import { SQLiteM3PresenceAdapter } from './integrations/m3-presence-port.js';
 import { UserRepository } from './repositories/user-repository.js';
 import { RoomRepository } from './repositories/room-repository.js';
 import { ActivityRepository } from './repositories/activity-repository.js';
 import { InscricaoRepository } from './repositories/inscricao-repository.js';
 import { PresencaRepository } from './repositories/presenca-repository.js';
+import { CertificateRepository } from './repositories/certificate-repository.js';
 import { CreateActivityUseCase } from './application/create-activity.js';
 import { GetActivityUseCase } from './application/get-activity.js';
 import { ListActivitiesUseCase } from './application/list-activities.js';
@@ -29,6 +32,7 @@ import { NotFoundError } from './application/errors.js';
 import { DomainError, ConflictError } from './domain/activity.js';
 import { processExpirationsAndConvocations } from './domain/inscricao-service.js';
 import { mapActivityResponse } from './http/activity-response.js';
+import { EmitirCertificado } from './certificate/emissao-certificado.js';
 
 export interface AppOptions {
   dbPath?: string;
@@ -80,6 +84,10 @@ const listPresencasUseCase = new ListPresencasUseCase(activityRepository, presen
 const createInscricaoUseCase = new CreateInscricaoUseCase(activityRepository, inscricaoRepository, clock, m5Port);
 const confirmInscricaoUseCase = new ConfirmInscricaoUseCase(activityRepository, inscricaoRepository, clock);
 const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, inscricaoRepository, clock);
+
+  const certificateRepository = new CertificateRepository(db);
+  const m3PresencePort = new SQLiteM3PresenceAdapter(activityRepository, presencaRepository);
+  const emitirCertificado = new EmitirCertificado(clock, m3PresencePort, certificateRepository);
 
   // Modo de teste routes (when MODO_TESTE=1)
   if (modoTeste) {
@@ -378,6 +386,40 @@ const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, in
     } catch (err) {
       next(err);
     }
+  });
+
+  app.post('/atividades/:id/certificado', requireUser, (req: Request, res: Response) => {
+    const user = (req as any).user;
+    if (user.papel !== 'participante') {
+      res.status(403).json({ erro: 'SOMENTE_PARTICIPANTE', mensagem: 'Apenas participantes podem emitir certificados' });
+      return;
+    }
+
+    const atividadeId = req.params.id;
+    const atividade = activityRepository.findAll().find((a) => a.id === atividadeId);
+    if (!atividade) {
+      res.status(404).json({ erro: 'NAO_ENCONTRADO', mensagem: 'Atividade não encontrada' });
+      return;
+    }
+
+    const encontrosOrdenados = [...atividade.encontros].sort(
+      (a, b) => DateTime.fromISO(a.inicio).toMillis() - DateTime.fromISO(b.inicio).toMillis()
+    );
+
+    const resultado = emitirCertificado.execute(
+      { id: atividade.id, cargaHorariaMinutos: atividade.cargaHorariaMinutos, encontros: encontrosOrdenados },
+      user.id
+    );
+
+    if (!resultado.ok) {
+      const mensagem = resultado.erro === 'ATIVIDADE_NAO_ENCERRADA'
+        ? 'A atividade ainda não foi encerrada'
+        : 'Presença mínima de 75% não atingida';
+      res.status(422).json({ erro: resultado.erro, mensagem });
+      return;
+    }
+
+    res.status(201).json(resultado.certificado);
   });
 
   app.use((_req: Request, res: Response) => {

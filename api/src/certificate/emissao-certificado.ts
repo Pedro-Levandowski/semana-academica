@@ -45,6 +45,11 @@ export class EmitirCertificado {
       return { ok: false, erro: 'PRESENCA_INSUFICIENTE' };
     }
 
+    const existente = this.repository.findByAtividadeEParticipante(atividade.id, participanteId);
+    if (existente) {
+      return { ok: true, certificado: existente };
+    }
+
     const emitidoEm = agora.toISO();
     if (!emitidoEm) {
       throw new Error('Relógio retornou instante sem representação ISO 8601');
