@@ -6,6 +6,7 @@ import { Clock } from '../clock/clock.js';
 import { M5IntegrationPort, NeutralM5Adapter } from '../integrations/m5-port.js';
 import { NotFoundError } from './errors.js';
 import { DomainError, ConflictError, sortEncontros } from '../domain/activity.js';
+import { processExpirationsAndConvocations } from '../domain/inscricao-service.js';
 
 function hasEncounterOverlap(
   encs1: Array<{ inicio: string; fim: string }>,
@@ -56,6 +57,8 @@ export class CreateInscricaoUseCase {
     if (agora >= limiteEncerramento) {
       throw new DomainError('INSCRICOES_ENCERRADAS', 'Inscrições encerradas para esta atividade');
     }
+
+    processExpirationsAndConvocations(this.activityRepository, this.inscricaoRepository, agora, atividadeId);
 
     // Check bloqueio por faltas via porta de integração com M5 (R4)
     if (this.m5Port.isParticipantBlocked(participanteId, agora)) {

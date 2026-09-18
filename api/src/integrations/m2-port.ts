@@ -1,4 +1,7 @@
 import { InscricaoRepository } from '../repositories/inscricao-repository.js';
+import { ActivityRepository } from '../repositories/activity-repository.js';
+import { Clock } from '../clock/clock.js';
+import { processExpirationsAndConvocations } from '../domain/inscricao-service.js';
 
 export interface M2IntegrationPort {
   getOcupadas(atividadeId: string): number;
@@ -26,18 +29,30 @@ export class NeutralM2Adapter implements M2IntegrationPort {
 }
 
 export class SQLiteM2Adapter implements M2IntegrationPort {
-  constructor(private inscricaoRepository: InscricaoRepository) {}
+  constructor(
+    private inscricaoRepository: InscricaoRepository,
+    private activityRepository?: ActivityRepository,
+    private clock?: Clock
+  ) {}
 
   getOcupadas(atividadeId: string): number {
+    if (this.activityRepository && this.clock) {
+      processExpirationsAndConvocations(this.activityRepository, this.inscricaoRepository, this.clock.now(), atividadeId);
+    }
     return this.inscricaoRepository.countOccupied(atividadeId);
   }
 
   getEmEspera(atividadeId: string): number {
+    if (this.activityRepository && this.clock) {
+      processExpirationsAndConvocations(this.activityRepository, this.inscricaoRepository, this.clock.now(), atividadeId);
+    }
     return this.inscricaoRepository.countInWaitlist(atividadeId);
   }
 
-  convocarEspera(_atividadeId: string): void {
-    // no-op
+  convocarEspera(atividadeId: string): void {
+    if (this.activityRepository && this.clock) {
+      processExpirationsAndConvocations(this.activityRepository, this.inscricaoRepository, this.clock.now(), atividadeId);
+    }
   }
 
   cancelarInscricoes(_atividadeId: string): void {

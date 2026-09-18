@@ -84,16 +84,16 @@ export class InscricaoRepository {
     return row.count;
   }
 
-  getOccupiedEncountersForParticipant(participanteId: string): Array<{ inicio: string; fim: string }> {
+  getOccupiedEncountersForParticipant(participanteId: string): Array<{ atividadeId: string; inicio: string; fim: string }> {
     return this.db.prepare(`
-      SELECT e.inicio, e.fim
+      SELECT i.atividadeId, e.inicio, e.fim
       FROM inscricoes i
       JOIN encontros e ON e.atividade_id = i.atividadeId
       JOIN atividades a ON a.id = i.atividadeId
       WHERE i.participanteId = ?
         AND i.status IN ('confirmada', 'convocada')
         AND a.cancelada = 0
-    `).all(participanteId) as Array<{ inicio: string; fim: string }>;
+    `).all(participanteId) as Array<{ atividadeId: string; inicio: string; fim: string }>;
   }
 
   findByParticipant(participanteId: string, atividadeId?: string): InscricaoData[] {
@@ -161,5 +161,78 @@ export class InscricaoRepository {
       LIMIT 1
     `).get(atividadeId, participanteId);
     return !!row;
+  }
+
+  findConvocadas(atividadeId?: string): InscricaoData[] {
+    if (atividadeId) {
+      return this.db.prepare(`
+        SELECT id, atividadeId, participanteId, status, posicaoNaEspera, convocadaAte, criadaEm
+        FROM inscricoes
+        WHERE atividadeId = ? AND status = 'convocada'
+      `).all(atividadeId) as InscricaoData[];
+    }
+    return this.db.prepare(`
+      SELECT id, atividadeId, participanteId, status, posicaoNaEspera, convocadaAte, criadaEm
+      FROM inscricoes
+      WHERE status = 'convocada'
+    `).all() as InscricaoData[];
+  }
+
+  findFirstInWaitlist(atividadeId: string): InscricaoData | null {
+    const row = this.db.prepare(`
+      SELECT id, atividadeId, participanteId, status, posicaoNaEspera, convocadaAte, criadaEm
+      FROM inscricoes
+      WHERE atividadeId = ? AND status = 'em_espera'
+      ORDER BY criadaEm ASC
+      LIMIT 1
+    `).get(atividadeId) as InscricaoData | undefined;
+    return row || null;
+  }
+
+  expireInscricao(id: string): void {
+    this.db.prepare(`
+      UPDATE inscricoes
+      SET status = 'expirada', convocadaAte = NULL, posicaoNaEspera = NULL
+      WHERE id = ?
+    `).run(id);
+  }
+
+  promoteToConvocada(id: string, convocadaAte: string): void {
+    this.db.prepare(`
+      UPDATE inscricoes
+      SET status = 'convocada', posicaoNaEspera = NULL, convocadaAte = ?
+      WHERE id = ?
+    `).run(convocadaAte, id);
+  }
+
+  confirmInscricao(id: string): void {
+    this.db.prepare(`
+      UPDATE inscricoes
+      SET status = 'confirmada', convocadaAte = NULL, posicaoNaEspera = NULL
+      WHERE id = ?
+    `).run(id);
+  }
+
+  reorderWaitlist(atividadeId: string): void {
+    const waitlist = this.db.prepare(`
+      SELECT id FROM inscricoes
+      WHERE atividadeId = ? AND status = 'em_espera'
+      ORDER BY criadaEm ASC
+    `).all(atividadeId) as Array<{ id: string }>;
+
+    const updateStmt = this.db.prepare(`
+      UPDATE inscricoes SET posicaoNaEspera = ? WHERE id = ?
+    `);
+
+    for (let i = 0; i < waitlist.length; i++) {
+      updateStmt.run(i + 1, waitlist[i].id);
+    }
+  }
+
+  findDistinctActivityIdsWithInscricoes(): string[] {
+    const rows = this.db.prepare(`
+      SELECT DISTINCT atividadeId FROM inscricoes
+    `).all() as Array<{ atividadeId: string }>;
+    return rows.map(r => r.atividadeId);
   }
 }

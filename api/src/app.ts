@@ -22,8 +22,10 @@ import { GetCodigoDoEncontroUseCase } from './application/get-codigo-do-encontro
 import { RegisterPresencaUseCase } from './application/register-presenca.js';
 import { RegisterPresencaManualUseCase } from './application/register-presenca-manual.js';
 import { CreateInscricaoUseCase } from './application/create-inscricao.js';
+import { ConfirmInscricaoUseCase } from './application/confirm-inscricao.js';
 import { NotFoundError } from './application/errors.js';
 import { DomainError, ConflictError } from './domain/activity.js';
+import { processExpirationsAndConvocations } from './domain/inscricao-service.js';
 import { mapActivityResponse } from './http/activity-response.js';
 
 export interface AppOptions {
@@ -58,11 +60,11 @@ export function createApp(options?: AppOptions | string) {
   }
 
   const inscricaoRepository = new InscricaoRepository(db);
-  const m2Port = opts.m2Port || new SQLiteM2Adapter(inscricaoRepository);
-  const m5Port = opts.m5Port || new SQLiteM5Adapter(inscricaoRepository);
   const userRepository = new UserRepository(db);
   const roomRepository = new RoomRepository(db);
   const activityRepository = new ActivityRepository(db);
+  const m2Port = opts.m2Port || new SQLiteM2Adapter(inscricaoRepository, activityRepository, clock);
+  const m5Port = opts.m5Port || new SQLiteM5Adapter(inscricaoRepository);
   const createActivityUseCase = new CreateActivityUseCase(activityRepository, roomRepository);
   const getActivityUseCase = new GetActivityUseCase(activityRepository);
   const listActivitiesUseCase = new ListActivitiesUseCase(activityRepository);
@@ -71,8 +73,9 @@ export function createApp(options?: AppOptions | string) {
   const getCodigoDoEncontroUseCase = new GetCodigoDoEncontroUseCase(activityRepository, clock);
   const presencaRepository = new PresencaRepository(db);
   const registerPresencaUseCase = new RegisterPresencaUseCase(activityRepository, inscricaoRepository, presencaRepository, clock);
-  const registerPresencaManualUseCase = new RegisterPresencaManualUseCase(activityRepository, inscricaoRepository, presencaRepository, clock);
-  const createInscricaoUseCase = new CreateInscricaoUseCase(activityRepository, inscricaoRepository, clock, m5Port);
+const registerPresencaManualUseCase = new RegisterPresencaManualUseCase(activityRepository, inscricaoRepository, presencaRepository, clock);
+const createInscricaoUseCase = new CreateInscricaoUseCase(activityRepository, inscricaoRepository, clock, m5Port);
+const confirmInscricaoUseCase = new ConfirmInscricaoUseCase(activityRepository, inscricaoRepository, clock);
 
   // Modo de teste routes (when MODO_TESTE=1)
   if (modoTeste) {
@@ -178,6 +181,7 @@ export function createApp(options?: AppOptions | string) {
   app.get('/inscricoes', requireUser, (req: Request, res: Response) => {
     const user = (req as any).user;
     const atividadeId = typeof req.query.atividadeId === 'string' ? req.query.atividadeId : undefined;
+    processExpirationsAndConvocations(activityRepository, inscricaoRepository, clock.now(), atividadeId);
     if (user.papel === 'participante') {
       const list = inscricaoRepository.findByParticipant(user.id, atividadeId);
       res.json(list);
@@ -189,7 +193,13 @@ export function createApp(options?: AppOptions | string) {
 
   app.get('/inscricoes/:id', requireUser, (req: Request, res: Response) => {
     const user = (req as any).user;
-    const inscricao = inscricaoRepository.findById(req.params.id);
+    let inscricao = inscricaoRepository.findById(req.params.id);
+    if (!inscricao) {
+      res.status(404).json({ erro: 'NAO_ENCONTRADO', mensagem: 'Inscrição não encontrada' });
+      return;
+    }
+    processExpirationsAndConvocations(activityRepository, inscricaoRepository, clock.now(), inscricao.atividadeId);
+    inscricao = inscricaoRepository.findById(req.params.id);
     if (!inscricao) {
       res.status(404).json({ erro: 'NAO_ENCONTRADO', mensagem: 'Inscrição não encontrada' });
       return;
@@ -199,6 +209,16 @@ export function createApp(options?: AppOptions | string) {
       return;
     }
     res.json(inscricao);
+  });
+
+  app.post('/inscricoes/:id/confirmacao', requireUser, requireParticipant, (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = (req as any).user;
+      const confirmada = confirmInscricaoUseCase.execute(req.params.id, user.id);
+      res.json(confirmada);
+    } catch (err) {
+      next(err);
+    }
   });
 
   app.get('/encontros/:id/codigo', requireUser, requireOrg, (req: Request, res: Response, next: NextFunction) => {
