@@ -3,42 +3,42 @@
 ## Rodada 1 — Entrevista sem consulta aos requisitos
 
 ❓ **P-01 — Cálculo da ocupação percentual (`ocupacaoPercentual`)**: Como o percentual de ocupação de uma atividade (`ocupadas` dividido por `vagas`) deve ser calculado, formatado e tratado quando o número de vagas for zero?
-- **Resposta**: PENDENTE — consultar requisitos na Rodada 2.
-- **Estado**: PENDENTE
-- **Fonte**: -
-- **Pendência**: consultar requisitos na Rodada 2.
+- **Resposta**: A ocupação é calculada como `(inscrições confirmadas + inscrições convocadas) / vagas * 100`. O resultado final é arredondado para uma casa decimal, usando arredondamento de metade para cima. Atividades válidas possuem pelo menos uma vaga; portanto, divisão por zero não ocorre em um estado válido.
+- **Estado**: RESOLVIDA
+- **Fonte resolvida**: RN-503 e RN-107
+- **Pendência**: Nenhuma.
 
 ---
 
 ❓ **P-02 — Cálculo da frequência percentual (`frequenciaPercentual`)**: Como o percentual de frequência de uma atividade (`frequenciaPercentual`) é calculado no painel (`GET /painel/atividades`), quais presenças contam e o que acontece se a atividade não tiver encontros ou nenhum inscrito?
-- **Resposta**: PENDENTE — consultar requisitos na Rodada 2.
-- **Estado**: PENDENTE
-- **Fonte**: -
-- **Pendência**: consultar requisitos na Rodada 2.
+- **Resposta**: A frequência de cada encontro encerrado é o número de presenças dividido pelo número de inscrições confirmadas, multiplicado por 100. A frequência da atividade é a média das frequências dos encontros já encerrados. Arredondamos apenas o resultado final para uma casa decimal, usando metade para cima. Um encontro encerrado sem nenhuma inscrição confirmada possui frequência indisponível (`null`) e não entra na média. Se não existir nenhum encontro encerrado com frequência calculável, `frequenciaPercentual` será `null`.
+- **Estado**: RESOLVIDA
+- **Fonte resolvida**: RN-504 e decisão humana da Rodada 2
+- **Pendência**: Nenhuma.
 
 ---
 
 ❓ **P-03 — Critério exato da condição "sem chance" (`/painel/atividades/:id/sem-chance`)**: O que define exatamente um participante estar "sem chance" em uma atividade (relação entre faltas acumuladas, encontros já ocorridos e o mínimo de presença necessário para certificado) e qual é o significado exato de `faltas` e `faltasPermitidas` no contrato?
-- **Resposta**: PENDENTE — consultar requisitos na Rodada 2. A frequência mínima aplicável também permanece pendente.
-- **Estado**: PENDENTE
-- **Fonte**: -
-- **Pendência**: consultar requisitos na Rodada 2.
+- **Resposta**: Considere `N` como o total de encontros da atividade; presenças mínimas como `ceil(0,75 * N)`; `faltasPermitidas` como `N - ceil(0,75 * N)`; e `faltas` como a quantidade de encontros cujo prazo de registro já venceu e nos quais o participante confirmado não possui presença. O participante fica “sem chance” quando `faltas > faltasPermitidas`. A frequência mínima é de 75% dos encontros, sem arredondamento favorável. A condição pode ocorrer antes do encerramento da atividade.
+- **Estado**: RESOLVIDA
+- **Fonte resolvida**: RN-404, RN-505 e RN-312
+- **Pendência**: Nenhuma.
 
 ---
 
 ❓ **P-04 — Formato e conteúdo da exportação de frequência (`GET /painel/atividades/:id/frequencia.csv`)**: Quais colunas, formato de delimitador (vírgula ou ponto-e-vírgula), codificação de caracteres e tratamento de dados o arquivo CSV gerado deve conter para atender à organização?
-- **Resposta**: PENDENTE — consultar requisitos na Rodada 2.
-- **Estado**: PENDENTE
-- **Fonte**: -
-- **Pendência**: consultar requisitos na Rodada 2.
+- **Resposta**: O CSV deve: usar UTF-8 com BOM; usar ponto e vírgula como delimitador; possuir uma linha para cada inscrição atualmente confirmada; ordenar as linhas alfabeticamente pelo nome completo; usar exatamente os cabeçalhos `nome;E1;...;En;frequencia;certificado`; usar `P` quando existe presença; usar `F` quando o prazo do encontro venceu sem presença; usar `-` quando o prazo ainda está aberto; escrever a frequência com vírgula decimal e uma casa; escrever o certificado como `sim` ou `nao`, sem acento.
+- **Estado**: RESOLVIDA
+- **Fonte resolvida**: RN-506
+- **Pendência**: Nenhuma.
 
 ---
 
 ❓ **P-05 — Regras de listagem e remoção de bloqueios (`/painel/bloqueios` e `DELETE`)**: Quais critérios exatos originam o bloqueio de um participante, quais dados o objeto Bloqueio expõe (`participanteId`, `nome`, `atividades`, `bloqueadoDesde`) e o que a operação `DELETE` realiza além de retornar `204`?
-- **Resposta**: Os campos públicos do objeto `Bloqueio` (`participanteId`, `nome`, `atividades` e `bloqueadoDesde`) estão resolvidos pelo `contrato-api.md`. As regras de geração, manutenção, gatilho e remoção do bloqueio permanecem pendentes.
-- **Estado**: PARCIALMENTE PENDENTE
-- **Fonte resolvida**: `contrato-api.md`
-- **Pendência**: Consultar requisitos na Rodada 2 para as regras de geração, manutenção e remoção do bloqueio.
+- **Resposta**: Um participante confirmado fica bloqueado ao acumular duas atividades encerradas com zero presença em ambas. Enquanto bloqueado, não pode criar nova inscrição nem entrar em lista de espera, mas suas inscrições anteriores continuam válidas. A organização consulta os bloqueados com os campos públicos definidos no contrato, incluindo os IDs das duas atividades causadoras, e pode remover o bloqueio. `bloqueadoDesde` deve ser o instante de término da segunda atividade que fez o participante atingir o critério. Se mais de duas atividades forem elegíveis, utilize as duas primeiras em ordem cronológica de encerramento; empate pelo ID da atividade. Após o desbloqueio, atividades encerradas antes ou no instante do desbloqueio não podem ser reutilizadas para outro bloqueio.
+- **Estado**: RESOLVIDA
+- **Fonte resolvida**: RN-507, RN-508, RN-509, `contrato-api.md` e decisão humana da Rodada 2
+- **Pendência**: Nenhuma.
 
 ---
 
@@ -51,18 +51,18 @@
 ---
 
 ❓ **P-07 — Ordenação e paginação nas listagens de painel e bloqueios**: Existe alguma regra específica de ordenação nos endpoints `GET /painel/atividades` e `GET /painel/bloqueios`?
-- **Resposta**: PENDENTE — consultar requisitos na Rodada 2.
-- **Estado**: PENDENTE
-- **Fonte**: -
-- **Pendência**: consultar requisitos na Rodada 2.
+- **Resposta**: Ordenações determinísticas adotadas: painel de atividades por início do primeiro encontro em ordem crescente, empate pelo título e depois por `atividadeId`; bloqueios por nome completo do participante em ordem alfabética, empate por `participanteId`. Não existe paginação.
+- **Estado**: RESOLVIDA
+- **Fonte resolvida**: RN-115 e decisão humana da Rodada 2
+- **Pendência**: Nenhuma.
 
 ---
 
 ❓ **P-08 — Comportamento para atividades canceladas ou inexistentes no painel**: Como os endpoints de painel se comportam se a atividade solicitada estiver cancelada ou não existir (`NAO_ENCONTRADO` / 404)?
-- **Resposta**: Para atividade inexistente, o `contrato-api.md` já determina 404 `NAO_ENCONTRADO`. Para atividade existente, mas cancelada, consultar requisitos.
-- **Estado**: PARCIALMENTE PENDENTE
-- **Fonte resolvida**: `contrato-api.md`
-- **Pendência**: Consultar requisitos na Rodada 2 quanto ao comportamento e código de resposta ao consultar rotas de painel de uma atividade cancelada.
+- **Resposta**: Atividade inexistente retorna 404 `NAO_ENCONTRADO`. Atividade cancelada fica fora de `GET /painel/atividades`. Para uma atividade existente, mas cancelada: `GET /painel/atividades/:id/sem-chance` retorna 200 com `[]`; `GET /painel/atividades/:id/frequencia.csv` retorna 200 com um CSV contendo BOM e somente o cabeçalho correspondente aos encontros, sem linhas de participantes. Não crie um código de erro novo para esses casos.
+- **Estado**: RESOLVIDA
+- **Fonte resolvida**: RN-502, RN-217, `contrato-api.md` e decisão humana da Rodada 2
+- **Pendência**: Nenhuma.
 
 ---
 
@@ -75,10 +75,10 @@
 ---
 
 ❓ **P-10 — Critério temporal para o cálculo de presença e contagens no painel**: Como o sistema determina quais encontros e presenças são considerados "já ocorridos" ao calcular a frequência percentual e a lista de "sem chance"?
-- **Resposta**: Toda decisão temporal deve obrigatoriamente usar a abstração central de relógio, conforme `AGENTS.md`. Porém, o instante exato em que um encontro passa a entrar nos cálculos de frequência e de “sem chance” não está definido no contrato e precisa ser consultado.
-- **Estado**: PARCIALMENTE PENDENTE
-- **Fonte resolvida**: `AGENTS.md`
-- **Pendência**: Consultar requisitos na Rodada 2 quanto ao instante exato em que um encontro passa a contar nos cálculos de frequência e "sem chance".
+- **Resposta**: Para a frequência do painel, um encontro passa a contar quando chega ao seu horário de término; o instante exato do término já conta como encerrado. Para “sem chance”, o encontro somente pode virar falta depois que expira o prazo de registro de presença, duas horas após seu término. Como um prazo descrito como “até X” aceita o próprio instante X, no instante exato de `fim + 2 horas` o registro ainda é aceito; a falta passa a contar imediatamente depois desse instante. Toda comparação usa o relógio centralizado.
+- **Estado**: RESOLVIDA
+- **Fonte resolvida**: RN-504, RN-505, RN-312 e regras gerais de tempo
+- **Pendência**: Nenhuma.
 
 ---
 
@@ -99,18 +99,18 @@
 ---
 
 ❓ **P-13 — Critérios e limites de exportação do CSV de frequência**: O arquivo gerado em `GET /painel/atividades/:id/frequencia.csv` deve incluir todos os participantes inscritos na atividade e quais cabeçalhos específicos devem constar na primeira linha?
-- **Resposta**: PENDENTE — consultar requisitos na Rodada 2.
-- **Estado**: PENDENTE
-- **Fonte**: -
-- **Pendência**: consultar requisitos na Rodada 2.
+- **Resposta**: Inclua no CSV somente participantes cuja inscrição esteja atualmente com status `confirmada`. Não inclua inscrições `em_espera`, `convocada`, `cancelada` ou `expirada`. Ordene pelo nome completo. Os cabeçalhos e marcas seguem a resposta da P-04.
+- **Estado**: RESOLVIDA
+- **Fonte resolvida**: RN-506
+- **Pendência**: Nenhuma.
 
 ---
 
 ❓ **P-14 — Consequência da remoção de bloqueio (`DELETE /painel/bloqueios/:participanteId`)**: Quando um bloqueio por faltas é removido com sucesso pela organização (`204`), o sistema restaura automaticamente as inscrições que porventura tenham sido canceladas ou apenas libera o participante para realizar novas inscrições?
-- **Resposta**: PENDENTE — consultar requisitos na Rodada 2.
-- **Estado**: PENDENTE
-- **Fonte**: -
-- **Pendência**: consultar requisitos na Rodada 2.
+- **Resposta**: O desbloqueio apenas remove a restrição para novas inscrições e entradas em lista de espera. Ele não restaura, cancela nem modifica inscrições anteriores, que já continuavam válidas durante o bloqueio. Depois do desbloqueio, somente atividades encerradas após o instante do desbloqueio podem contar para um novo bloqueio.
+- **Estado**: RESOLVIDA
+- **Fonte resolvida**: RN-507, RN-508 e RN-509
+- **Pendência**: Nenhuma.
 
 ---
 
@@ -131,106 +131,137 @@
 ---
 
 ❓ **P-17 — Critérios de inclusão e exclusão de atividades em `GET /painel/atividades`**: Quais atividades devem constar no painel da organização, e como as atividades canceladas ou em diferentes situações temporais devem aparecer ou ser tratadas nessa listagem?
-- **Resposta**: PENDENTE — consultar requisitos na Rodada 2.
-- **Estado**: PENDENTE
-- **Fonte**: -
-- **Pendência**: consultar requisitos na Rodada 2.
+- **Resposta**: `GET /painel/atividades` inclui todas as atividades não canceladas, independentemente de estarem previstas, em andamento ou encerradas. Atividades canceladas ficam fora do painel. A ordenação segue a P-07.
+- **Estado**: RESOLVIDA
+- **Fonte resolvida**: RN-502 e decisão humana da Rodada 2
+- **Pendência**: Nenhuma.
 
 ---
 
 ❓ **P-18 — Universo de participantes elegíveis e impacto do status de inscrição**: Quais participantes compõem o universo base considerado nas métricas de ocupação, lista de espera, contagem de faltas, relatórios de "sem chance" e exportação de CSV?
-- **Resposta**: Dados pertencentes a outros módulos devem ser obtidos por portas ou interfaces explícitas; o M5 não pode acessar tabelas ou detalhes internos desses módulos. O universo exato de participantes usado em ocupação, espera, frequência, faltas, “sem chance” e CSV continua pendente para a Rodada 2.
-- **Estado**: PARCIALMENTE PENDENTE
-- **Fonte resolvida**: `AGENTS.md`, `api/AGENTS.md` e `EQUIPE.md`
-- **Pendência**: Consultar requisitos na Rodada 2 para o universo exato de participantes em ocupação, espera, frequência, faltas, “sem chance” e CSV.
+- **Resposta**: Utilize estes universos:
+  - `ocupadas`: inscrições atualmente `confirmada` ou `convocada`;
+  - `emEspera`: inscrições atualmente `em_espera`;
+  - frequência de encontro: presenças de participantes confirmados divididas pelas inscrições confirmadas;
+  - “sem chance”: somente participantes com inscrição confirmada;
+  - CSV: somente participantes com inscrição confirmada;
+  - bloqueio: participante que estava confirmado nas atividades encerradas causadoras e terminou ambas com zero presença.
+  Inscrições `cancelada` ou `expirada` não entram nessas contagens. Todos esses dados devem ser consumidos por portas explícitas dos módulos responsáveis.
+- **Estado**: RESOLVIDA
+- **Fonte resolvida**: RN-503, RN-504, RN-505, RN-506, RN-507, `contrato-api.md` e decisão humana da Rodada 2 para `emEspera`
+- **Pendência**: Nenhuma.
 
 ---
 
 ❓ **P-19 — Cálculo de frequência individual e agregada**: Como a frequência de um participante em um encontro específico é pontuada, e como essa pontuação se traduz na frequência percentual exibida ou calculada no painel?
-- **Resposta**: PENDENTE — consultar requisitos na Rodada 2.
-- **Estado**: PENDENTE
-- **Fonte**: -
-- **Pendência**: consultar requisitos na Rodada 2.
+- **Resposta**: A frequência de um encontro é `presenças / inscrições confirmadas * 100`. Encontro encerrado sem confirmados tem frequência `null` e é excluído da média. A frequência da atividade é a média dos encontros encerrados com frequência calculável. No CSV, a frequência individual é `quantidade de presenças / total de encontros da atividade * 100`. Todos os encontros da atividade entram nesse denominador, inclusive os que ainda apresentam `-`. O resultado é exibido com uma casa decimal e vírgula decimal.
+- **Estado**: RESOLVIDA
+- **Fonte resolvida**: RN-504, RN-506 e decisão humana da Rodada 2 para divisor zero
+- **Pendência**: Nenhuma.
 
 ---
 
 ❓ **P-20 — Significado das marcas `P`, `F` e `-` no CSV e janela de sincronização**: O que representam exatamente os caracteres/marcas `P`, `F` e `-` nas colunas de encontro do CSV, e como o sistema lida com encontros cuja janela de registro ou sincronização ainda está aberta?
-- **Resposta**: PENDENTE — consultar requisitos na Rodada 2.
-- **Estado**: PENDENTE
-- **Fonte**: -
-- **Pendência**: consultar requisitos na Rodada 2.
+- **Resposta**: Nas colunas dos encontros:
+  - `P`: existe presença registrada, independentemente de ter origem QR, QR offline ou manual;
+  - `F`: o prazo de registro já expirou e não existe presença;
+  - `-`: o prazo ainda está aberto, incluindo encontros futuros ou dentro da janela de presença.
+  O prazo permanece aberto até o próprio instante de duas horas após o término. `F` somente aparece depois desse instante.
+- **Estado**: RESOLVIDA
+- **Fonte resolvida**: RN-405, RN-506 e RN-312
+- **Pendência**: Nenhuma.
 
 ---
 
 ❓ **P-21 — Estrutura, ordem e identificação das colunas de encontros no CSV**: Qual é a ordem exata das colunas no arquivo CSV exportado em `GET /painel/atividades/:id/frequencia.csv`, como os encontros devem ser identificados nos cabeçalhos e qual é o separador decimal e formato de frequência?
-- **Resposta**: PENDENTE — consultar requisitos na Rodada 2.
-- **Estado**: PENDENTE
-- **Fonte**: -
-- **Pendência**: consultar requisitos na Rodada 2.
+- **Resposta**: A ordem exata das colunas é `nome;E1;E2;...;En;frequencia;certificado`. Os encontros são numerados em ordem cronológica de início. Em eventual empate, use o ID do encontro. A frequência usa vírgula decimal e exatamente uma casa.
+- **Estado**: RESOLVIDA
+- **Fonte resolvida**: RN-506 e decisão humana da Rodada 2 para o desempate
+- **Pendência**: Nenhuma.
 
 ---
 
 ❓ **P-22 — Codificação, BOM e delimitador do CSV**: Qual codificação de caracteres exata, presença ou ausência de BOM, e qual delimitador de campo devem ser obrigatoriamente utilizados no arquivo CSV?
-- **Resposta**: PENDENTE — consultar requisitos na Rodada 2.
-- **Estado**: PENDENTE
-- **Fonte**: -
-- **Pendência**: consultar requisitos na Rodada 2.
+- **Resposta**: O arquivo usa: UTF-8 com BOM no início; ponto e vírgula como delimitador; `\n` como quebra de linha; uma quebra de linha também após a última linha. Não use vírgula como separador de campos.
+- **Estado**: RESOLVIDA
+- **Fonte resolvida**: RN-506 e decisão humana da Rodada 2 para a quebra de linha
+- **Pendência**: Nenhuma.
 
 ---
 
 ❓ **P-23 — Ordenação das linhas no "sem chance" e no CSV de frequência**: Existe alguma regra específica de ordenação para os registros retornados em `GET /painel/atividades/:id/sem-chance` e para as linhas de dados exportadas em `GET /painel/atividades/:id/frequencia.csv`?
-- **Resposta**: PENDENTE — consultar requisitos na Rodada 2.
-- **Estado**: PENDENTE
-- **Fonte**: -
-- **Pendência**: consultar requisitos na Rodada 2.
+- **Resposta**: Ordene tanto o CSV quanto a resposta de “sem chance” alfabeticamente pelo nome completo do participante. Em nomes iguais, desempate por `participanteId`.
+- **Estado**: RESOLVIDA
+- **Fonte resolvida**: RN-506 e decisão humana da Rodada 2 para “sem chance” e desempate
+- **Pendência**: Nenhuma.
 
 ---
 
 ❓ **P-24 — Origem e gatilho do bloqueio por faltas (`/painel/bloqueios`)**: Qual é a regra exata de negócio que dispara a criação de um registro de bloqueio, quais atividades entram como causadoras e como o campo `bloqueadoDesde` é populado no momento do bloqueio?
-- **Resposta**: PENDENTE — consultar requisitos na Rodada 2.
-- **Estado**: PENDENTE
-- **Fonte**: -
-- **Pendência**: consultar requisitos na Rodada 2.
+- **Resposta**: O bloqueio acontece quando um participante confirmado acumula duas atividades encerradas com zero presença nas duas. Considere somente atividades encerradas após o último desbloqueio. Atividades canceladas não contam, pois não são atividades encerradas para essa regra. As atividades causadoras são as duas primeiras que satisfizerem o critério em ordem cronológica de encerramento, com desempate por `atividadeId`. `bloqueadoDesde` é o término da segunda atividade causadora.
+- **Estado**: RESOLVIDA
+- **Fonte resolvida**: RN-507, RN-509, RN-114 e decisão humana da Rodada 2
+- **Pendência**: Nenhuma.
 
 ---
 
 ❓ **P-25 — Efeito imediato e histórico do bloqueio nas inscrições**: Quando um participante é bloqueado, qual é o efeito prático sobre inscrições anteriores já realizadas e sobre novas tentativas de inscrição ou entrada em lista de espera?
-- **Resposta**: O contrato prevê status 422 com código `INSCRICAO_BLOQUEADA` para uma tentativa de inscrição bloqueada. A precedência desse erro em relação às outras validações e o efeito do bloqueio sobre inscrições anteriores permanecem pendentes.
-- **Estado**: PARCIALMENTE PENDENTE
-- **Fonte resolvida**: `contrato-api.md`
-- **Pendência**: Consultar requisitos na Rodada 2 quanto à precedência do erro e ao efeito sobre inscrições já existentes.
+- **Resposta**: Inscrições anteriores ao bloqueio continuam válidas. Enquanto bloqueado, o participante não pode criar nova inscrição nem entrar em lista de espera. Quando mais de uma regra rejeitar uma inscrição, aplique esta ordem:
+  1. atividade inexistente — 404;
+  2. atividade cancelada;
+  3. inscrições encerradas;
+  4. participante bloqueado — 422 `INSCRICAO_BLOQUEADA`;
+  5. participante já inscrito;
+  6. conflito de horário;
+  7. limite de minicursos.
+- **Estado**: RESOLVIDA
+- **Fonte resolvida**: RN-208 e RN-507
+- **Pendência**: Nenhuma.
 
 ---
 
 ❓ **P-26 — Histórico após desbloqueio, reincidência e múltiplos ciclos**: Após a remoção de um bloqueio, as faltas passadas que causaram o bloqueio são zeradas ou continuam contando, permitindo um novo bloqueio imediato caso novas faltas ocorram?
-- **Resposta**: PENDENTE — consultar requisitos na Rodada 2.
-- **Estado**: PENDENTE
-- **Fonte**: -
-- **Pendência**: consultar requisitos na Rodada 2.
+- **Resposta**: Depois do desbloqueio, as atividades anteriores deixam definitivamente de contar para outro bloqueio. Um novo bloqueio exige duas novas atividades que sejam encerradas depois do instante do desbloqueio e nas quais o participante confirmado tenha zero presença.
+- **Estado**: RESOLVIDA
+- **Fonte resolvida**: RN-509
+- **Pendência**: Nenhuma.
 
 ---
 
 ❓ **P-27 — Impacto de atividades canceladas nos cálculos, relatórios e bloqueios**: Como atividades que foram canceladas afetam as métricas do painel, os relatórios de "sem chance", o cálculo de frequência e a apuração de faltas para bloqueio?
-- **Resposta**: PENDENTE — consultar requisitos na Rodada 2.
-- **Estado**: PENDENTE
-- **Fonte**: -
-- **Pendência**: consultar requisitos na Rodada 2.
+- **Resposta**: Atividades canceladas:
+  - ficam fora de `GET /painel/atividades`;
+  - não entram em cálculos ou médias apresentados no painel;
+  - não geram participantes “sem chance”;
+  - não contam para bloqueios;
+  - em acesso direto à rota “sem chance”, retornam 200 com `[]`;
+  - em acesso direto ao CSV, retornam 200 com BOM e somente o cabeçalho, sem participantes.
+- **Estado**: RESOLVIDA
+- **Fonte resolvida**: RN-502, RN-217, RN-114 e decisão humana da Rodada 2
+- **Pendência**: Nenhuma.
 
 ---
 
 ❓ **P-28 — Significado, valor e formatação da coluna de certificado no CSV**: Qual é o significado exato da coluna relacionada a certificado no arquivo CSV, e qual é o valor e formatação exatos apresentados nessa coluna?
-- **Resposta**: PENDENTE — consultar requisitos na Rodada 2.
-- **Estado**: PENDENTE
-- **Fonte**: -
-- **Pendência**: consultar requisitos na Rodada 2.
+- **Resposta**: A coluna `certificado` representa elegibilidade, e não a emissão efetiva pelo M4. Use:
+  - `sim`: somente quando a atividade estiver encerrada e o participante confirmado atingir pelo menos 75% dos encontros, sem arredondamento favorável;
+  - `nao`: em qualquer outro caso.
+  O valor não depende de o participante já ter solicitado ou emitido o certificado.
+- **Estado**: RESOLVIDA
+- **Fonte resolvida**: RN-401, RN-402, RN-404, RN-506 e decisão humana da Rodada 2
+- **Pendência**: Nenhuma.
 
 ---
 
 ❓ **P-29 — Nome do arquivo, extensão e cabeçalhos HTTP do download**: Quais são o nome padrão do arquivo, extensão e cabeçalhos HTTP de resposta obrigatórios para a exportação de frequência em `GET /painel/atividades/:id/frequencia.csv`?
-- **Resposta**: O `contrato-api.md` determina a extensão `.csv` na própria rota e resposta com `Content-Type: text/csv`. O nome exato do arquivo, `Content-Disposition`, parâmetro `filename`, eventual `charset` e demais detalhes permanecem pendentes.
-- **Estado**: PARCIALMENTE PENDENTE
-- **Fonte resolvida**: `contrato-api.md`
-- **Pendência**: Consultar requisitos na Rodada 2 quanto ao nome exato do arquivo, `Content-Disposition`, parâmetro `filename`, eventual `charset` e demais detalhes de download.
+- **Resposta**: A resposta do CSV deve usar:
+  - nome do arquivo: `frequencia.csv`;
+  - `Content-Type: text/csv; charset=utf-8`;
+  - `Content-Disposition: attachment; filename="frequencia.csv"`;
+  - corpo UTF-8 iniciado por BOM.
+- **Estado**: RESOLVIDA
+- **Fonte resolvida**: RN-506, `contrato-api.md` e decisão humana da Rodada 2 para os cabeçalhos HTTP
+- **Pendência**: Nenhuma.
 
 ---
 
@@ -266,38 +297,48 @@
 
 ## Tabela de Rastreabilidade
 
-| Pergunta | Estado após Rodada 1 | Fonte resolvida | Pendência para Rodada 2 |
+| Pergunta | Estado atual | Fonte resolvida | Pendência atual |
 |---|---|---|---|
-| P-01 | PENDENTE | - | consultar requisitos na Rodada 2 |
-| P-02 | PENDENTE | - | consultar requisitos na Rodada 2 |
-| P-03 | PENDENTE | - | consultar requisitos na Rodada 2 |
-| P-04 | PENDENTE | - | consultar requisitos na Rodada 2 |
-| P-05 | PARCIALMENTE PENDENTE | `contrato-api.md` | Consultar requisitos na Rodada 2 para as regras de geração, manutenção e remoção do bloqueio. |
+| P-01 | RESOLVIDA | RN-503 e RN-107 | Nenhuma. |
+| P-02 | RESOLVIDA | RN-504 e decisão humana | Nenhuma. |
+| P-03 | RESOLVIDA | RN-404, RN-505 e RN-312 | Nenhuma. |
+| P-04 | RESOLVIDA | RN-506 | Nenhuma. |
+| P-05 | RESOLVIDA | RN-507, RN-508, RN-509, `contrato-api.md` e decisão humana | Nenhuma. |
 | P-06 | RESOLVIDA | `contrato-api.md` | Nenhuma. |
-| P-07 | PENDENTE | - | consultar requisitos na Rodada 2 |
-| P-08 | PARCIALMENTE PENDENTE | `contrato-api.md` | Consultar requisitos na Rodada 2 quanto ao comportamento e código de resposta ao consultar rotas de painel de uma atividade cancelada. |
+| P-07 | RESOLVIDA | RN-115 e decisão humana | Nenhuma. |
+| P-08 | RESOLVIDA | RN-502, RN-217, `contrato-api.md` e decisão humana | Nenhuma. |
 | P-09 | RESOLVIDA | `contrato-api.md` | Nenhuma. |
-| P-10 | PARCIALMENTE PENDENTE | `AGENTS.md` | Consultar requisitos na Rodada 2 quanto ao instante exato em que um encontro passa a contar nos cálculos de frequência e "sem chance". |
+| P-10 | RESOLVIDA | RN-504, RN-505, RN-312 e regras gerais de tempo | Nenhuma. |
 | P-11 | RESOLVIDA | `AGENTS.md`, `api/AGENTS.md` | Nenhuma. |
 | P-12 | RESOLVIDA | `contrato-api.md` | Nenhuma. |
-| P-13 | PENDENTE | - | consultar requisitos na Rodada 2 |
-| P-14 | PENDENTE | - | consultar requisitos na Rodada 2 |
+| P-13 | RESOLVIDA | RN-506 | Nenhuma. |
+| P-14 | RESOLVIDA | RN-507, RN-508 e RN-509 | Nenhuma. |
 | P-15 | RESOLVIDA | `contrato-api.md` | Nenhuma. |
 | P-16 | RESOLVIDA | `contrato-api.md` | Nenhuma. |
-| P-17 | PENDENTE | - | consultar requisitos na Rodada 2 |
-| P-18 | PARCIALMENTE PENDENTE | `AGENTS.md`, `api/AGENTS.md` e `EQUIPE.md` | Consultar requisitos na Rodada 2 para o universo exato de participantes em ocupação, espera, frequência, faltas, “sem chance” e CSV. |
-| P-19 | PENDENTE | - | consultar requisitos na Rodada 2 |
-| P-20 | PENDENTE | - | consultar requisitos na Rodada 2 |
-| P-21 | PENDENTE | - | consultar requisitos na Rodada 2 |
-| P-22 | PENDENTE | - | consultar requisitos na Rodada 2 |
-| P-23 | PENDENTE | - | consultar requisitos na Rodada 2 |
-| P-24 | PENDENTE | - | consultar requisitos na Rodada 2 |
-| P-25 | PARCIALMENTE PENDENTE | `contrato-api.md` | Consultar requisitos na Rodada 2 quanto à precedência do erro e ao efeito sobre inscrições já existentes. |
-| P-26 | PENDENTE | - | consultar requisitos na Rodada 2 |
-| P-27 | PENDENTE | - | consultar requisitos na Rodada 2 |
-| P-28 | PENDENTE | - | consultar requisitos na Rodada 2 |
-| P-29 | PARCIALMENTE PENDENTE | `contrato-api.md` | Consultar requisitos na Rodada 2 quanto ao nome exato do arquivo, `Content-Disposition`, parâmetro `filename`, eventual `charset` e demais detalhes de download. |
+| P-17 | RESOLVIDA | RN-502 e decisão humana | Nenhuma. |
+| P-18 | RESOLVIDA | RN-503, RN-504, RN-505, RN-506, RN-507, `contrato-api.md` e decisão humana | Nenhuma. |
+| P-19 | RESOLVIDA | RN-504, RN-506 e decisão humana | Nenhuma. |
+| P-20 | RESOLVIDA | RN-405, RN-506 e RN-312 | Nenhuma. |
+| P-21 | RESOLVIDA | RN-506 e decisão humana | Nenhuma. |
+| P-22 | RESOLVIDA | RN-506 e decisão humana | Nenhuma. |
+| P-23 | RESOLVIDA | RN-506 e decisão humana | Nenhuma. |
+| P-24 | RESOLVIDA | RN-507, RN-509, RN-114 e decisão humana | Nenhuma. |
+| P-25 | RESOLVIDA | RN-208 e RN-507 | Nenhuma. |
+| P-26 | RESOLVIDA | RN-509 | Nenhuma. |
+| P-27 | RESOLVIDA | RN-502, RN-217, RN-114 e decisão humana | Nenhuma. |
+| P-28 | RESOLVIDA | RN-401, RN-402, RN-404, RN-506 e decisão humana | Nenhuma. |
+| P-29 | RESOLVIDA | RN-506, `contrato-api.md` e decisão humana | Nenhuma. |
 | P-30 | RESOLVIDA | Decisão explícita de escopo | Nenhuma. |
 | P-31 | RESOLVIDA | `AGENTS.md`, `app/AGENTS.md` | Nenhuma. |
 | P-32 | RESOLVIDA | Decisão técnica | Nenhuma. |
 | P-33 | RESOLVIDA | `AGENTS.md`, `api/AGENTS.md`, `app/AGENTS.md` | Nenhuma. |
+
+## Fechamento da Rodada 2
+
+- Estado: Rodada 2 concluída.
+- Todas as 33 perguntas estão resolvidas.
+- As respostas oficiais foram registradas em paráfrase com suas fontes RN.
+- Pontos não definidos expressamente nos requisitos foram resolvidos por decisões humanas registradas na entrevista.
+- Nenhum documento externo foi copiado, citado pelo nome ou adicionado ao repositório.
+- Nenhuma spec, teste ou implementação foi criada nesta rodada.
+- A entrevista está pronta para revisão antes da geração da spec.
