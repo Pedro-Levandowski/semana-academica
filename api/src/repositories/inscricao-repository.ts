@@ -63,6 +63,31 @@ export class InscricaoRepository {
     return row.count;
   }
 
+  countOccupiedMinicursos(participanteId: string): number {
+    const row = this.db.prepare(`
+      SELECT COUNT(DISTINCT i.atividadeId) as count
+      FROM inscricoes i
+      JOIN atividades a ON a.id = i.atividadeId
+      WHERE i.participanteId = ?
+        AND i.status IN ('confirmada', 'convocada')
+        AND a.tipo = 'minicurso'
+        AND a.cancelada = 0
+    `).get(participanteId) as { count: number };
+    return row.count;
+  }
+
+  getOccupiedEncountersForParticipant(participanteId: string): Array<{ inicio: string; fim: string }> {
+    return this.db.prepare(`
+      SELECT e.inicio, e.fim
+      FROM inscricoes i
+      JOIN encontros e ON e.atividade_id = i.atividadeId
+      JOIN atividades a ON a.id = i.atividadeId
+      WHERE i.participanteId = ?
+        AND i.status IN ('confirmada', 'convocada')
+        AND a.cancelada = 0
+    `).all(participanteId) as Array<{ inicio: string; fim: string }>;
+  }
+
   findByParticipant(participanteId: string, atividadeId?: string): InscricaoData[] {
     if (atividadeId) {
       return this.db.prepare(`
@@ -104,5 +129,29 @@ export class InscricaoRepository {
     `).get(id) as InscricaoData | undefined;
 
     return row || null;
+  }
+
+  getEndedActivitiesForParticipant(participanteId: string): Array<{ atividadeId: string; maxFim: string }> {
+    return this.db.prepare(`
+      SELECT i.atividadeId, MAX(e.fim) as maxFim
+      FROM inscricoes i
+      JOIN encontros e ON e.atividade_id = i.atividadeId
+      JOIN atividades a ON a.id = i.atividadeId
+      WHERE i.participanteId = ?
+        AND i.status IN ('confirmada', 'convocada')
+        AND a.cancelada = 0
+      GROUP BY i.atividadeId
+    `).all(participanteId) as Array<{ atividadeId: string; maxFim: string }>;
+  }
+
+  hasPresencaInActivity(atividadeId: string, participanteId: string): boolean {
+    const row = this.db.prepare(`
+      SELECT p.id
+      FROM presencas p
+      JOIN encontros e ON e.id = p.encontroId
+      WHERE e.atividade_id = ? AND p.participanteId = ?
+      LIMIT 1
+    `).get(atividadeId, participanteId);
+    return !!row;
   }
 }
