@@ -13,6 +13,14 @@ export interface PresencaRow {
 export class PresencaRepository {
   constructor(private db: Database.Database) {}
 
+  findByEncontro(encontroId: string): PresencaRow[] {
+    return this.db.prepare(`
+      SELECT id, encontroId, participanteId, origem, lidoEm, registradaEm, justificativa
+      FROM presencas
+      WHERE encontroId = ?
+    `).all(encontroId) as PresencaRow[];
+  }
+
   findByEncontroAndParticipante(encontroId: string, participanteId: string): PresencaRow | null {
     const row = this.db.prepare(`
       SELECT id, encontroId, participanteId, origem, lidoEm, registradaEm, justificativa
