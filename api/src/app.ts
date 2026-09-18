@@ -6,7 +6,7 @@ import { runMigrations } from './db/migrate.js';
 import { runSeed, runReset } from './db/seed.js';
 import { Clock, RealClock } from './clock/clock.js';
 import { DatabaseControllableClock, ControllableClock } from './clock/controllable-clock.js';
-import { NeutralM2Adapter, M2IntegrationPort } from './integrations/m2-port.js';
+import { NeutralM2Adapter, SQLiteM2Adapter, M2IntegrationPort } from './integrations/m2-port.js';
 import { UserRepository } from './repositories/user-repository.js';
 import { RoomRepository } from './repositories/room-repository.js';
 import { ActivityRepository } from './repositories/activity-repository.js';
@@ -20,6 +20,7 @@ import { CancelActivityUseCase } from './application/cancel-activity.js';
 import { GetCodigoDoEncontroUseCase } from './application/get-codigo-do-encontro.js';
 import { RegisterPresencaUseCase } from './application/register-presenca.js';
 import { RegisterPresencaManualUseCase } from './application/register-presenca-manual.js';
+import { CreateInscricaoUseCase } from './application/create-inscricao.js';
 import { NotFoundError } from './application/errors.js';
 import { DomainError, ConflictError } from './domain/activity.js';
 import { mapActivityResponse } from './http/activity-response.js';
@@ -54,7 +55,8 @@ export function createApp(options?: AppOptions | string) {
     runSeed(db);
   }
 
-  const m2Port = opts.m2Port || new NeutralM2Adapter();
+  const inscricaoRepository = new InscricaoRepository(db);
+  const m2Port = opts.m2Port || new SQLiteM2Adapter(inscricaoRepository);
   const userRepository = new UserRepository(db);
   const roomRepository = new RoomRepository(db);
   const activityRepository = new ActivityRepository(db);
@@ -64,10 +66,10 @@ export function createApp(options?: AppOptions | string) {
   const updateActivityUseCase = new UpdateActivityUseCase(activityRepository, roomRepository, m2Port);
   const cancelActivityUseCase = new CancelActivityUseCase(activityRepository, m2Port, clock);
   const getCodigoDoEncontroUseCase = new GetCodigoDoEncontroUseCase(activityRepository, clock);
-  const inscricaoRepository = new InscricaoRepository(db);
   const presencaRepository = new PresencaRepository(db);
   const registerPresencaUseCase = new RegisterPresencaUseCase(activityRepository, inscricaoRepository, presencaRepository, clock);
   const registerPresencaManualUseCase = new RegisterPresencaManualUseCase(activityRepository, presencaRepository, clock);
+  const createInscricaoUseCase = new CreateInscricaoUseCase(activityRepository, inscricaoRepository, clock);
 
   // Modo de teste routes (when MODO_TESTE=1)
   if (modoTeste) {
@@ -158,6 +160,42 @@ export function createApp(options?: AppOptions | string) {
     } catch (err) {
       next(err);
     }
+  });
+
+  app.post('/atividades/:id/inscricoes', requireUser, requireParticipant, (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = (req as any).user;
+      const inscricao = createInscricaoUseCase.execute(req.params.id, user.id);
+      res.status(201).json(inscricao);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  app.get('/inscricoes', requireUser, (req: Request, res: Response) => {
+    const user = (req as any).user;
+    const atividadeId = typeof req.query.atividadeId === 'string' ? req.query.atividadeId : undefined;
+    if (user.papel === 'participante') {
+      const list = inscricaoRepository.findByParticipant(user.id, atividadeId);
+      res.json(list);
+    } else {
+      const list = inscricaoRepository.findAll(atividadeId);
+      res.json(list);
+    }
+  });
+
+  app.get('/inscricoes/:id', requireUser, (req: Request, res: Response) => {
+    const user = (req as any).user;
+    const inscricao = inscricaoRepository.findById(req.params.id);
+    if (!inscricao) {
+      res.status(404).json({ erro: 'NAO_ENCONTRADO', mensagem: 'Inscrição não encontrada' });
+      return;
+    }
+    if (user.papel === 'participante' && inscricao.participanteId !== user.id) {
+      res.status(404).json({ erro: 'NAO_ENCONTRADO', mensagem: 'Inscrição não encontrada' });
+      return;
+    }
+    res.json(inscricao);
   });
 
   app.get('/encontros/:id/codigo', requireUser, requireOrg, (req: Request, res: Response, next: NextFunction) => {
@@ -305,7 +343,7 @@ export function createApp(options?: AppOptions | string) {
       res.status(422).json({ erro: 'DADOS_INVALIDOS', mensagem: 'JSON malformado' });
       return;
     }
-    if (err instanceof ConflictError || err.code === 'CONFLITO_DE_SALA') {
+    if (err instanceof ConflictError || err.code === 'CONFLITO_DE_SALA' || err.code === 'JA_INSCRITO' || err.code === 'CONFLITO_DE_HORARIO') {
       res.status(409).json({ erro: err.code || 'CONFLITO_DE_SALA', mensagem: err.message });
       return;
     }
