@@ -68,7 +68,7 @@ export function createApp(options?: AppOptions | string) {
   const getCodigoDoEncontroUseCase = new GetCodigoDoEncontroUseCase(activityRepository, clock);
   const presencaRepository = new PresencaRepository(db);
   const registerPresencaUseCase = new RegisterPresencaUseCase(activityRepository, inscricaoRepository, presencaRepository, clock);
-  const registerPresencaManualUseCase = new RegisterPresencaManualUseCase(activityRepository, presencaRepository, clock);
+  const registerPresencaManualUseCase = new RegisterPresencaManualUseCase(activityRepository, inscricaoRepository, presencaRepository, clock);
   const createInscricaoUseCase = new CreateInscricaoUseCase(activityRepository, inscricaoRepository, clock);
 
   // Modo de teste routes (when MODO_TESTE=1)
