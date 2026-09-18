@@ -37,6 +37,26 @@ export function runMigrations(db: Database.Database): void {
       id INTEGER PRIMARY KEY CHECK (id = 1),
       agora TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS inscricoes (
+      id TEXT PRIMARY KEY,
+      atividadeId TEXT NOT NULL,
+      participanteId TEXT NOT NULL,
+      status TEXT NOT NULL,
+      posicaoNaEspera INTEGER,
+      convocadaAte TEXT,
+      criadaEm TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS presencas (
+      id TEXT PRIMARY KEY,
+      encontroId TEXT NOT NULL,
+      participanteId TEXT NOT NULL,
+      origem TEXT NOT NULL,
+      lidoEm TEXT NOT NULL,
+      registradaEm TEXT NOT NULL,
+      justificativa TEXT
+    );
   `);
 
   const tableInfo = db.prepare("PRAGMA table_info(atividades)").all() as Array<{ name: string }>;

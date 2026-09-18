@@ -10,12 +10,15 @@ import { NeutralM2Adapter, M2IntegrationPort } from './integrations/m2-port.js';
 import { UserRepository } from './repositories/user-repository.js';
 import { RoomRepository } from './repositories/room-repository.js';
 import { ActivityRepository } from './repositories/activity-repository.js';
+import { InscricaoRepository } from './repositories/inscricao-repository.js';
+import { PresencaRepository } from './repositories/presenca-repository.js';
 import { CreateActivityUseCase } from './application/create-activity.js';
 import { GetActivityUseCase } from './application/get-activity.js';
 import { ListActivitiesUseCase } from './application/list-activities.js';
 import { UpdateActivityUseCase } from './application/update-activity.js';
 import { CancelActivityUseCase } from './application/cancel-activity.js';
 import { GetCodigoDoEncontroUseCase } from './application/get-codigo-do-encontro.js';
+import { RegisterPresencaUseCase } from './application/register-presenca.js';
 import { NotFoundError } from './application/errors.js';
 import { DomainError, ConflictError } from './domain/activity.js';
 import { mapActivityResponse } from './http/activity-response.js';
@@ -60,6 +63,9 @@ export function createApp(options?: AppOptions | string) {
   const updateActivityUseCase = new UpdateActivityUseCase(activityRepository, roomRepository, m2Port);
   const cancelActivityUseCase = new CancelActivityUseCase(activityRepository, m2Port, clock);
   const getCodigoDoEncontroUseCase = new GetCodigoDoEncontroUseCase(activityRepository, clock);
+  const inscricaoRepository = new InscricaoRepository(db);
+  const presencaRepository = new PresencaRepository(db);
+  const registerPresencaUseCase = new RegisterPresencaUseCase(activityRepository, inscricaoRepository, presencaRepository, clock);
 
   // Modo de teste routes (when MODO_TESTE=1)
   if (modoTeste) {
@@ -118,6 +124,15 @@ export function createApp(options?: AppOptions | string) {
     next();
   };
 
+  const requireParticipant = (req: Request, res: Response, next: NextFunction) => {
+    const user = (req as any).user;
+    if (!user || user.papel !== 'participante') {
+      res.status(403).json({ erro: 'SOMENTE_PARTICIPANTE', mensagem: 'Acesso restrito ao participante' });
+      return;
+    }
+    next();
+  };
+
   app.get('/salas', requireUser, (_req: Request, res: Response) => {
     const salas = roomRepository.findAll();
     res.json(salas);
@@ -147,6 +162,27 @@ export function createApp(options?: AppOptions | string) {
     try {
       const codigoDoEncontro = getCodigoDoEncontroUseCase.execute(req.params.id);
       res.json(codigoDoEncontro);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  const registerPresencaSchema = z.object({
+    codigo: z.string(),
+    lidoEm: z.string().optional()
+  });
+
+  app.post('/encontros/:id/presencas', requireUser, requireParticipant, express.json(), (req: Request, res: Response, next: NextFunction) => {
+    const parseResult = registerPresencaSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      res.status(422).json({ erro: 'DADOS_INVALIDOS', mensagem: 'Dados inválidos' });
+      return;
+    }
+
+    try {
+      const user = (req as any).user;
+      const { presenca, statusCode } = registerPresencaUseCase.execute(req.params.id, user.id, parseResult.data);
+      res.status(statusCode).json(presenca);
     } catch (err) {
       next(err);
     }
@@ -251,6 +287,10 @@ export function createApp(options?: AppOptions | string) {
       return;
     }
     if (err instanceof DomainError) {
+      if (err.code === 'NAO_INSCRITO') {
+        res.status(403).json({ erro: err.code, mensagem: err.message });
+        return;
+      }
       res.status(422).json({ erro: err.code, mensagem: err.message });
       return;
     }
