@@ -21,6 +21,7 @@ import { CancelActivityUseCase } from './application/cancel-activity.js';
 import { GetCodigoDoEncontroUseCase } from './application/get-codigo-do-encontro.js';
 import { RegisterPresencaUseCase } from './application/register-presenca.js';
 import { RegisterPresencaManualUseCase } from './application/register-presenca-manual.js';
+import { ListPresencasUseCase } from './application/list-presencas.js';
 import { CreateInscricaoUseCase } from './application/create-inscricao.js';
 import { ConfirmInscricaoUseCase } from './application/confirm-inscricao.js';
 import { CancelInscricaoUseCase } from './application/cancel-inscricao.js';
@@ -75,6 +76,7 @@ export function createApp(options?: AppOptions | string) {
   const presencaRepository = new PresencaRepository(db);
   const registerPresencaUseCase = new RegisterPresencaUseCase(activityRepository, inscricaoRepository, presencaRepository, clock);
 const registerPresencaManualUseCase = new RegisterPresencaManualUseCase(activityRepository, inscricaoRepository, presencaRepository, clock);
+const listPresencasUseCase = new ListPresencasUseCase(activityRepository, presencaRepository);
 const createInscricaoUseCase = new CreateInscricaoUseCase(activityRepository, inscricaoRepository, clock, m5Port);
 const confirmInscricaoUseCase = new ConfirmInscricaoUseCase(activityRepository, inscricaoRepository, clock);
 const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, inscricaoRepository, clock);
@@ -237,6 +239,15 @@ const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, in
     try {
       const codigoDoEncontro = getCodigoDoEncontroUseCase.execute(req.params.id);
       res.json(codigoDoEncontro);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  app.get('/encontros/:id/presencas', requireUser, requireOrg, (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const presencas = listPresencasUseCase.execute(req.params.id);
+      res.json(presencas);
     } catch (err) {
       next(err);
     }
