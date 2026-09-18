@@ -19,6 +19,7 @@ import { UpdateActivityUseCase } from './application/update-activity.js';
 import { CancelActivityUseCase } from './application/cancel-activity.js';
 import { GetCodigoDoEncontroUseCase } from './application/get-codigo-do-encontro.js';
 import { RegisterPresencaUseCase } from './application/register-presenca.js';
+import { RegisterPresencaManualUseCase } from './application/register-presenca-manual.js';
 import { NotFoundError } from './application/errors.js';
 import { DomainError, ConflictError } from './domain/activity.js';
 import { mapActivityResponse } from './http/activity-response.js';
@@ -66,6 +67,7 @@ export function createApp(options?: AppOptions | string) {
   const inscricaoRepository = new InscricaoRepository(db);
   const presencaRepository = new PresencaRepository(db);
   const registerPresencaUseCase = new RegisterPresencaUseCase(activityRepository, inscricaoRepository, presencaRepository, clock);
+  const registerPresencaManualUseCase = new RegisterPresencaManualUseCase(activityRepository, presencaRepository, clock);
 
   // Modo de teste routes (when MODO_TESTE=1)
   if (modoTeste) {
@@ -182,6 +184,27 @@ export function createApp(options?: AppOptions | string) {
     try {
       const user = (req as any).user;
       const { presenca, statusCode } = registerPresencaUseCase.execute(req.params.id, user.id, parseResult.data);
+      res.status(statusCode).json(presenca);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  const registerPresencaManualSchema = z.object({
+    participanteId: z.string(),
+    justificativa: z.string().optional()
+  });
+
+  app.post('/encontros/:id/presencas/manual', requireUser, requireOrg, express.json(), (req: Request, res: Response, next: NextFunction) => {
+    const parseResult = registerPresencaManualSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      res.status(422).json({ erro: 'DADOS_INVALIDOS', mensagem: 'Dados inválidos' });
+      return;
+    }
+
+    try {
+      const { participanteId, justificativa } = parseResult.data;
+      const { presenca, statusCode } = registerPresencaManualUseCase.execute(req.params.id, participanteId, { participanteId, justificativa });
       res.status(statusCode).json(presenca);
     } catch (err) {
       next(err);
