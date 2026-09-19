@@ -29,6 +29,8 @@ import { NotFoundError } from './application/errors.js';
 import { DomainError, ConflictError } from './domain/activity.js';
 import { processExpirationsAndConvocations } from './domain/inscricao-service.js';
 import { mapActivityResponse } from './http/activity-response.js';
+import { PainelQueryPort, SQLitePainelQueryAdapter } from './integrations/painel-query-port.js';
+import { ListPainelAtividadesUseCase } from './application/list-painel-atividades.js';
 
 export interface AppOptions {
   dbPath?: string;
@@ -36,6 +38,7 @@ export interface AppOptions {
   modoTeste?: boolean;
   m2Port?: M2IntegrationPort;
   m5Port?: M5IntegrationPort;
+  painelQueryPort?: PainelQueryPort;
 }
 
 export function createApp(options?: AppOptions | string) {
@@ -67,6 +70,8 @@ export function createApp(options?: AppOptions | string) {
   const activityRepository = new ActivityRepository(db);
   const m2Port = opts.m2Port || new SQLiteM2Adapter(inscricaoRepository, activityRepository, clock);
   const m5Port = opts.m5Port || new SQLiteM5Adapter(inscricaoRepository);
+  const painelQueryPort = opts.painelQueryPort || new SQLitePainelQueryAdapter(activityRepository, inscricaoRepository);
+  const listPainelAtividadesUseCase = new ListPainelAtividadesUseCase(painelQueryPort);
   const createActivityUseCase = new CreateActivityUseCase(activityRepository, roomRepository);
   const getActivityUseCase = new GetActivityUseCase(activityRepository);
   const listActivitiesUseCase = new ListActivitiesUseCase(activityRepository);
@@ -381,7 +386,8 @@ const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, in
   });
 
   app.get('/painel/atividades', requireUser, requireOrg, (_req: Request, res: Response) => {
-    res.status(204).send();
+    const result = listPainelAtividadesUseCase.execute();
+    res.json(result);
   });
 
   app.get('/painel/atividades/:id/sem-chance', requireUser, requireOrg, (_req: Request, res: Response) => {
