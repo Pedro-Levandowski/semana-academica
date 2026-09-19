@@ -31,7 +31,7 @@ Entidades expostas pelo M4:
   - `cargaHorariaMinutos`: número inteiro
   - `emitidoEm`: instante ISO 8601 com fuso
 - **Extrato**:
-  - `itens`: lista de `{ atividadeId, titulo, tipo, cargaHorariaMinutos, codigo }` — uma entrada para cada atividade em que o participante está inscrito; `codigo` é o código do certificado quando já emitido para a atividade e `null` caso contrário (R10)
+  - `itens`: lista de `{ atividadeId, titulo, tipo, cargaHorariaMinutos, codigo }` — uma entrada para cada atividade elegível do participante, conforme as regras R13 a R18; `codigo` é o código do certificado quando já emitido para a atividade e `null` caso contrário (R10)
   - `palestrasMinutos`: número inteiro, soma bruta das cargas horárias das palestras, sem teto (calculado)
   - `minicursosMinutos`: número inteiro, soma bruta das cargas horárias dos minicursos, sem teto (calculado)
   - `totalMinutos`: número inteiro, `palestrasMinutos + minicursosMinutos` (calculado)
@@ -54,9 +54,15 @@ Métodos, caminhos, papéis e códigos de sucesso conforme `contrato-api.md`:
 - **R7** (Abreviação do nome): Na verificação pública, o nome do participante aparece com o primeiro nome por extenso e as iniciais dos demais nomes, cada uma seguida de ponto. As partículas `de`, `da`, `do`, `das` e `dos` permanecem por extenso e em minúsculas. *(Origem: P-05; RN-408, RN-409)*
 - **R8** (Verificação pública sem X-Usuario): `GET /certificados/:codigo` é público e não exige o cabeçalho `X-Usuario`, retornando somente código, nome abreviado do participante, título da atividade, carga horária e data de emissão. *(Origem: P-05; RN-408, RN-409)*
 - **R9** (Idempotência da emissão): A emissão é idempotente para o par atividade e participante: na primeira solicitação o certificado é criado e retorna 201; nas solicitações seguintes, para a mesma atividade e o mesmo participante, retorna 200 com o mesmo certificado e o mesmo código, sem criar nova emissão. *(Origem: P-06; RN-407)*
-- **R10** (Composição dos itens do extrato): O extrato lista todas as atividades em que o participante está inscrito. Em cada item, `codigo` contém o código do certificado quando ele já tiver sido emitido para aquela atividade; se ainda não houver certificado emitido para a atividade, `codigo` é `null`. *(Origem: P-07; RN-410)*
+- **R10** (Composição dos itens do extrato): O extrato lista as atividades elegíveis do participante — isto é, as atividades que atendem às regras R13 a R18 —, emitidas ou não. Em cada item, `codigo` contém o código do certificado quando ele já tiver sido emitido para aquela atividade; se ainda não houver certificado emitido para a atividade, `codigo` é `null`. *(Origem: P-07; RN-410)*
 - **R11** (Alfabeto do código): O código do certificado usa letras maiúsculas e dígitos, excluindo os caracteres `I`, `O`, `0` e `1` para evitar ambiguidades — o mesmo alfabeto utilizado pelos códigos de presença. *(Origem: P-08; RN-407, RN-302)*
 - **R12** (Precedência de erros na emissão): Quando, na mesma solicitação, ambos os erros se aplicam, `ATIVIDADE_NAO_ENCERRADA` tem precedência sobre `PRESENCA_INSUFICIENTE`: a validação de encerramento da atividade ocorre antes da validação da frequência. *(Origem: P-09; RN-413)*
+- **R13** (Inscrição confirmada elegível): Uma atividade em que o participante tem inscrição `confirmada` pode entrar no extrato, pois o extrato lista as atividades elegíveis, emitidas ou não, e a certificação exige inscrição confirmada. *(Origem: P-10; RN-410, RN-403)*
+- **R14** (Inscrição em_espera não elegível): Uma atividade em que a inscrição do participante está `em_espera` não entra no extrato, pois o extrato lista somente atividades elegíveis e a certificação exige inscrição confirmada. *(Origem: P-11; RN-410, RN-403)*
+- **R15** (Inscrição convocada não elegível): Uma atividade em que a inscrição do participante está `convocada` não entra no extrato, pois ainda não é uma inscrição confirmada; o extrato lista somente atividades elegíveis e a certificação exige inscrição confirmada. *(Origem: P-12; RN-410, RN-403, RN-214)*
+- **R16** (Inscrição cancelada não elegível): Uma atividade em que a inscrição do participante está `cancelada` não entra no extrato, pois a inscrição não está confirmada e, portanto, não é elegível para certificação. *(Origem: P-13; RN-410, RN-403, RN-210)*
+- **R17** (Inscrição expirada não elegível): Uma atividade em que a inscrição do participante está `expirada` não entra no extrato, pois a inscrição não está confirmada e, portanto, não é elegível para certificação. *(Origem: P-14; RN-410, RN-403, RN-210)*
+- **R18** (Atividade cancelada não elegível): Uma atividade cancelada não permanece no extrato, pois atividade cancelada não certifica e o extrato lista somente atividades elegíveis. *(Origem: P-15; RN-402, RN-410)*
 
 ## 6. Critérios de aceite
 1. (R1) Atividade encerrada com 4 encontros; participante com presenças em exatamente 3 (75% exato) → `POST /atividades/:id/certificado` → 201 com `presencas: 3` e `encontros: 4`.
@@ -76,9 +82,15 @@ Métodos, caminhos, papéis e códigos de sucesso conforme `contrato-api.md`:
 15. (R8) `GET /certificados/:codigo` sem o cabeçalho `X-Usuario` → 200 com exatamente `codigo`, `participante` (abreviado), `atividade`, `cargaHorariaMinutos` e `emitidoEm`.
 16. (R8) A resposta de verificação pública não expõe `participanteId`, `presencas` nem `encontros`.
 17. (R9) Primeira solicitação de `POST /atividades/:id/certificado` → 201; segunda solicitação para a mesma atividade e o mesmo participante → 200 com o mesmo `codigo` e o mesmo `emitidoEm`, sem nova emissão.
-18. (R10) Participante inscrito em duas atividades, uma com certificado emitido e outra sem → `GET /extrato` retorna `itens` com as duas atividades; o item da atividade com certificado tem `codigo` preenchido e o da outra tem `codigo: null`.
+18. (R10) Participante com inscrição confirmada em duas atividades, uma com certificado emitido e outra sem → `GET /extrato` retorna `itens` com as duas atividades; o item da atividade com certificado tem `codigo` preenchido e o da outra tem `codigo: null`.
 19. (R11) Certificado emitido → todos os caracteres do `codigo` pertencem a letras maiúsculas e dígitos, exceto `I`, `O`, `0` e `1`.
 20. (R12) Atividade não encerrada com participante com 50% de presença (abaixo do mínimo de 75%) → `POST /atividades/:id/certificado` → 422 `ATIVIDADE_NAO_ENCERRADA` (e não `PRESENCA_INSUFICIENTE`).
+21. (R13) Participante com inscrição `confirmada` em uma atividade sem certificado emitido → a atividade consta no `itens` do `GET /extrato`, com `codigo: null`.
+22. (R14) Participante com inscrição `em_espera` em uma atividade → a atividade **não** consta no `itens` do `GET /extrato`.
+23. (R15) Participante com inscrição `convocada` em uma atividade → a atividade **não** consta no `itens` do `GET /extrato`.
+24. (R16) Participante com inscrição `cancelada` em uma atividade → a atividade **não** consta no `itens` do `GET /extrato`.
+25. (R17) Participante com inscrição `expirada` em uma atividade → a atividade **não** consta no `itens` do `GET /extrato`.
+26. (R18) Atividade cancelada com inscrição `confirmada` do participante → a atividade **não** consta no `itens` do `GET /extrato`.
 
 ## 7. Como será verificado
 A verificação será realizada externamente (sem leitura de código), pela camada HTTP:
@@ -94,7 +106,7 @@ A verificação será realizada externamente (sem leitura de código), pela cama
 3. **Fatia 3 — verificação pública**
    - `GET /certificados/:codigo` sem `X-Usuario` (R8), com a abreviação do nome (R7) e a projeção somente dos campos públicos.
 4. **Fatia 4 — extrato de horas complementares**
-   - `GET /extrato` com cargas brutas (R3), teto de palestras (R4), teto total e fórmula de `aproveitadoMinutos` (R5) e composição dos itens (R10).
+   - `GET /extrato` com cargas brutas (R3), teto de palestras (R4), teto total e fórmula de `aproveitadoMinutos` (R5), composição dos itens com `codigo` preenchido ou `null` (R10) e elegibilidade dos itens por status de inscrição e situação da atividade (R13 a R18).
 
 ---
 
@@ -111,6 +123,12 @@ A verificação será realizada externamente (sem leitura de código), pela cama
 - R10 → Critério 18
 - R11 → Critério 19
 - R12 → Critério 20
+- R13 → Critério 21
+- R14 → Critério 22
+- R15 → Critério 23
+- R16 → Critério 24
+- R17 → Critério 25
+- R18 → Critério 26
 
 ## Apêndice B: Matriz Origem → Regra/Seção
 - P-01 → R1
@@ -122,13 +140,23 @@ A verificação será realizada externamente (sem leitura de código), pela cama
 - P-07 → R10
 - P-08 → R11
 - P-09 → R12
+- P-10 → R13
+- P-11 → R14
+- P-12 → R15
+- P-13 → R16
+- P-14 → R17
+- P-15 → R18
+- RN-210 → R16, R17
+- RN-214 → R15
 - RN-302 → R11
 - RN-401 → R2
+- RN-402 → R18
+- RN-403 → R13, R14, R15, R16, R17
 - RN-404 → R1
 - RN-407 → R6, R9, R11
 - RN-408 → R7, R8
 - RN-409 → R7, R8
-- RN-410 → R10
+- RN-410 → R10, R13, R14, R15, R16, R17, R18
 - RN-411 → R3, R4
 - RN-412 → R5
 - RN-413 → R12
