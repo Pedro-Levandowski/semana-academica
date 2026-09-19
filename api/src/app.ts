@@ -31,6 +31,7 @@ import { processExpirationsAndConvocations } from './domain/inscricao-service.js
 import { mapActivityResponse } from './http/activity-response.js';
 import { PainelQueryPort, SQLitePainelQueryAdapter } from './integrations/painel-query-port.js';
 import { ListPainelAtividadesUseCase } from './application/list-painel-atividades.js';
+import { ListSemChanceUseCase } from './application/list-sem-chance.js';
 
 export interface AppOptions {
   dbPath?: string;
@@ -68,17 +69,18 @@ export function createApp(options?: AppOptions | string) {
   const userRepository = new UserRepository(db);
   const roomRepository = new RoomRepository(db);
   const activityRepository = new ActivityRepository(db);
+  const presencaRepository = new PresencaRepository(db);
   const m2Port = opts.m2Port || new SQLiteM2Adapter(inscricaoRepository, activityRepository, clock);
   const m5Port = opts.m5Port || new SQLiteM5Adapter(inscricaoRepository);
-  const painelQueryPort = opts.painelQueryPort || new SQLitePainelQueryAdapter(activityRepository, inscricaoRepository);
-  const listPainelAtividadesUseCase = new ListPainelAtividadesUseCase(painelQueryPort);
+  const painelQueryPort = opts.painelQueryPort || new SQLitePainelQueryAdapter(activityRepository, inscricaoRepository, presencaRepository, userRepository);
+  const listPainelAtividadesUseCase = new ListPainelAtividadesUseCase(painelQueryPort, clock);
+  const listSemChanceUseCase = new ListSemChanceUseCase(painelQueryPort, clock);
   const createActivityUseCase = new CreateActivityUseCase(activityRepository, roomRepository);
   const getActivityUseCase = new GetActivityUseCase(activityRepository);
   const listActivitiesUseCase = new ListActivitiesUseCase(activityRepository);
   const updateActivityUseCase = new UpdateActivityUseCase(activityRepository, roomRepository, m2Port);
   const cancelActivityUseCase = new CancelActivityUseCase(activityRepository, m2Port, clock);
   const getCodigoDoEncontroUseCase = new GetCodigoDoEncontroUseCase(activityRepository, clock);
-  const presencaRepository = new PresencaRepository(db);
   const registerPresencaUseCase = new RegisterPresencaUseCase(activityRepository, inscricaoRepository, presencaRepository, clock);
 const registerPresencaManualUseCase = new RegisterPresencaManualUseCase(activityRepository, inscricaoRepository, presencaRepository, clock);
 const listPresencasUseCase = new ListPresencasUseCase(activityRepository, presencaRepository);
@@ -390,8 +392,13 @@ const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, in
     res.json(result);
   });
 
-  app.get('/painel/atividades/:id/sem-chance', requireUser, requireOrg, (_req: Request, res: Response) => {
-    res.status(204).send();
+  app.get('/painel/atividades/:id/sem-chance', requireUser, requireOrg, (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = listSemChanceUseCase.execute(req.params.id);
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
   });
 
   app.get('/painel/atividades/:id/frequencia.csv', requireUser, requireOrg, (_req: Request, res: Response) => {
