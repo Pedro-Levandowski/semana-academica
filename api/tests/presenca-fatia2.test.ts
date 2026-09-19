@@ -257,4 +257,57 @@ describe('M3 - Presença - Fatia 2 (Registro via QR e Idempotência)', () => {
     // Deve ter usado o tempo do servidor (10:05:00)
     expect(res.body.lidoEm).toContain('2026-10-19T10:05:00');
   });
+
+  it('critério 6 (R4) — código gerado num minuto X ainda é aceito (201) quando o relógio avança para o minuto X+1', async () => {
+    const atividadeRes = await request(app)
+      .post('/atividades')
+      .set('X-Usuario', 'org-ana')
+      .send({
+        titulo: 'Palestra Código Minuto Anterior',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 20,
+        encontros: [
+          { inicio: '2026-10-19T10:00:00-03:00', fim: '2026-10-19T11:00:00-03:00' }
+        ]
+      });
+
+    expect(atividadeRes.status).toBe(201);
+    const atividadeId = atividadeRes.body.id;
+    const encontroId = atividadeRes.body.encontros[0].id;
+
+    const db = new Database(dbPath);
+    db.prepare(`
+      INSERT INTO inscricoes (id, atividadeId, participanteId, status, posicaoNaEspera, convocadaAte, criadaEm)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run('ins-carla', atividadeId, 'p-carla', 'confirmada', null, null, '2026-10-18T10:00:00-03:00');
+    db.close();
+
+    // Relógio no minuto X (ex: 10:05:10)
+    await request(app)
+      .put('/_teste/relogio')
+      .send({ agora: '2026-10-19T10:05:10-03:00' });
+
+    // Obter o código no minuto X
+    const codigoRes = await request(app)
+      .get(`/encontros/${encontroId}/codigo`)
+      .set('X-Usuario', 'org-ana');
+    expect(codigoRes.status).toBe(200);
+    const codigoMinutoX = codigoRes.body.codigo;
+
+    // Avançar o relógio para o minuto X+1 (ex: 10:06:00)
+    await request(app)
+      .put('/_teste/relogio')
+      .send({ agora: '2026-10-19T10:06:00-03:00' });
+
+    // Enviar POST /encontros/:id/presencas com o código do minuto anterior (X)
+    const resPresenca = await request(app)
+      .post(`/encontros/${encontroId}/presencas`)
+      .set('X-Usuario', 'p-carla')
+      .send({ codigo: codigoMinutoX });
+
+    expect(resPresenca.status).toBe(201);
+    expect(resPresenca.body.encontroId).toBe(encontroId);
+    expect(resPresenca.body.participanteId).toBe('p-carla');
+  });
 });
