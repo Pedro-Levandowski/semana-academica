@@ -48,3 +48,14 @@
 | P13 | Inscrição cancelada aparece no extrato? | PENDENTE |
 | P14 | Inscrição expirada aparece no extrato? | PENDENTE |
 | P15 | Atividade cancelada permanece no extrato? | PENDENTE |
+
+## Rodada 2 Complementar
+
+| # | Resposta | Fonte |
+|---|----------|-------|
+| P10 | Sim. Uma atividade com inscrição confirmada pode aparecer no extrato, pois o extrato lista as atividades elegíveis, emitidas ou não. A certificação exige inscrição confirmada. | RN-410 e RN-403 |
+| P11 | Não. Uma atividade em que a inscrição está em_espera não entra no extrato, pois o extrato lista atividades elegíveis e a certificação exige inscrição confirmada. | RN-410 e RN-403 |
+| P12 | Não. Uma atividade em que a inscrição está convocada não entra no extrato, pois ainda não é uma inscrição confirmada. O extrato lista atividades elegíveis e a certificação exige inscrição confirmada. | RN-410, RN-403 e RN-214 |
+| P13 | Não. Uma atividade em que a inscrição está cancelada não entra no extrato, pois a inscrição não está confirmada e, portanto, não é elegível para certificação. | RN-410, RN-403 e RN-210 |
+| P14 | Não. Uma atividade em que a inscrição está expirada não entra no extrato, pois a inscrição não está confirmada e, portanto, não é elegível para certificação. | RN-410, RN-403 e RN-210 |
+| P15 | Não. Uma atividade cancelada não permanece no extrato, pois atividade cancelada não certifica e o extrato lista somente atividades elegíveis. | RN-402 e RN-410 |
