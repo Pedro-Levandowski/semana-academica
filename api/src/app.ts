@@ -32,6 +32,7 @@ import { mapActivityResponse } from './http/activity-response.js';
 import { PainelQueryPort, SQLitePainelQueryAdapter } from './integrations/painel-query-port.js';
 import { ListPainelAtividadesUseCase } from './application/list-painel-atividades.js';
 import { ListSemChanceUseCase } from './application/list-sem-chance.js';
+import { ExportFrequenciaCsvUseCase } from './application/export-frequencia-csv.js';
 
 export interface AppOptions {
   dbPath?: string;
@@ -75,6 +76,7 @@ export function createApp(options?: AppOptions | string) {
   const painelQueryPort = opts.painelQueryPort || new SQLitePainelQueryAdapter(activityRepository, inscricaoRepository, presencaRepository, userRepository);
   const listPainelAtividadesUseCase = new ListPainelAtividadesUseCase(painelQueryPort, clock);
   const listSemChanceUseCase = new ListSemChanceUseCase(painelQueryPort, clock);
+  const exportFrequenciaCsvUseCase = new ExportFrequenciaCsvUseCase(painelQueryPort, clock);
   const createActivityUseCase = new CreateActivityUseCase(activityRepository, roomRepository);
   const getActivityUseCase = new GetActivityUseCase(activityRepository);
   const listActivitiesUseCase = new ListActivitiesUseCase(activityRepository);
@@ -401,8 +403,15 @@ const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, in
     }
   });
 
-  app.get('/painel/atividades/:id/frequencia.csv', requireUser, requireOrg, (_req: Request, res: Response) => {
-    res.status(204).send();
+  app.get('/painel/atividades/:id/frequencia.csv', requireUser, requireOrg, (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const buffer = exportFrequenciaCsvUseCase.execute(req.params.id);
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', 'attachment; filename="frequencia.csv"');
+      res.status(200).send(buffer);
+    } catch (err) {
+      next(err);
+    }
   });
 
   app.get('/painel/bloqueios', requireUser, requireOrg, (_req: Request, res: Response) => {
