@@ -75,6 +75,16 @@ export interface Atividade {
   emEspera: number;
 }
 
+export interface Inscricao {
+  id: string;
+  atividadeId: string;
+  participanteId: string;
+  status: "confirmada" | "em_espera" | "convocada" | "cancelada" | "expirada";
+  posicaoNaEspera: number | null;
+  convocadaAte: string | null;
+  criadaEm: string;
+}
+
 export interface ApiErrorResponse {
   erro: string;
   mensagem: string;

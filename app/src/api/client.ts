@@ -1,4 +1,4 @@
-import { Sala, Atividade, CreateAtividadeDTO, UpdateAtividadeDTO, CodigoDoEncontro, Presenca, RegistrarPresencaDTO, RegistrarPresencaManualDTO, ApiError } from "./types";
+import { Sala, Atividade, CreateAtividadeDTO, UpdateAtividadeDTO, CodigoDoEncontro, Presenca, RegistrarPresencaDTO, RegistrarPresencaManualDTO, Inscricao, ApiError } from "./types";
 
 const getBaseUrl = () => {
   return (import.meta as any).env?.VITE_API_URL || "http://localhost:3000";
@@ -140,5 +140,35 @@ export const api = {
 
   getPresencas: async (id: string): Promise<Presenca[]> => {
     return request<Presenca[]>(`/encontros/${id}/presencas`);
+  },
+
+  getInscricoes: async (filters?: { atividadeId?: string }): Promise<Inscricao[]> => {
+    let query = "";
+    if (filters?.atividadeId) {
+      query = `?atividadeId=${encodeURIComponent(filters.atividadeId)}`;
+    }
+    return request<Inscricao[]>(`/inscricoes${query}`);
+  },
+
+  getInscricao: async (id: string): Promise<Inscricao> => {
+    return request<Inscricao>(`/inscricoes/${id}`);
+  },
+
+  createInscricao: async (atividadeId: string): Promise<Inscricao> => {
+    return request<Inscricao>(`/atividades/${atividadeId}/inscricoes`, {
+      method: "POST",
+    });
+  },
+
+  cancelInscricao: async (id: string): Promise<Inscricao> => {
+    return request<Inscricao>(`/inscricoes/${id}/cancelamento`, {
+      method: "POST",
+    });
+  },
+
+  confirmInscricao: async (id: string): Promise<Inscricao> => {
+    return request<Inscricao>(`/inscricoes/${id}/confirmacao`, {
+      method: "POST",
+    });
   },
 };

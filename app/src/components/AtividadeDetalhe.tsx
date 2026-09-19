@@ -333,7 +333,13 @@ export function AtividadeDetalhe({
             )}
           </section>
 
-          <M2ExtensionPoint />
+          <M2ExtensionPoint
+            atividade={atividade}
+            selectedUserId={selectedUserId}
+            userPapel={userPapel}
+            apiClient={apiClient}
+            onInscricaoUpdated={reload}
+          />
         </article>
       )}
     </section>
