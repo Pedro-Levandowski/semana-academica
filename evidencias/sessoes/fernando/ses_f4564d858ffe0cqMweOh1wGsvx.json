@@ -1,0 +1,594 @@
+{
+ "info": {
+  "id": "ses_f4564d858ffe0cqMweOh1wGsvx",
+  "slug": "sunny-cabin",
+  "projectID": "08a8850750a50d17a216613ef31c5f0b0d1b31ca",
+  "directory": "C:\\Users\\Usuario\\Desktop\\Trabalho Opencode\\semana-academica",
+  "path": "",
+  "title": "Revisão de contrato da API do M3",
+  "agent": "build",
+  "model": {
+   "id": "gemini-3.5-flash-lite",
+   "providerID": "google"
+  },
+  "version": "1.18.31",
+  "summary": {
+   "additions": 0,
+   "deletions": 0,
+   "files": 0
+  },
+  "cost": 0.04688383,
+  "tokens": {
+   "input": 90466,
+   "output": 1741,
+   "reasoning": 5358,
+   "cache": {
+    "read": 66551,
+    "write": 0
+   }
+  },
+  "time": {
+   "created": 1789837125543,
+   "updated": 1789837174853
+  }
+ },
+ "messages": [
+  {
+   "info": {
+    "role": "user",
+    "time": {
+     "created": 1789837125582
+    },
+    "agent": "build",
+    "model": {
+     "providerID": "google",
+     "modelID": "gemini-3.5-flash-lite"
+    },
+    "summary": {
+     "diffs": []
+    },
+    "id": "msg_0ba9b27ce001i3Ck8QjlnRCX2l",
+    "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx"
+   },
+   "parts": [
+    {
+     "type": "text",
+     "text": "Vamos fazer a revisão de contrato do módulo M3. Leia contrato-api.md (na raiz do repositório) e compare com a implementação atual da API do M3 em api/src/app.ts, api/src/application/get-codigo-do-encontro.ts, api/src/application/register-presenca.ts, api/src/application/register-presenca-manual.ts e api/src/application/list-presencas.ts.\n\nConfira especificamente:\n- Se as rotas (caminho e método HTTP) batem exatamente com o que o contrato define para o M3.\n- Se os nomes dos campos de entrada e saída (JSON) batem exatamente (nome, maiúsculas/minúsculas, tipo).\n- Se os códigos de status HTTP (200, 201, 403, 422, etc.) batem com o que o contrato exige para cada situação.\n- Se os códigos de erro (FORA_DA_JANELA, CODIGO_INVALIDO, etc.) batem exatamente com os nomes definidos no contrato.\n\nNão altere nada ainda — apenas me liste qualquer divergência encontrada, por menor que seja, comparando contrato vs implementação lado a lado. ",
+     "id": "prt_0ba9b27d2001MsrjVQp2Up8F0s",
+     "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx",
+     "messageID": "msg_0ba9b27ce001i3Ck8QjlnRCX2l"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0ba9b27ce001i3Ck8QjlnRCX2l",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Usuario\\Desktop\\Trabalho Opencode\\semana-academica",
+     "root": "C:\\Users\\Usuario\\Desktop\\Trabalho Opencode\\semana-academica"
+    },
+    "cost": 0.0048211,
+    "tokens": {
+     "total": 11465,
+     "input": 10837,
+     "output": 221,
+     "reasoning": 407,
+     "cache": {
+      "write": 0,
+      "read": 0
+     }
+    },
+    "modelID": "gemini-3.5-flash-lite",
+    "providerID": "google",
+    "time": {
+     "created": 1789837125614,
+     "completed": 1789837131968
+    },
+    "finish": "tool-calls",
+    "id": "msg_0ba9b27ee001RmVWROiTXg76mo",
+    "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx"
+   },
+   "parts": [
+    {
+     "snapshot": "c7a4bac948179142323fc57ffaf47716cc92d174",
+     "type": "step-start",
+     "id": "prt_0ba9b3ac5001Aer1KqeXYAYN7z",
+     "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx",
+     "messageID": "msg_0ba9b27ee001RmVWROiTXg76mo"
+    },
+    {
+     "type": "reasoning",
+     "text": "**Analyzing the Contract**\n\nOkay, I'm diving into the contract details. I'm focusing on comparing `contrato-api.md` with the existing M3 API implementation. I'm reviewing `api/src/app.ts` and `api/src/application/get-codigo-do-encontro.ts` for discrepancies. I'm going to start with the main entry point and go from there.\n\n\n",
+     "time": {
+      "start": 1789837130441,
+      "end": 1789837131199
+     },
+     "id": "prt_0ba9b3ac9001cNtTjA25IcgCAf",
+     "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx",
+     "messageID": "msg_0ba9b27ee001RmVWROiTXg76mo"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "2zKkbRPbZpdsAJV9",
+     "state": {
+      "status": "completed",
+      "input": {
+       "offset": 1,
+       "filePath": "C:\\Users\\Usuario\\Desktop\\Trabalho Opencode\\semana-academica\\contrato-api.md",
+       "limit": 2000
+      },
+      "output": "[13906 caracteres omitidos]",
+      "title": "contrato-api.md",
+      "time": {
+       "start": 1789837130842,
+       "end": 1789837130893
+      }
+     },
+     "metadata": {
+      "google": {
+       "thoughtSignature": "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"
+      }
+     },
+     "id": "prt_0ba9b3c4c001guh9lllFbhvaqu",
+     "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx",
+     "messageID": "msg_0ba9b27ee001RmVWROiTXg76mo"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "KHrYQMIpu7DujJQH",
+     "state": {
+      "status": "completed",
+      "input": {
+       "limit": 2000,
+       "filePath": "C:\\Users\\Usuario\\Desktop\\Trabalho Opencode\\semana-academica\\api\\src\\app.ts",
+       "offset": 1
+      },
+      "output": "[21371 caracteres omitidos]",
+      "title": "api\\src\\app.ts",
+      "time": {
+       "start": 1789837130940,
+       "end": 1789837131027
+      }
+     },
+     "id": "prt_0ba9b3cb4001vSQ5gSoIs2M563",
+     "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx",
+     "messageID": "msg_0ba9b27ee001RmVWROiTXg76mo"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "diaRmBAt6VDfaViF",
+     "state": {
+      "status": "completed",
+      "input": {
+       "offset": 1,
+       "filePath": "C:\\Users\\Usuario\\Desktop\\Trabalho Opencode\\semana-academica\\api\\src\\application\\get-codigo-do-encontro.ts",
+       "limit": 2000
+      },
+      "output": "[2318 caracteres omitidos]",
+      "title": "api\\src\\application\\get-codigo-do-encontro.ts",
+      "time": {
+       "start": 1789837131076,
+       "end": 1789837131120
+      }
+     },
+     "id": "prt_0ba9b3d3b001L9YH0E3nMiWG0V",
+     "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx",
+     "messageID": "msg_0ba9b27ee001RmVWROiTXg76mo"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "x6Azpx8DrqyuDqt2",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Usuario\\Desktop\\Trabalho Opencode\\semana-academica\\api\\src\\application\\register-presenca.ts",
+       "offset": 1,
+       "limit": 2000
+      },
+      "output": "[4690 caracteres omitidos]",
+      "title": "api\\src\\application\\register-presenca.ts",
+      "time": {
+       "start": 1789837131180,
+       "end": 1789837131223
+      }
+     },
+     "id": "prt_0ba9b3da5001O09FdL944DXAfy",
+     "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx",
+     "messageID": "msg_0ba9b27ee001RmVWROiTXg76mo"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "c7a4bac948179142323fc57ffaf47716cc92d174",
+     "type": "step-finish",
+     "tokens": {
+      "total": 11465,
+      "input": 10837,
+      "output": 221,
+      "reasoning": 407,
+      "cache": {
+       "write": 0,
+       "read": 0
+      }
+     },
+     "cost": 0.0048211,
+     "id": "prt_0ba9b3f4b001z05ihoT3ks9RMi",
+     "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx",
+     "messageID": "msg_0ba9b27ee001RmVWROiTXg76mo"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0ba9b27ce001i3Ck8QjlnRCX2l",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Usuario\\Desktop\\Trabalho Opencode\\semana-academica",
+     "root": "C:\\Users\\Usuario\\Desktop\\Trabalho Opencode\\semana-academica"
+    },
+    "cost": 0.0085522,
+    "tokens": {
+     "total": 27378,
+     "input": 27224,
+     "output": 117,
+     "reasoning": 37,
+     "cache": {
+      "write": 0,
+      "read": 0
+     }
+    },
+    "modelID": "gemini-3.5-flash-lite",
+    "providerID": "google",
+    "time": {
+     "created": 1789837131974,
+     "completed": 1789837134657
+    },
+    "finish": "tool-calls",
+    "id": "msg_0ba9b40c60019wSACfkVZ6QM4l",
+    "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx"
+   },
+   "parts": [
+    {
+     "snapshot": "c7a4bac948179142323fc57ffaf47716cc92d174",
+     "type": "step-start",
+     "id": "prt_0ba9b47e10012JWcoW7PgRm9z5",
+     "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx",
+     "messageID": "msg_0ba9b40c60019wSACfkVZ6QM4l"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "4wEKNUWlcs5bmphe",
+     "state": {
+      "status": "completed",
+      "input": {
+       "offset": 1,
+       "limit": 2000,
+       "filePath": "C:\\Users\\Usuario\\Desktop\\Trabalho Opencode\\semana-academica\\api\\src\\application\\register-presenca-manual.ts"
+      },
+      "output": "[3354 caracteres omitidos]",
+      "title": "api\\src\\application\\register-presenca-manual.ts",
+      "time": {
+       "start": 1789837133802,
+       "end": 1789837133844
+      }
+     },
+     "metadata": {
+      "google": {
+       "thoughtSignature": "Et4BCtsBAWkUfRON43tZ5Yrq0+EaawY9LWbw75z3ehyIs+lzDUHVVnVi6MHquYQmyGty4j5ABmrs2DIfeYfkMAC+wrQqtUKE/8SqlubNHrst7gVV99vdEOS2C/Id06lJRwJs3QqbGaoBqmiLRNMaeFLQOBUDfH2bm/qeDNywURHiCnlxJPM2SBi0cTyBDbjNzF3tWwte6xW6uxVr6XcI3pOFfLwTEkprphiPY2dryeZ++JcKqdWGBWgdcDOvSuSELVa0lz74CDxJ19zkCpiG3aBbbKKPaI4BBAqPJ5bnNTJC"
+      }
+     },
+     "id": "prt_0ba9b47e4001Y8S8eUeompo86e",
+     "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx",
+     "messageID": "msg_0ba9b40c60019wSACfkVZ6QM4l"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "XZRrMectRHrvzgjJ",
+     "state": {
+      "status": "completed",
+      "input": {
+       "offset": 1,
+       "limit": 2000,
+       "filePath": "C:\\Users\\Usuario\\Desktop\\Trabalho Opencode\\semana-academica\\api\\src\\application\\list-presencas.ts"
+      },
+      "output": "[900 caracteres omitidos]",
+      "title": "api\\src\\application\\list-presencas.ts",
+      "time": {
+       "start": 1789837133890,
+       "end": 1789837133918
+      }
+     },
+     "id": "prt_0ba9b483c001VJ1IQZ5p1JMNV3",
+     "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx",
+     "messageID": "msg_0ba9b40c60019wSACfkVZ6QM4l"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "c7a4bac948179142323fc57ffaf47716cc92d174",
+     "type": "step-finish",
+     "tokens": {
+      "total": 27378,
+      "input": 27224,
+      "output": 117,
+      "reasoning": 37,
+      "cache": {
+       "write": 0,
+       "read": 0
+      }
+     },
+     "cost": 0.0085522,
+     "id": "prt_0ba9b49d6001do2Zp3yQOCJp2p",
+     "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx",
+     "messageID": "msg_0ba9b40c60019wSACfkVZ6QM4l"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0ba9b27ce001i3Ck8QjlnRCX2l",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Usuario\\Desktop\\Trabalho Opencode\\semana-academica",
+     "root": "C:\\Users\\Usuario\\Desktop\\Trabalho Opencode\\semana-academica"
+    },
+    "cost": 0.00442205,
+    "tokens": {
+     "total": 28870,
+     "input": 12356,
+     "output": 19,
+     "reasoning": 70,
+     "cache": {
+      "write": 0,
+      "read": 16425
+     }
+    },
+    "modelID": "gemini-3.5-flash-lite",
+    "providerID": "google",
+    "time": {
+     "created": 1789837134661,
+     "completed": 1789837137856
+    },
+    "finish": "tool-calls",
+    "id": "msg_0ba9b4b45001M2lAZmax2bsEba",
+    "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx"
+   },
+   "parts": [
+    {
+     "snapshot": "c7a4bac948179142323fc57ffaf47716cc92d174",
+     "type": "step-start",
+     "id": "prt_0ba9b5308001SCiO7CQcHq2Kzj",
+     "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx",
+     "messageID": "msg_0ba9b4b45001M2lAZmax2bsEba"
+    },
+    {
+     "type": "tool",
+     "tool": "grep",
+     "callID": "2Lv18LJAKfre4IhX",
+     "state": {
+      "status": "completed",
+      "input": {
+       "pattern": "PresencaRow|presenca"
+      },
+      "output": "[25910 caracteres omitidos]",
+      "title": "PresencaRow|presenca",
+      "time": {
+       "start": 1789837136658,
+       "end": 1789837137141
+      }
+     },
+     "metadata": {
+      "google": {
+       "thoughtSignature": "ErYDCrMDAWkUfRM02uVGtfMa5VeiauHXxqAUJzM1zbeVPPrTd/Q85H9aF61xP4IBaD/sH9NGQhU0WIcO12LpEt8y7GXqjcn26SsAkQk/agaYEe9Zfvn/LzlFPWihDcwlLGOruIiTQkRtkL60oqwB529lcrL7Pbd5Ct2A2AMvWYtXcxBxNd5C/lQSEA6afmfR5FjSrDCj9j9u0Qp8G9ovl9dB3PYPX8uM0BERWwvLd4FozZgnUca1lUQ8Liho0TYMNnrCSZR6ATQjgJjKwHMaLNd15BvlQHM0l06V6Fkjv+1rjJxs11iZpqV+cH3BF5VAXNzpTny/WWssTVp5zioGcgdb+dcwaeJy6twqRzyN/zOGyBFSMpdLLeGI0NXmovaLXqqxeCnp2RW/UvA3VNYjCukd9f6fpvbbHDfF0g+OQ/1ww8tO67548Tqcke/+QzZj0gF7LGx9/siTLcV4pN7TKDvXRwrutUB1hDddUBQuJFjKkmBNULDBpkx/XzL7wVVsJ3FzYKq+GnEoqNdk4oh2qCLMSCYvqgvuP7mHxuPDBym56g2UyzGLZJPI43aDM2/7xPNipiVC8p68"
+      }
+     },
+     "id": "prt_0ba9b530c001qrh3V7mMmBrjyZ",
+     "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx",
+     "messageID": "msg_0ba9b4b45001M2lAZmax2bsEba"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "c7a4bac948179142323fc57ffaf47716cc92d174",
+     "type": "step-finish",
+     "tokens": {
+      "total": 28870,
+      "input": 12356,
+      "output": 19,
+      "reasoning": 70,
+      "cache": {
+       "write": 0,
+       "read": 16425
+      }
+     },
+     "cost": 0.00442205,
+     "id": "prt_0ba9b56600013rnxySw4u3GURj",
+     "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx",
+     "messageID": "msg_0ba9b4b45001M2lAZmax2bsEba"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0ba9b27ce001i3Ck8QjlnRCX2l",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Usuario\\Desktop\\Trabalho Opencode\\semana-academica",
+     "root": "C:\\Users\\Usuario\\Desktop\\Trabalho Opencode\\semana-academica"
+    },
+    "cost": 0.01913637,
+    "tokens": {
+     "total": 44478,
+     "input": 23422,
+     "output": 18,
+     "reasoning": 4629,
+     "cache": {
+      "write": 0,
+      "read": 16409
+     }
+    },
+    "modelID": "gemini-3.5-flash-lite",
+    "providerID": "google",
+    "time": {
+     "created": 1789837137861,
+     "completed": 1789837168376
+    },
+    "finish": "tool-calls",
+    "id": "msg_0ba9b57c5001ghz7fIulgan3AD",
+    "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx"
+   },
+   "parts": [
+    {
+     "snapshot": "c7a4bac948179142323fc57ffaf47716cc92d174",
+     "type": "step-start",
+     "id": "prt_0ba9b6048001cZW2f3UVAkJsZv",
+     "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx",
+     "messageID": "msg_0ba9b57c5001ghz7fIulgan3AD"
+    },
+    {
+     "type": "reasoning",
+     "text": "**Verifying Contract Compliance**\n\nI'm now cross-referencing the M3 contract specifications with its current API implementation. I'm focusing on \"contrato-api.md\" to confirm the actual code in the 'api' directory aligns with the described contract. My goal is to spot any discrepancies.\n\n\n**Analyzing API Routes and Fields**\n\nI'm now diving into the specifics. I'm scrutinizing routes and HTTP methods against the `contrato-api.md` document, and comparing JSON input/output field names (case sensitivity and types). I'm also confirming the status codes align with the contract requirements for each scenario. Error codes, such as `FORA_DA_JANELA` and `CODIGO_INVALIDO`, are being verified. I'm documenting all discrepancies.\n\n\n**Checking Route Consistency**\n\nI'm now examining the `/encontros/:id/codigo` route. The `GET` method aligns with the contract in `contrato-api.md`. I have confirmed the required authentication (`requireUser`, `requireOrg`), successful status code (`200`), and the structure of the `CodigoDoEncontro` response object. I've also verified the use case returns the expected fields, with data types, and the status returned. I'm moving on to the `POST /encontros/:id/presencas` route, noting the idempotency requirements.\n\n\n**Verifying Schema Adherence**\n\nI've just compared the `POST /encontros/:id/presencas` route details. The JSON input schema, specifically the `codigo` and optional `lidoEm` fields, seems consistent between the contract and the Zod schema. The response, encompassing fields like `id`, `encontroId`, and `origem`, also aligns with the documented `Presenca` object, with the origin matching both values. I will cross-reference the `201` and `200` status codes implementation as a result of idempotency.\n\n\n**Validating Presence Records**\n\nI'm now focusing on the `/encontros/:id/presencas` routes and their associated logic. Specifically, I'm checking the handling of `POST /encontros/:id/presencas/manual`, noting that a `201` status code is expected on the first creation and a `200` on subsequent updates due to idempotency. I am also confirming the schema and validation for `participanteId` and `justificativa`, including the error handling for a missing or invalid `justificativa`. I've confirmed GET route uses `requireUser` and `requireOrg` and returns `PresencaRow[]`. I'm now checking Section 6 & specs to cross-reference error codes with M3.\n\n\n**Clarifying Access Control**\n\nI'm now investigating a discrepancy. I've noted a potential issue with the `403` error codes (`SOMENTE_ORGANIZACAO` and `SOMENTE_PARTICIPANTE`). I'm looking at the `/encontros/:id/presencas` route specifically, and the implications of the `requireParticipant` middleware versus `requireOrg`. This requires me to determine if the contract dictates if the organization should receive `SOMENTE_PARTICIPANTE`, instead of `SOMENTE_ORGANIZACAO`, when trying to access endpoints meant for participants. I'm reviewing the implementation in `app.ts` alongside middleware definitions.\n\n\n**Confirming Error Code Mapping**\n\nI've just finished verifying the `NAO_INSCRITO` error code, confirming its consistent 403 status according to both contract and implementation. Next, I am reviewing error codes such as `FORA_DA_JANELA`, `CODIGO_INVALIDO`, `SINCRONIZACAO_TARDIA`, `JUSTIFICATIVA_OBRIGATORIA`, `LIMITE_DE_MANUAIS` and `ATIVIDADE_CANCELADA`, cross-referencing their expected status codes from the contract with their implementations in `app.ts` to ensure each error condition is correctly handled and mapped to the appropriate HTTP status code.\n\n\n**Reviewing Data Mapping**\n\nI'm now comparing the `GetCodigoDoEncontroUseCase` details. I am ensuring that the input route, the structure and the types for both input and output are correctly handled. I am verifying the `register-presenca.ts`, `register-presenca-manual.ts` and `list-presencas.ts` implementations' expected output fields, and are consistently mapped according to the contract.\n\n\n**Confirming Route and Field Consistency**\n\nI've confirmed that the defined routes in `app.ts` are identical to the contract specifications, including method types. I have verified that the names, case sensitivity, and types of input and output JSON fields are consistent with the `contrato-api.md` document, including `CodigoDoEncontro`. I will now look into details such as the input `codigo`, `lidoEm` and `participanteId` across different routes, and that their implementation is consistent.\n\n\n**Validating Status Codes**\n\nI'm now focusing on HTTP status code consistency across the API. I'm verifying success responses: 200, 201, and their error handling, such as the 403 and 422 codes specified in the contract and API implementation. I'm ensuring all error scenarios, including user authentication failures, incorrect roles, and validation issues, map correctly to the defined codes. I'm also confirming proper handling for edge cases like `NAO_ENCONTRADO`.\n\n\n\n**Verifying Error Handling**\n\nI've just confirmed precise error code and name mapping between contract and implementation. The status codes, including 422, 403, 404, and 401, all align perfectly, including all edge case scenarios. Now I'm carefully reviewing `register-presenca-manual.ts`, specifically input parameter handling, looking for any minor discrepancies in the schema definitions.\n\n\n**Analyzing Parameter Usage**\n\nI'm now examining how parameters from the API route (`/encontros/:id/presencas/manual`) are passed to the `RegisterPresencaManualUseCase.execute` method. I see a discrepancy; `req.params.id` (which should be the encontro ID) is passed as `encontroId`. The `participanteId` and `justificativa` are correctly handled. I'm verifying the internal use and validation of `encontroId` inside the use case implementation to ensure data integrity and contract adherence, especially when an optional parameter such as `justificativa` might be null.\n\n\n",
+     "time": {
+      "start": 1789837140043,
+      "end": 1789837151107
+     },
+     "id": "prt_0ba9b604b001FAhUXH8pyfRJYP",
+     "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx",
+     "messageID": "msg_0ba9b57c5001ghz7fIulgan3AD"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "6023rH1b5fVy2gNE",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "npm --prefix api test"
+      },
+      "output": "\n> semana-academica-api@1.0.0 test\n> vitest run\n\n\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Usuario/Desktop/Trabalho Opencode/semana-academica/api\u001b[39m\n\n \u001b[32m✓\u001b[39m tests/app.test.ts \u001b[2m(\u001b[22m\u001b[2m21 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 463\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/encounter-rules.test.ts \u001b[2m(\u001b[22m\u001b[2m15 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 641\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m Encounter Rules - R3, R4, R5, R6\u001b[2m > \u001b[22mR3 — Duração dos encontros (60 a 240 minutos)\u001b[2m > \u001b[22mrecusa encontro com 59 minutos (abaixo do mínimo) com 422 ENCONTRO_INVALIDO e não persiste \u001b[33m 406\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia3.test.ts \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 846\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 3 (Offline e Sincronização Tardia)\u001b[2m > \u001b[22mcritério 8 (R5) — envio com lidoEm correspondente a 2 horas e 1 minute após o fim do encontro deve retornar 422 SINCRONIZACAO_TARDIA \u001b[33m 493\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 3 (Offline e Sincronização Tardia)\u001b[2m > \u001b[22mcritério 8 e 22 (R5, R18) — envio com lidoEm dentro do limite de 2 horas pós fim é aceito com origem qr_offline \u001b[33m 352\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia5.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1354\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 5 (Precedência de Erros e Listagem)\u001b[2m > \u001b[22mR14 (Critério 18) — precedência de erros no registro pelo participante: presença existente (200) prevalece sobre não inscrito/janela/código inválido \u001b[33m 510\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 5 (Precedência de Erros e Listagem)\u001b[2m > \u001b[22mR16 (Critério 20) — pedido GET para /encontros/:id/presencas feito pela organização retorna 200 e a lista de presenças \u001b[33m 322\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia4.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1362\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 4 (Presença Manual e Limites)\u001b[2m > \u001b[22mcritério 9 (R6) — tentativa de presença manual sem justificativa ou com menos de 10 caracteres deve retornar 422 JUSTIFICATIVA_OBRIGATORIA \u001b[33m 417\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 4 (Presença Manual e Limites)\u001b[2m > \u001b[22mcritério 10 (R7) — tentativa de presença manual fora do período permitido (antes da janela ou mais de 2h após o fim) deve retornar 422 FORA_DA_JANELA \u001b[33m 362\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 4 (Presença Manual e Limites)\u001b[2m > \u001b[22mcritério 11 (R8) — tentativa de presença manual que excede o limite de 10% das inscrições confirmadas deve retornar 422 LIMITE_DE_MANUAIS \u001b[33m 336\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia1.test.ts \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1621\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 1 (R1)\u001b[2m > \u001b[22mrecusa GET /encontros/:id/codigo feito 16 minutos antes do início com 422 FORA_DA_JANELA \u001b[33m 429\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia2.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1640\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 2 (Registro via QR e Idempotência)\u001b[2m > \u001b[22mcritério 12 (R9) — presença registrada por participante sem inscrição confirmada deve retornar 403 NAO_INSCRITO \u001b[33m 477\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 2 (Registro via QR e Idempotência)\u001b[2m > \u001b[22mcritérios 6, 15, 16, 17, 22 — registro bem-sucedido, idempotência 201/200, sem lidoEm e origem qr \u001b[33m 337\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 2 (Registro via QR e Idempotência)\u001b[2m > \u001b[22mcritérios 7, 13, 14 — normalização (minúsculas/espaços), código anterior válido, código inválido / outro encontro \u001b[33m 345\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/capacity-conflict.test.ts \u001b[2m(\u001b[22m\u001b[2m9 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 416\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/cancel-activity.test.ts \u001b[2m(\u001b[22m\u001b[2m9 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 454\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/inscricoes-fatia4.test.ts \u001b[2m(\u001b[22m\u001b[2m7 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2356\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR20 (Critério 37) — recusa cancelamento por usuário não participante com 403 SOMENTE_PARTICIPANTE \u001b[33m 435\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR16 (Critério 28) — recusa cancelamento em inscrição já cancelada ou expirada com 422 INSCRICAO_INATIVA \u001b[33m 440\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR8, R9 — convoca automático ao cancelar confirmada e reordena fila ao cancelar em_espera \u001b[33m 306\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR17 (Critério 29) — ao cancelar atividade no M1 via POST /atividades/:id/cancelamento, cancela automaticamente todas as inscrições ativas sem alterar inativas \u001b[33m 388\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/inscricoes-fatia1.test.ts \u001b[2m(\u001b[22m\u001b[2m10 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2411\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 1\u001b[2m > \u001b[22mR1 — realiza inscrição confirmada em atividade com vagas disponíveis \u001b[33m 446\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 1\u001b[2m > \u001b[22mR2 — recusa inscrição realizada 30 minutos antes do primeiro encontro com 422 INSCRICOES_ENCERRADAS \u001b[33m 356\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 1\u001b[2m > \u001b[22mR3 (Critério 6) — permite re-inscrição de participante com inscrição anterior cancelada ou expirada, inserindo ao final da fila ou como confirmada \u001b[33m 397\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/migration.test.ts \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 368\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/inscricoes-fatia3.test.ts \u001b[2m(\u001b[22m\u001b[2m9 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2841\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mFatia 3 — pré-condição: cria inscrição em_espera para testar posicaoNaEspera \u001b[33m 521\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mR8 — calcula posicaoNaEspera sequencial (1, 2, 3...) baseada na ordem de criação \u001b[33m 401\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mR9, R10 — convoca o 1º da fila de espera quando vaga é liberada e define convocadaAte para 2h depois \u001b[33m 329\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mR10 — trunca convocadaAte no limite de encerramento quando restam menos de 2h, e não convoca após o encerramento \u001b[33m 396\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/inscricoes-fatia2.test.ts \u001b[2m(\u001b[22m\u001b[2m11 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2920\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 2 (Validações de Negócio e Conflitos)\u001b[2m > \u001b[22mR4 (Critério 7) — recusa inscrição de participante bloqueado por faltas (2 atividades encerradas com zero presença em ambas) com 422 INSCRICAO_BLOQUEADA \u001b[33m 639\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 2 (Validações de Negócio e Conflitos)\u001b[2m > \u001b[22mR5 (Critério 8) — recusa inscrição no 4º minicurso ocupando vaga com 422 LIMITE_DE_MINICURSOS \u001b[33m 442\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 2 (Validações de Negócio e Conflitos)\u001b[2m > \u001b[22mR5 (Critério 9) — permite inscrição quando participante tem 3 minicursos em estado em_espera \u001b[33m 435\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/reset.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 282\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/update-activity.test.ts \u001b[2m(\u001b[22m\u001b[2m19 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 984\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-filters.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 311\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/cancel-activity-effects.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 369\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/initialization.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 232\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-output.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 236\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-status.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 247\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-list-order.test.ts \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 199\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/create-activity.test.ts \u001b[2m(\u001b[22m\u001b[2m20 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 409\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-detail.test.ts \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 195\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m24 passed\u001b[39m\u001b[22m\u001b[90m (24)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m183 passed\u001b[39m\u001b[22m\u001b[90m (183)\u001b[39m\n\u001b[2m   Start at \u001b[22m 13:59:16\n\u001b[2m   Duration \u001b[22m 10.72s\u001b[2m (transform 3.54s, setup 0ms, collect 64.27s, tests 23.16s, environment 6ms, prepare 12.24s)\u001b[22m\n\n",
+      "metadata": {
+       "output": "\n> semana-academica-api@1.0.0 test\n> vitest run\n\n\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Usuario/Desktop/Trabalho Opencode/semana-academica/api\u001b[39m\n\n \u001b[32m✓\u001b[39m tests/app.test.ts \u001b[2m(\u001b[22m\u001b[2m21 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 463\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/encounter-rules.test.ts \u001b[2m(\u001b[22m\u001b[2m15 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 641\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m Encounter Rules - R3, R4, R5, R6\u001b[2m > \u001b[22mR3 — Duração dos encontros (60 a 240 minutos)\u001b[2m > \u001b[22mrecusa encontro com 59 minutos (abaixo do mínimo) com 422 ENCONTRO_INVALIDO e não persiste \u001b[33m 406\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia3.test.ts \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 846\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 3 (Offline e Sincronização Tardia)\u001b[2m > \u001b[22mcritério 8 (R5) — envio com lidoEm correspondente a 2 horas e 1 minute após o fim do encontro deve retornar 422 SINCRONIZACAO_TARDIA \u001b[33m 493\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 3 (Offline e Sincronização Tardia)\u001b[2m > \u001b[22mcritério 8 e 22 (R5, R18) — envio com lidoEm dentro do limite de 2 horas pós fim é aceito com origem qr_offline \u001b[33m 352\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia5.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1354\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 5 (Precedência de Erros e Listagem)\u001b[2m > \u001b[22mR14 (Critério 18) — precedência de erros no registro pelo participante: presença existente (200) prevalece sobre não inscrito/janela/código inválido \u001b[33m 510\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 5 (Precedência de Erros e Listagem)\u001b[2m > \u001b[22mR16 (Critério 20) — pedido GET para /encontros/:id/presencas feito pela organização retorna 200 e a lista de presenças \u001b[33m 322\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia4.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1362\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 4 (Presença Manual e Limites)\u001b[2m > \u001b[22mcritério 9 (R6) — tentativa de presença manual sem justificativa ou com menos de 10 caracteres deve retornar 422 JUSTIFICATIVA_OBRIGATORIA \u001b[33m 417\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 4 (Presença Manual e Limites)\u001b[2m > \u001b[22mcritério 10 (R7) — tentativa de presença manual fora do período permitido (antes da janela ou mais de 2h após o fim) deve retornar 422 FORA_DA_JANELA \u001b[33m 362\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 4 (Presença Manual e Limites)\u001b[2m > \u001b[22mcritério 11 (R8) — tentativa de presença manual que excede o limite de 10% das inscrições confirmadas deve retornar 422 LIMITE_DE_MANUAIS \u001b[33m 336\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia1.test.ts \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1621\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 1 (R1)\u001b[2m > \u001b[22mrecusa GET /encontros/:id/codigo feito 16 minutos antes do início com 422 FORA_DA_JANELA \u001b[33m 429\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia2.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1640\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 2 (Registro via QR e Idempotência)\u001b[2m > \u001b[22mcritério 12 (R9) — presença registrada por participante sem inscrição confirmada deve retornar 403 NAO_INSCRITO \u001b[33m 477\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 2 (Registro via QR e Idempotência)\u001b[2m > \u001b[22mcritérios 6, 15, 16, 17, 22 — registro bem-sucedido, idempotência 201/200, sem lidoEm e origem qr \u001b[33m 337\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 2 (Registro via QR e Idempotência)\u001b[2m > \u001b[22mcritérios 7, 13, 14 — normalização (minúsculas/espaços), código anterior válido, código inválido / outro encontro \u001b[33m 345\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/capacity-conflict.test.ts \u001b[2m(\u001b[22m\u001b[2m9 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 416\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/cancel-activity.test.ts \u001b[2m(\u001b[22m\u001b[2m9 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 454\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/inscricoes-fatia4.test.ts \u001b[2m(\u001b[22m\u001b[2m7 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2356\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR20 (Critério 37) — recusa cancelamento por usuário não participante com 403 SOMENTE_PARTICIPANTE \u001b[33m 435\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR16 (Critério 28) — recusa cancelamento em inscrição já cancelada ou expirada com 422 INSCRICAO_INATIVA \u001b[33m 440\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR8, R9 — convoca automático ao cancelar confirmada e reordena fila ao cancelar em_espera \u001b[33m 306\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR17 (Critério 29) — ao cancelar atividade no M1 via POST /atividades/:id/cancelamento, cancela automaticamente todas as inscrições ativas sem alterar inativas \u001b[33m 388\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/inscricoes-fatia1.test.ts \u001b[2m(\u001b[22m\u001b[2m10 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2411\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 1\u001b[2m > \u001b[22mR1 — realiza inscrição confirmada em atividade com vagas disponíveis \u001b[33m 446\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 1\u001b[2m > \u001b[22mR2 — recusa inscrição realizada 30 minutos antes do primeiro encontro com 422 INSCRICOES_ENCERRADAS \u001b[33m 356\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 1\u001b[2m > \u001b[22mR3 (Critério 6) — permite re-inscrição de participante com inscrição anterior cancelada ou expirada, inserindo ao final da fila ou como confirmada \u001b[33m 397\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/migration.test.ts \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 368\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/inscricoes-fatia3.test.ts \u001b[2m(\u001b[22m\u001b[2m9 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2841\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mFatia 3 — pré-condição: cria inscrição em_espera para testar posicaoNaEspera \u001b[33m 521\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mR8 — calcula posicaoNaEspera sequencial (1, 2, 3...) baseada na ordem de criação \u001b[33m 401\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mR9, R10 — convoca o 1º da fila de espera quando vaga é liberada e define convocadaAte para 2h depois \u001b[33m 329\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mR10 — trunca convocadaAte no limite de encerramento quando restam menos de 2h, e não convoca após o encerramento \u001b[33m 396\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/inscricoes-fatia2.test.ts \u001b[2m(\u001b[22m\u001b[2m11 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2920\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 2 (Validações de Negócio e Conflitos)\u001b[2m > \u001b[22mR4 (Critério 7) — recusa inscrição de participante bloqueado por faltas (2 atividades encerradas com zero presença em ambas) com 422 INSCRICAO_BLOQUEADA \u001b[33m 639\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 2 (Validações de Negócio e Conflitos)\u001b[2m > \u001b[22mR5 (Critério 8) — recusa inscrição no 4º minicurso ocupando vaga com 422 LIMITE_DE_MINICURSOS \u001b[33m 442\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 2 (Validações de Negócio e Conflitos)\u001b[2m > \u001b[22mR5 (Critério 9) — permite inscrição quando participante tem 3 minicursos em estado em_espera \u001b[33m 435\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/reset.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 282\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/update-activity.test.ts \u001b[2m(\u001b[22m\u001b[2m19 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 984\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-filters.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 311\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/cancel-activity-effects.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 369\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/initialization.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 232\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-output.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 236\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-status.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 247\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-list-order.test.ts \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 199\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/create-activity.test.ts \u001b[2m(\u001b[22m\u001b[2m20 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 409\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-detail.test.ts \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 195\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m24 passed\u001b[39m\u001b[22m\u001b[90m (24)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m183 passed\u001b[39m\u001b[22m\u001b[90m (183)\u001b[39m\n\u001b[2m   Start at \u001b[22m 13:59:16\n\u001b[2m   Duration \u001b[22m 10.72s\u001b[2m (transform 3.54s, setup 0ms, collect 64.27s, tests 23.16s, environment 6ms, prepare 12.24s)\u001b[22m\n\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "npm --prefix api test",
+      "time": {
+       "start": 1789837151092,
+       "end": 1789837167606
+      }
+     },
+     "metadata": {
+      "google": {
+       "thoughtSignature": "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"
+      }
+     },
+     "id": "prt_0ba9b8b6a0012IWVIl2IRg3aQv",
+     "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx",
+     "messageID": "msg_0ba9b57c5001ghz7fIulgan3AD"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "c7a4bac948179142323fc57ffaf47716cc92d174",
+     "type": "step-finish",
+     "tokens": {
+      "total": 44478,
+      "input": 23422,
+      "output": 18,
+      "reasoning": 4629,
+      "cache": {
+       "write": 0,
+       "read": 16409
+      }
+     },
+     "cost": 0.01913637,
+     "id": "prt_0ba9bcd59001h9jjY43m1NESiW",
+     "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx",
+     "messageID": "msg_0ba9b57c5001ghz7fIulgan3AD"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0ba9b27ce001i3Ck8QjlnRCX2l",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Usuario\\Desktop\\Trabalho Opencode\\semana-academica",
+     "root": "C:\\Users\\Usuario\\Desktop\\Trabalho Opencode\\semana-academica"
+    },
+    "cost": 0.00995211,
+    "tokens": {
+     "total": 51925,
+     "input": 16627,
+     "output": 1366,
+     "reasoning": 215,
+     "cache": {
+      "write": 0,
+      "read": 33717
+     }
+    },
+    "modelID": "gemini-3.5-flash-lite",
+    "providerID": "google",
+    "time": {
+     "created": 1789837168383,
+     "completed": 1789837174841
+    },
+    "finish": "stop",
+    "id": "msg_0ba9bceff001wZGOLge1ulvQF4",
+    "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx"
+   },
+   "parts": [
+    {
+     "snapshot": "c7a4bac948179142323fc57ffaf47716cc92d174",
+     "type": "step-start",
+     "id": "prt_0ba9bd87d001wmHm9y3g8cj43S",
+     "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx",
+     "messageID": "msg_0ba9bceff001wZGOLge1ulvQF4"
+    },
+    {
+     "type": "text",
+     "text": "### Revisão de Contrato — Módulo M3 (Presença por QR)\n\nComparação lado a lado entre o `contrato-api.md` e a implementação atual (`api/src/app.ts` e arquivos de aplicação):\n\n#### 1. Rotas (Caminho e Método HTTP)\n| Contrato | Implementação | Status |\n|---|---|---|\n| `GET /encontros/:id/codigo` (organização) | `app.get('/encontros/:id/codigo', requireUser, requireOrg, ...)` | Compatível |\n| `POST /encontros/:id/presencas` (participante) | `app.post('/encontros/:id/presencas', requireUser, requireParticipant, ...)` | Compatível |\n| `POST /encontros/:id/presencas/manual` (organização) | `app.post('/encontros/:id/presencas/manual', requireUser, requireOrg, ...)` | Compatível |\n| `GET /encontros/:id/presencas` (organização) | `app.get('/encontros/:id/presencas', requireUser, requireOrg, ...)` | Compatível |\n\n#### 2. Campos de Entrada e Saída (JSON)\n- **`CodigoDoEncontro` (Saída de `GET /encontros/:id/codigo`)**\n  - Contrato: `encontroId`, `codigo`, `trocaEm`, `validoAte`\n  - Implementação: Retorna objeto com `{ encontroId, codigo, trocaEm, validoAte }` (Tipos string). Compatível.\n- **Entrada de `POST /encontros/:id/presencas`**\n  - Contrato: `{ \"codigo\": \"...\", \"lidoEm\": \"...\" }` (`lidoEm` opcional)\n  - Implementação: Zod schema `{ codigo: string, lidoEm?: string }`. Compatível.\n- **Entrada de `POST /encontros/:id/presencas/manual`**\n  - Contrato: `{ \"participanteId\": \"...\", \"justificativa\": \"...\" }`\n  - Implementação: Zod schema `{ participanteId: string, justificativa?: string }`. Compatível.\n- **`Presenca` (Saída de `POST /encontros/:id/presencas`, `POST /encontros/:id/presencas/manual`, item de `GET /encontros/:id/presencas`)**\n  - Contrato: `id`, `encontroId`, `participanteId`, `origem` (`qr` \\| `qr_offline` \\| `manual`), `lidoEm`, `registradaEm`, `justificativa`\n  - Implementação: Retorna objeto com os mesmos 7 campos e tipos exatos. Compatível.\n\n#### 3. Códigos de Status HTTP\n| Situação / Recurso | Contrato | Implementação | Status |\n|---|---|---|---|\n| `GET /encontros/:id/codigo` | `200` | `200` (res.json) | Compatível |\n| `POST /encontros/:id/presencas` (1ª vez) | `201` | `201` | Compatível |\n| `POST /encontros/:id/presencas` (subsequente/idempotência) | `200` | `200` | Compatível |\n| `POST /encontros/:id/presencas/manual` (1ª vez) | `201` | `201` | Compatível |\n| `POST /encontros/:id/presencas/manual` (subsequente/idempotência) | `200` | `200` | Compatível |\n| `GET /encontros/:id/presencas` | `200` | `200` | Compatível |\n| Cabeçalho `X-Usuario` ausente / desconhecido | `401 USUARIO_DESCONHECIDO` | `401 USUARIO_DESCONHECIDO` | Compatível |\n| Papel incorreto (organização em rota de participante, etc.) | `403 SOMENTE_ORGANIZACAO` / `SOMENTE_PARTICIPANTE` | `403 SOMENTE_ORGANIZACAO` / `SOMENTE_PARTICIPANTE` | Compatível |\n| Participante sem inscrição confirmada (`NAO_INSCRITO`) | `403` | `403` | Compatível |\n| Encontro não encontrado | `404 NAO_ENCONTRADO` | `404 NAO_ENCONTRADO` | Compatível |\n| Corpo malformado / dados inválidos | `422 DADOS_INVALIDOS` | `422 DADOS_INVALIDOS` | Compatível |\n\n#### 4. Códigos de Erro (Seção 6)\n| Código de Erro | Status Contrato | Status Implementação | Status |\n|---|---|---|---|\n| `FORA_DA_JANELA` | `422` | `422` | Compatível |\n| `CODIGO_INVALIDO` | `422` | `422` | Compatível |\n| `SINCRONIZACAO_TARDIA` | `422` | `422` | Compatível |\n| `JUSTIFICATIVA_OBRIGATORIA` | `422` | `422` | Compatível |\n| `LIMITE_DE_MANUAIS` | `422` | `422` | Compatível |\n| `NAO_INSCRITO` | `403` | `403` | Compatível |\n| `ATIVIDADE_CANCELADA` | `422` | `422` | Compatível |\n\n**Divergências encontradas:** Nenhuma. A implementação do módulo M3 está 100% aderente ao `contrato-api.md`.",
+     "time": {
+      "start": 1789837170816,
+      "end": 1789837174089
+     },
+     "id": "prt_0ba9bd8800011GQlgYV5QHeYZd",
+     "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx",
+     "messageID": "msg_0ba9bceff001wZGOLge1ulvQF4"
+    },
+    {
+     "reason": "stop",
+     "snapshot": "c7a4bac948179142323fc57ffaf47716cc92d174",
+     "type": "step-finish",
+     "tokens": {
+      "total": 51925,
+      "input": 16627,
+      "output": 1366,
+      "reasoning": 215,
+      "cache": {
+       "write": 0,
+       "read": 33717
+      }
+     },
+     "cost": 0.00995211,
+     "id": "prt_0ba9be6c3001gD52H8DzhdkrOV",
+     "sessionID": "ses_f4564d858ffe0cqMweOh1wGsvx",
+     "messageID": "msg_0ba9bceff001wZGOLge1ulvQF4"
+    }
+   ]
+  }
+ ]
+}

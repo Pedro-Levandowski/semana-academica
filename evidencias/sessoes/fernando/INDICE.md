@@ -20,4 +20,13 @@ Requisições são chamadas ao modelo: cada passo do agente é uma. Skills conta
 | 17/09 23:17 | [Regra R18 e campo origem em register-presenca.ts](ses_f4db25aafffecmmKaAMCBiYVSJ.md) | 28 | — | — | 1 / 2 | 0 | 0 | 1 | — |
 | 17/09 23:49 | [Testes de presença manual na Fatia 4](ses_f4d9470ecffeHXFeE84pJp4MZh.md) | 42 | — | — | 5 / 8 | 3 | 1 | 0 | — |
 | 18/09 00:40 | [Implementação da Fatia 5 de M3-presenca.md](ses_f4d6600fcffetUXPWKN5ZycKRN.md) | 40 | — | — | 3 / 2 | 1 | 0 | 0 | — |
-| | **Total: 8 sessões** | 306 | grilling, to-spec, tdd | — | 20 / 23 | 6 | 5 | 1 | — |
+| 18/09 20:32 | [Implementação métodos M3 no client.ts e testes](ses_f492276acffetVdGNnl8TYLYm7.md) | 13 | — | — | 0 / 2 | 0 | 0 | 1 | — |
+| 18/09 20:38 | [Componente e testes de CodigoEncontro no M3](ses_f491cfed0ffePK7eUisSODOOH9.md) | 35 | — | — | 4 / 2 | 0 | 1 | 2 | — |
+| 19/09 01:33 | [Criação da tela RegistrarPresenca e hook](ses_f480f1185ffebWFvNsQ21A1DtS.md) | 28 | — | — | 1 / 2 | 0 | 0 | 1 | — |
+| 19/09 01:45 | [Fila offline no RegistrarPresenca](ses_f4803efa5ffeHOl5M8yj53YygK.md) | 33 | — | — | 10 / 3 | 1 | 1 | 1 | — |
+| 19/09 02:14 | [Tela RegistrarPresencaManual e testes](ses_f47e9de24ffeNcWUFZqfgj2fPL.md) | 23 | — | — | 1 / 1 | 0 | 0 | 1 | — |
+| 19/09 02:23 | [Integração de rotas do M3 no App.tsx](ses_f47e14c66ffehMY0dn0WkTmUkf.md) | 33 | — | — | 1 / 3 | 0 | 1 | 0 | — |
+| 19/09 02:41 | [Auditoria do módulo M3 contra specs](ses_f47d0959dffeFbhYCwLUcSVwHt.md) | 5 | — | auditor | 0 / 0 | 0 | 0 | 0 | — |
+| 19/09 02:47 | [Teste de tolerância temporal da regra R4](ses_f47cb141dffeG2tp4ezjbRJeyU.md) | 18 | — | — | 0 / 2 | 0 | 1 | 0 | — |
+| 19/09 13:58 | [Revisão de contrato da API do M3](ses_f4564d858ffe0cqMweOh1wGsvx.md) | 5 | — | — | 0 / 1 | 0 | 0 | 0 | — |
+| | **Total: 17 sessões** | 499 | grilling, to-spec, tdd | auditor | 37 / 39 | 7 | 9 | 7 | — |
