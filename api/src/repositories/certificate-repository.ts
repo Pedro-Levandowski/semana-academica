@@ -55,6 +55,32 @@ export class CertificateRepository {
     };
   }
 
+  findByParticipante(participanteId: string): CertificadoRow[] {
+    const rows = this.db.prepare(`
+      SELECT codigo, atividade_id, participante_id, carga_horaria_minutos, presencas, encontros, emitido_em
+      FROM certificados
+      WHERE participante_id = ?
+    `).all(participanteId) as Array<{
+      codigo: string;
+      atividade_id: string;
+      participante_id: string;
+      carga_horaria_minutos: number;
+      presencas: number;
+      encontros: number;
+      emitido_em: string;
+    }>;
+
+    return rows.map((row) => ({
+      codigo: row.codigo,
+      atividadeId: row.atividade_id,
+      participanteId: row.participante_id,
+      cargaHorariaMinutos: row.carga_horaria_minutos,
+      presencas: row.presencas,
+      encontros: row.encontros,
+      emitidoEm: row.emitido_em
+    }));
+  }
+
   findByAtividadeEParticipante(atividadeId: string, participanteId: string): CertificadoRow | undefined {
     const row = this.db.prepare(`
       SELECT codigo, atividade_id, participante_id, carga_horaria_minutos, presencas, encontros, emitido_em

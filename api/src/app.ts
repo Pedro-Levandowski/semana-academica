@@ -423,6 +423,12 @@ const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, in
     res.status(resultado.criado ? 201 : 200).json(resultado.certificado);
   });
 
+  app.get('/certificados', requireUser, requireParticipant, (req: Request, res: Response) => {
+    const user = (req as any).user;
+    const certificados = certificateRepository.findByParticipante(user.id);
+    res.json(certificados);
+  });
+
   app.get('/certificados/:codigo', (req: Request, res: Response) => {
     const certificado = certificateRepository.findByCodigo(req.params.codigo);
     if (!certificado) {
