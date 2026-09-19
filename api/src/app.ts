@@ -89,7 +89,7 @@ const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, in
 
   const certificateRepository = new CertificateRepository(db);
   const m3PresencePort = new SQLiteM3PresenceAdapter(activityRepository, presencaRepository);
-  const emitirCertificado = new EmitirCertificado(clock, m3PresencePort, certificateRepository);
+  const emitirCertificado = new EmitirCertificado(clock, m3PresencePort, certificateRepository, m2Port);
   const consultarExtrato = new ConsultarExtrato(m2Port, activityRepository, certificateRepository);
 
   // Modo de teste routes (when MODO_TESTE=1)
@@ -419,8 +419,10 @@ const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, in
         ? 'A atividade ainda não foi encerrada'
         : resultado.erro === 'ATIVIDADE_CANCELADA'
           ? 'Atividade cancelada'
-          : 'Presença mínima de 75% não atingida';
-      res.status(422).json({ erro: resultado.erro, mensagem });
+          : resultado.erro === 'NAO_INSCRITO'
+            ? 'Participante não inscrito na atividade'
+            : 'Presença mínima de 75% não atingida';
+      res.status(resultado.erro === 'NAO_INSCRITO' ? 403 : 422).json({ erro: resultado.erro, mensagem });
       return;
     }
 

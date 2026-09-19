@@ -2,6 +2,7 @@ import { DateTime } from 'luxon';
 import { Clock } from '../clock/clock.js';
 import { CertificateRepository } from '../repositories/certificate-repository.js';
 import { M3PresencePort } from '../integrations/m3-presence-port.js';
+import { M2IntegrationPort } from '../integrations/m2-port.js';
 import { gerarCodigo } from './gerar-codigo.js';
 
 export interface ActivitySnapshot {
@@ -23,18 +24,27 @@ export interface Certificado {
 
 export type EmissaoResult =
   | { ok: true; certificado: Certificado; criado: boolean }
-  | { ok: false; erro: 'ATIVIDADE_CANCELADA' | 'ATIVIDADE_NAO_ENCERRADA' | 'PRESENCA_INSUFICIENTE' };
+  | { ok: false; erro: 'ATIVIDADE_CANCELADA' | 'NAO_INSCRITO' | 'ATIVIDADE_NAO_ENCERRADA' | 'PRESENCA_INSUFICIENTE' };
 
 export class EmitirCertificado {
   constructor(
     private readonly clock: Clock,
     private readonly presencasPort: M3PresencePort,
-    private readonly repository: CertificateRepository
+    private readonly repository: CertificateRepository,
+    private readonly m2Port?: M2IntegrationPort
   ) {}
 
   execute(atividade: ActivitySnapshot, participanteId: string): EmissaoResult {
     if (atividade.cancelada === 1) {
       return { ok: false, erro: 'ATIVIDADE_CANCELADA' };
+    }
+
+    if (this.m2Port) {
+      const inscricoes = this.m2Port.listarInscricoesDoParticipante?.(participanteId) ?? [];
+      const inscricao = inscricoes.find((i) => i.atividadeId === atividade.id);
+      if (!inscricao || inscricao.status !== 'confirmada') {
+        return { ok: false, erro: 'NAO_INSCRITO' };
+      }
     }
 
     const agora = this.clock.now();
