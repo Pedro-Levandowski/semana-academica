@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useCodigoEncontro } from '../hooks/useCodigoEncontro';
 import { api } from '../api/client';
 import { formatarHoraBrasilia } from '../utils/date';
@@ -7,13 +8,31 @@ interface CodigoEncontroProps {
   encontroId?: string;
   id?: string;
   apiClient?: typeof api;
+  selectedUserId?: string | null;
+  userPapel?: string;
 }
 
 export function CodigoEncontro({
   encontroId,
   id,
   apiClient = api,
+  selectedUserId,
+  userPapel,
 }: CodigoEncontroProps) {
+  if (selectedUserId === null || (userPapel !== undefined && userPapel !== 'organizacao')) {
+    return (
+      <section className="state-panel">
+        <span className="eyebrow">Acesso restrito</span>
+        <h2>Área exclusiva da organização</h2>
+        <p>Acesso negado ou usuário não autorizado.</p>
+
+        <Link to="/" className="button button--secondary">
+          Voltar para a programação
+        </Link>
+      </section>
+    );
+  }
+
   const targetId = encontroId || id;
   const {
     codigoEncontro,

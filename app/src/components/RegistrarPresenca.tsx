@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useRegistrarPresenca } from '../hooks/useRegistrarPresenca';
 import { api } from '../api/client';
 
@@ -6,13 +7,31 @@ interface RegistrarPresencaProps {
   encontroId?: string;
   id?: string;
   apiClient?: typeof api;
+  selectedUserId?: string | null;
+  userPapel?: string;
 }
 
 export function RegistrarPresenca({
   encontroId,
   id,
   apiClient = api,
+  selectedUserId,
+  userPapel,
 }: RegistrarPresencaProps) {
+  if (selectedUserId === null || (userPapel !== undefined && userPapel !== 'participante')) {
+    return (
+      <section className="state-panel">
+        <span className="eyebrow">Acesso restrito</span>
+        <h2>Área exclusiva de participantes</h2>
+        <p>Acesso negado ou usuário não autorizado.</p>
+
+        <Link to="/" className="button button--secondary">
+          Voltar para a programação
+        </Link>
+      </section>
+    );
+  }
+
   const targetId = encontroId || id;
   const {
     codigo,
