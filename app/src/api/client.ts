@@ -84,11 +84,31 @@ export const api = {
     return request<CodigoDoEncontro>(`/encontros/${id}/codigo`);
   },
 
-  registrarPresenca: async (id: string, data: RegistrarPresencaDTO): Promise<Presenca> => {
-    return request<Presenca>(`/encontros/${id}/presencas`, {
+  registrarPresenca: async (id: string, data: RegistrarPresencaDTO): Promise<{ presenca: Presenca; status: number }> => {
+    const url = `${getBaseUrl()}/encontros/${id}/presencas`;
+    const headers = { ...getHeaders() };
+    const res = await fetch(url, {
       method: "POST",
+      headers,
       body: JSON.stringify(data),
     });
+
+    if (!res.ok) {
+      let errorData: any;
+      try {
+        errorData = await res.json();
+      } catch {
+        errorData = { erro: "ERRO_DESCONHECIDO", mensagem: "Erro desconhecido na API" };
+      }
+      throw new ApiError(
+        res.status,
+        errorData.erro || "ERRO_DESCONHECIDO",
+        errorData.mensagem || "Erro inesperado"
+      );
+    }
+
+    const presenca = await res.json() as Presenca;
+    return { presenca, status: res.status };
   },
 
   registrarPresencaManual: async (id: string, data: RegistrarPresencaManualDTO): Promise<Presenca> => {

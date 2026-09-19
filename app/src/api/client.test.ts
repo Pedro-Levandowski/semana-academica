@@ -166,7 +166,10 @@ describe('API Client', () => {
 
     const payload = { codigo: 'K7M2QX', lidoEm: '2026-10-19T10:00:00-03:00' };
     const res = await api.registrarPresenca('enc_1', payload);
-    expect(res).toEqual({ id: 'pre_1', encontroId: 'enc_1', participanteId: 'p-carla', origem: 'qr', lidoEm: '...', registradaEm: '...', justificativa: null });
+    expect(res).toEqual({
+      presenca: { id: 'pre_1', encontroId: 'enc_1', participanteId: 'p-carla', origem: 'qr', lidoEm: '...', registradaEm: '...', justificativa: null },
+      status: 201,
+    });
     expect(mockFetch).toHaveBeenCalledWith(
       'http://localhost:3000/encontros/enc_1/presencas',
       expect.objectContaining({
