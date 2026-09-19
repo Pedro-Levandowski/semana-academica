@@ -31,7 +31,7 @@ export class EmitirCertificado {
     private readonly clock: Clock,
     private readonly presencasPort: M3PresencePort,
     private readonly repository: CertificateRepository,
-    private readonly m2Port?: M2IntegrationPort
+    private readonly m2Port: M2IntegrationPort
   ) {}
 
   execute(atividade: ActivitySnapshot, participanteId: string): EmissaoResult {
@@ -39,12 +39,10 @@ export class EmitirCertificado {
       return { ok: false, erro: 'ATIVIDADE_CANCELADA' };
     }
 
-    if (this.m2Port) {
-      const inscricoes = this.m2Port.listarInscricoesDoParticipante?.(participanteId) ?? [];
-      const inscricao = inscricoes.find((i) => i.atividadeId === atividade.id);
-      if (!inscricao || inscricao.status !== 'confirmada') {
-        return { ok: false, erro: 'NAO_INSCRITO' };
-      }
+    const inscricoes = this.m2Port.listarInscricoesDoParticipante?.(participanteId) ?? [];
+    const inscricao = inscricoes.find((i) => i.atividadeId === atividade.id);
+    if (!inscricao || inscricao.status !== 'confirmada') {
+      return { ok: false, erro: 'NAO_INSCRITO' };
     }
 
     const agora = this.clock.now();

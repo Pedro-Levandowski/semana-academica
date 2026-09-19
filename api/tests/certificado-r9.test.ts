@@ -7,10 +7,33 @@ import { ControllableClock } from '../src/test-support/controllable-clock.js';
 import { CertificateRepository } from '../src/repositories/certificate-repository.js';
 import { EmitirCertificado, ActivitySnapshot } from '../src/certificate/emissao-certificado.js';
 import { M3PresencePort } from '../src/integrations/m3-presence-port.js';
+import { M2IntegrationPort, InscricaoDoParticipante } from '../src/integrations/m2-port.js';
 
 class PresencaSuficiente implements M3PresencePort {
   countPresencas(): number {
     return 4;
+  }
+}
+
+class InscricaoConfirmada implements M2IntegrationPort {
+  getOcupadas(_atividadeId: string): number {
+    return 0;
+  }
+
+  getEmEspera(_atividadeId: string): number {
+    return 0;
+  }
+
+  convocarEspera(_atividadeId: string): void {
+    // no-op
+  }
+
+  cancelarInscricoes(_atividadeId: string): void {
+    // no-op
+  }
+
+  listarInscricoesDoParticipante(_participanteId: string): InscricaoDoParticipante[] {
+    return [{ atividadeId: ATIVIDADE_ID, status: 'confirmada' }];
   }
 }
 
@@ -40,7 +63,7 @@ function montarCenario() {
 
   const clock = new ControllableClock(RELOGIO_APOS_TERMINO);
   const repository = new CertificateRepository(db);
-  const emitir = new EmitirCertificado(clock, new PresencaSuficiente(), repository);
+  const emitir = new EmitirCertificado(clock, new PresencaSuficiente(), repository, new InscricaoConfirmada());
 
   return { db, emitir };
 }
