@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { api } from '../api/client';
 import { ApiError } from '../api/types';
+import { useFilaOffline } from './useFilaOffline';
 
 export function useRegistrarPresenca(encontroId?: string, apiClient = api) {
   const [codigo, setCodigo] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [error, setError] = useState<{ erro: string; mensagem: string } | null>(null);
+
+  const { fila, adicionarItem, removerItem, sincronizarFila, isOnline } = useFilaOffline(apiClient);
 
   const registrar = async (codigoParam?: string) => {
     const codeToSubmit = codigoParam !== undefined ? codigoParam : codigo;
@@ -19,8 +22,23 @@ export function useRegistrarPresenca(encontroId?: string, apiClient = api) {
     setError(null);
     setSuccessMessage(null);
 
+    const lidoEm = new Date().toISOString();
+
+    if (!navigator.onLine) {
+      adicionarItem({
+        encontroId,
+        codigo: codeToSubmit,
+        lidoEm,
+        status: 'pendente',
+      });
+      setSubmitting(false);
+      setCodigo('');
+      setSuccessMessage('Leitura guardada localmente. Pendente de sincronização.');
+      return;
+    }
+
     try {
-      const result = await apiClient.registrarPresenca(encontroId, { codigo: codeToSubmit });
+      const result = await apiClient.registrarPresenca(encontroId, { codigo: codeToSubmit, lidoEm });
       setSubmitting(false);
       setCodigo('');
 
@@ -36,20 +54,42 @@ export function useRegistrarPresenca(encontroId?: string, apiClient = api) {
       setCodigo('');
 
       if (err instanceof ApiError) {
-        let mensagem = err.mensagem;
-        if (err.erro === 'NAO_INSCRITO') {
-          mensagem = 'Participante não elegível.';
-        } else if (err.erro === 'CODIGO_INVALIDO') {
-          mensagem = 'Código inválido.';
-        } else if (err.erro === 'FORA_DA_JANELA') {
-          mensagem = 'Fora do horário permitido.';
+        const businessErrors = ['NAO_INSCRITO', 'CODIGO_INVALIDO', 'FORA_DA_JANELA', 'SINCRONIZACAO_TARDIA'];
+        if (businessErrors.includes(err.erro)) {
+          let mensagem = err.mensagem;
+          if (err.erro === 'NAO_INSCRITO') {
+            mensagem = 'Participante não elegível.';
+          } else if (err.erro === 'CODIGO_INVALIDO') {
+            mensagem = 'Código inválido.';
+          } else if (err.erro === 'FORA_DA_JANELA') {
+            mensagem = 'Fora do horário permitido.';
+          }
+          adicionarItem({
+            encontroId,
+            codigo: codeToSubmit,
+            lidoEm,
+            status: 'falha-definitiva',
+            erro: err.erro,
+            mensagem,
+          });
+          setError({ erro: err.erro, mensagem });
+        } else {
+          adicionarItem({
+            encontroId,
+            codigo: codeToSubmit,
+            lidoEm,
+            status: 'pendente',
+          });
+          setSuccessMessage('Leitura guardada localmente. Pendente de sincronização.');
         }
-        setError({ erro: err.erro, mensagem });
       } else {
-        setError({
-          erro: 'ERRO_REDE',
-          mensagem: 'Sem conexão / Erro de rede',
+        adicionarItem({
+          encontroId,
+          codigo: codeToSubmit,
+          lidoEm,
+          status: 'pendente',
         });
+        setSuccessMessage('Leitura guardada localmente. Pendente de sincronização.');
       }
     }
   };
@@ -61,5 +101,9 @@ export function useRegistrarPresenca(encontroId?: string, apiClient = api) {
     successMessage,
     error,
     registrar,
+    fila,
+    isOnline,
+    removerItem,
+    sincronizarFila,
   };
 }

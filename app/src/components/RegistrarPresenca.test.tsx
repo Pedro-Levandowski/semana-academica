@@ -7,6 +7,7 @@ import { ApiError } from '../api/types';
 
 describe('RegistrarPresenca Component', () => {
   beforeEach(() => {
+    localStorage.clear();
     vi.restoreAllMocks();
   });
 
@@ -43,7 +44,10 @@ describe('RegistrarPresenca Component', () => {
       expect(screen.getByTestId('success-message')).toHaveTextContent('Presença registrada agora.');
     });
 
-    expect(registrarPresencaMock).toHaveBeenCalledWith('enc_1', { codigo: 'K7M2QX' });
+    expect(registrarPresencaMock).toHaveBeenCalledWith('enc_1', {
+      codigo: 'K7M2QX',
+      lidoEm: expect.any(String),
+    });
     expect(input).toHaveValue('');
   });
 
@@ -79,7 +83,7 @@ describe('RegistrarPresenca Component', () => {
     expect(input).toHaveValue('');
   });
 
-  it('deve tratar erro NAO_INSCRITO e limpar o campo', async () => {
+  it('deve tratar erro NAO_INSCRITO, adicionar à fila como falha-definitiva e limpar o campo', async () => {
     const registrarPresencaMock = vi.fn().mockRejectedValue(
       new ApiError(403, 'NAO_INSCRITO', 'Participante não inscrito nesta atividade.')
     );
@@ -102,6 +106,9 @@ describe('RegistrarPresenca Component', () => {
       expect(errorEl).toHaveTextContent('Participante não elegível.');
     });
 
+    expect(screen.getByTestId('fila-offline-section')).toBeInTheDocument();
+    expect(screen.getByTestId('item-status')).toHaveTextContent('falha-definitiva');
+    expect(screen.getByTestId('item-erro')).toHaveTextContent('Participante não elegível.');
     expect(input).toHaveValue('');
   });
 
@@ -157,7 +164,7 @@ describe('RegistrarPresenca Component', () => {
     expect(input).toHaveValue('');
   });
 
-  it('deve tratar erro de rede / sem conexão e limpar o campo', async () => {
+  it('deve tratar erro de rede / sem conexão guardando localmente e limpando o campo', async () => {
     const registrarPresencaMock = vi.fn().mockRejectedValue(
       new Error('Failed to fetch')
     );
@@ -174,12 +181,13 @@ describe('RegistrarPresenca Component', () => {
     fireEvent.click(screen.getByTestId('submit-button'));
 
     await waitFor(() => {
-      const errorEl = screen.getByTestId('error-message');
-      expect(errorEl).toBeInTheDocument();
-      expect(errorEl).toHaveTextContent('ERRO_REDE');
-      expect(errorEl).toHaveTextContent('Sem conexão / Erro de rede');
+      const successEl = screen.getByTestId('success-message');
+      expect(successEl).toBeInTheDocument();
+      expect(successEl).toHaveTextContent('Leitura guardada localmente. Pendente de sincronização.');
     });
 
+    expect(screen.getByTestId('fila-offline-section')).toBeInTheDocument();
+    expect(screen.getByTestId('item-status')).toHaveTextContent('pendente');
     expect(input).toHaveValue('');
   });
 });

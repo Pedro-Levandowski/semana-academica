@@ -21,6 +21,8 @@ export function RegistrarPresenca({
     successMessage,
     error,
     registrar,
+    fila,
+    isOnline,
   } = useRegistrarPresenca(targetId, apiClient);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -35,6 +37,9 @@ export function RegistrarPresenca({
           <span className="eyebrow">Participante</span>
           <h2>Registrar Presença</h2>
           <p>Digite o código do encontro fornecido pela organização para registrar sua presença.</p>
+        </div>
+        <div className="network-status" data-testid="network-status">
+          Status: {isOnline ? <span className="online">Online</span> : <span className="offline">Offline</span>}
         </div>
       </div>
 
@@ -76,6 +81,26 @@ export function RegistrarPresenca({
           </button>
         </div>
       </form>
+
+      {fila.length > 0 && (
+        <div className="fila-offline-section" data-testid="fila-offline-section">
+          <h3>Fila Offline / Pendentes de Sincronização</h3>
+          <ul className="fila-lista" data-testid="fila-offline-lista">
+            {fila.map((item) => (
+              <li key={item.localId} data-testid="fila-item" className={`fila-item status-${item.status}`}>
+                <div><strong>Código:</strong> {item.codigo}</div>
+                <div><strong>Status:</strong> <span data-testid="item-status">{item.status}</span></div>
+                {item.mensagem && (
+                  <div className="item-erro" data-testid="item-erro">
+                    <strong>Motivo:</strong> {item.mensagem}
+                  </div>
+                )}
+                <div><small>Lido em: {new Date(item.lidoEm).toLocaleTimeString()}</small></div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </section>
   );
 }
