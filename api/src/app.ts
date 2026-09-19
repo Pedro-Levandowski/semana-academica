@@ -34,6 +34,7 @@ import { processExpirationsAndConvocations } from './domain/inscricao-service.js
 import { mapActivityResponse } from './http/activity-response.js';
 import { EmitirCertificado } from './certificate/emissao-certificado.js';
 import { abreviarNome } from './certificate/abreviar-nome.js';
+import { ConsultarExtrato } from './certificate/extrato.js';
 
 export interface AppOptions {
   dbPath?: string;
@@ -89,6 +90,7 @@ const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, in
   const certificateRepository = new CertificateRepository(db);
   const m3PresencePort = new SQLiteM3PresenceAdapter(activityRepository, presencaRepository);
   const emitirCertificado = new EmitirCertificado(clock, m3PresencePort, certificateRepository);
+  const consultarExtrato = new ConsultarExtrato(m2Port, activityRepository, certificateRepository);
 
   // Modo de teste routes (when MODO_TESTE=1)
   if (modoTeste) {
@@ -427,6 +429,11 @@ const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, in
     const user = (req as any).user;
     const certificados = certificateRepository.findByParticipante(user.id);
     res.json(certificados);
+  });
+
+  app.get('/extrato', requireUser, requireParticipant, (req: Request, res: Response) => {
+    const user = (req as any).user;
+    res.json(consultarExtrato.execute(user.id));
   });
 
   app.get('/certificados/:codigo', (req: Request, res: Response) => {
