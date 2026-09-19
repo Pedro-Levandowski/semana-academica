@@ -8,6 +8,7 @@ export interface ActivitySnapshot {
   id: string;
   cargaHorariaMinutos: number;
   encontros: Array<{ inicio: string; fim: string }>;
+  cancelada?: number;
 }
 
 export interface Certificado {
@@ -22,7 +23,7 @@ export interface Certificado {
 
 export type EmissaoResult =
   | { ok: true; certificado: Certificado; criado: boolean }
-  | { ok: false; erro: 'ATIVIDADE_NAO_ENCERRADA' | 'PRESENCA_INSUFICIENTE' };
+  | { ok: false; erro: 'ATIVIDADE_CANCELADA' | 'ATIVIDADE_NAO_ENCERRADA' | 'PRESENCA_INSUFICIENTE' };
 
 export class EmitirCertificado {
   constructor(
@@ -32,6 +33,10 @@ export class EmitirCertificado {
   ) {}
 
   execute(atividade: ActivitySnapshot, participanteId: string): EmissaoResult {
+    if (atividade.cancelada === 1) {
+      return { ok: false, erro: 'ATIVIDADE_CANCELADA' };
+    }
+
     const agora = this.clock.now();
     const ultimoEncontro = atividade.encontros[atividade.encontros.length - 1];
     const fimDoUltimoEncontro = DateTime.fromISO(ultimoEncontro.fim, { setZone: true });

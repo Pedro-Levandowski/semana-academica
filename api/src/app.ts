@@ -410,14 +410,16 @@ const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, in
     );
 
     const resultado = emitirCertificado.execute(
-      { id: atividade.id, cargaHorariaMinutos: atividade.cargaHorariaMinutos, encontros: encontrosOrdenados },
+      { id: atividade.id, cargaHorariaMinutos: atividade.cargaHorariaMinutos, encontros: encontrosOrdenados, cancelada: atividade.cancelada },
       user.id
     );
 
     if (!resultado.ok) {
       const mensagem = resultado.erro === 'ATIVIDADE_NAO_ENCERRADA'
         ? 'A atividade ainda não foi encerrada'
-        : 'Presença mínima de 75% não atingida';
+        : resultado.erro === 'ATIVIDADE_CANCELADA'
+          ? 'Atividade cancelada'
+          : 'Presença mínima de 75% não atingida';
       res.status(422).json({ erro: resultado.erro, mensagem });
       return;
     }
