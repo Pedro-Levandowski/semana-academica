@@ -141,6 +141,21 @@ describe('API Client', () => {
     );
   });
 
+  it('deve suporte a chamadas de inscricoes (getInscricoes, createInscricao, confirmInscricao, cancelInscricao)', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [{ id: 'ins_1', atividadeId: 'atv_1', participanteId: 'p-carla', status: 'confirmada' }],
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const inscricoes = await (api as any).getInscricoes({ atividadeId: 'atv_1' });
+    expect(inscricoes).toHaveLength(1);
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://localhost:3000/inscricoes?atividadeId=atv_1',
+      expect.any(Object)
+    );
+  });
+
   it('deve lançar ApiError contendo erro e mensagem quando a resposta não for ok', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: false,
