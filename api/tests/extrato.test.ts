@@ -168,6 +168,53 @@ describe('M4 - Certificados - Fatia 4 (GET /extrato)', () => {
     });
   });
 
+  describe('G5/R10 — extrato recalculado a cada consulta (sem snapshot)', () => {
+    it('R10: a emissão de um certificado entre duas consultas muda codigo de null para o código emitido na MESMA instância e banco', async () => {
+      await resetar();
+
+      const minicurso = await criarAtividade({
+        titulo: 'Minicurso recalculado',
+        tipo: 'minicurso',
+        salaId: 'lab-3',
+        vagas: 10,
+        encontros: [
+          { inicio: '2026-10-19T19:00:00-03:00', fim: '2026-10-19T22:00:00-03:00' },
+          { inicio: '2026-10-20T19:00:00-03:00', fim: '2026-10-20T22:00:00-03:00' }
+        ]
+      });
+
+      const ins = await inscrever(minicurso.id, PARTICIPANTE);
+      expect(ins.status).toBe(201);
+      expect(ins.body.status).toBe('confirmada');
+
+      for (const dia of [19, 20]) {
+        await registrarPresenca(dia, minicurso.encontros);
+      }
+
+      await definirRelogio('2026-10-24T10:00:00-03:00');
+
+      const primeiroExtrato = await consultarExtrato();
+      expect(primeiroExtrato.status).toBe(200);
+      const itemAntes = primeiroExtrato.body.itens.find((i: any) => i.atividadeId === minicurso.id);
+      expect(itemAntes).toBeDefined();
+      expect(itemAntes.codigo).toBeNull();
+
+      const emissao = await request(app)
+        .post(`/atividades/${minicurso.id}/certificado`)
+        .set('X-Usuario', PARTICIPANTE);
+      expect(emissao.status).toBe(201);
+      const codigoEmitido = emissao.body.codigo;
+      expect(codigoEmitido).toMatch(/^SA26-[A-HJ-KM-NP-Z2-9]{4}-[A-HJ-KM-NP-Z2-9]{4}$/);
+
+      const segundoExtrato = await consultarExtrato();
+      expect(segundoExtrato.status).toBe(200);
+      const itemDepois = segundoExtrato.body.itens.find((i: any) => i.atividadeId === minicurso.id);
+      expect(itemDepois).toBeDefined();
+      expect(itemDepois.codigo).toBe(codigoEmitido);
+      expect(itemDepois.codigo).not.toBeNull();
+    });
+  });
+
   describe('R14 — inscrição em_espera não elegível', () => {
     it('R14: atividade com inscrição em_espera não aparece no extrato', async () => {
       await resetar();
