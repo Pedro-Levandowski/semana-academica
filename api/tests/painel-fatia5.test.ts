@@ -338,4 +338,151 @@ describe('M5 - Painel - Fatia 5 (Formação e Listagem de Bloqueios - R14, R15)'
     expect(res.body).toEqual([]);
     appVazio?.close?.();
   });
+
+  it('gerencia remoção de bloqueio, persistência do desbloqueio, 404 para participantes não bloqueados e reincidência com base exclusivamente em atividades posteriores ao desbloqueio (R16)', async () => {
+    const tmpDir = os.tmpdir();
+    dbPath = path.join(tmpDir, `test-painel-fatia5-r16-${Date.now()}-${Math.random()}.sqlite`);
+
+    const atividadesList: any[] = [
+      {
+        id: 'act-1',
+        titulo: 'Atividade 1',
+        vagas: 10,
+        cancelada: false,
+        encontros: [{ id: 'enc-1', inicio: '2026-10-15T08:00:00-03:00', fim: '2026-10-15T10:00:00-03:00', presencas: [] }],
+        inscricoes: [{ participanteId: 'p-1', nome: 'Participante Um', status: 'confirmada' }]
+      },
+      {
+        id: 'act-2',
+        titulo: 'Atividade 2',
+        vagas: 10,
+        cancelada: false,
+        encontros: [{ id: 'enc-2', inicio: '2026-10-16T08:00:00-03:00', fim: '2026-10-16T10:00:00-03:00', presencas: [] }],
+        inscricoes: [{ participanteId: 'p-1', nome: 'Participante Um', status: 'confirmada' }]
+      }
+    ];
+
+    const painelQueryPort = {
+      listarAtividades: () => atividadesList
+    };
+
+    let appR16: any = createApp({ dbPath, modoTeste: true, painelQueryPort });
+
+    try {
+      await request(appR16).post('/_teste/reset');
+      await request(appR16).put('/_teste/relogio').send({ agora: '2026-10-17T11:00:00-03:00' });
+
+      const resInitial = await request(appR16)
+        .get('/painel/bloqueios')
+        .set('X-Usuario', 'org-ana');
+      expect(resInitial.status).toBe(200);
+      expect(resInitial.body.length).toBe(1);
+      expect(resInitial.body[0].participanteId).toBe('p-1');
+
+      const copiaAtividades = JSON.parse(JSON.stringify(atividadesList));
+
+      const instantDesbloqueioStr = '2026-10-17T12:00:00-03:00';
+      await request(appR16).put('/_teste/relogio').send({ agora: instantDesbloqueioStr });
+
+      const resDel = await request(appR16)
+        .delete('/painel/bloqueios/p-1')
+        .set('X-Usuario', 'org-ana');
+
+      expect(resDel.status).toBe(204);
+      expect(resDel.text).toBe('');
+
+      expect(atividadesList).toEqual(copiaAtividades);
+
+      const resGet1 = await request(appR16)
+        .get('/painel/bloqueios')
+        .set('X-Usuario', 'org-ana');
+      expect(resGet1.status).toBe(200);
+      expect(resGet1.body).toEqual([]);
+
+      appR16?.close?.();
+      appR16 = createApp({ dbPath, modoTeste: true, painelQueryPort }) as any;
+
+      const resGet2 = await request(appR16)
+        .get('/painel/bloqueios')
+        .set('X-Usuario', 'org-ana');
+      expect(resGet2.status).toBe(200);
+      expect(resGet2.body).toEqual([]);
+
+      const resDelAgain = await request(appR16)
+        .delete('/painel/bloqueios/p-1')
+        .set('X-Usuario', 'org-ana');
+      expect(resDelAgain.status).toBe(404);
+      expect(resDelAgain.body.erro).toBe('NAO_ENCONTRADO');
+      expect(typeof resDelAgain.body.mensagem).toBe('string');
+      expect(resDelAgain.body.mensagem.length).toBeGreaterThan(0);
+
+      const resDelNunca = await request(appR16)
+        .delete('/painel/bloqueios/p-nunca-bloqueado')
+        .set('X-Usuario', 'org-ana');
+      expect(resDelNunca.status).toBe(404);
+      expect(resDelNunca.body.erro).toBe('NAO_ENCONTRADO');
+      expect(typeof resDelNunca.body.mensagem).toBe('string');
+      expect(resDelNunca.body.mensagem.length).toBeGreaterThan(0);
+
+      atividadesList.push({
+        id: 'act-unlock-exact',
+        titulo: 'Atividade Exata Desbloqueio',
+        vagas: 10,
+        cancelada: false,
+        encontros: [{ id: 'enc-ue', inicio: '2026-10-17T10:00:00-03:00', fim: instantDesbloqueioStr, presencas: [] }],
+        inscricoes: [{ participanteId: 'p-1', nome: 'Participante Um', status: 'confirmada' }]
+      });
+
+      atividadesList.push({
+        id: 'act-pos-1',
+        titulo: 'Atividade Pos 1',
+        vagas: 10,
+        cancelada: false,
+        encontros: [{ id: 'enc-p1', inicio: '2026-10-18T08:00:00-03:00', fim: '2026-10-18T10:00:00-03:00', presencas: [] }],
+        inscricoes: [{ participanteId: 'p-1', nome: 'Participante Um', status: 'confirmada' }]
+      });
+
+      await request(appR16).put('/_teste/relogio').send({ agora: '2026-10-19T00:00:00-03:00' });
+      const resGet3 = await request(appR16)
+        .get('/painel/bloqueios')
+        .set('X-Usuario', 'org-ana');
+      expect(resGet3.status).toBe(200);
+      expect(resGet3.body).toEqual([]);
+
+      atividadesList.push({
+        id: 'act-pos-2',
+        titulo: 'Atividade Pos 2',
+        vagas: 10,
+        cancelada: false,
+        encontros: [{ id: 'enc-p2', inicio: '2026-10-20T08:00:00-03:00', fim: '2026-10-20T10:00:00-03:00', presencas: [] }],
+        inscricoes: [{ participanteId: 'p-1', nome: 'Participante Um', status: 'confirmada' }]
+      });
+
+      await request(appR16).put('/_teste/relogio').send({ agora: '2026-10-21T00:00:00-03:00' });
+
+      const resGet4 = await request(appR16)
+        .get('/painel/bloqueios')
+        .set('X-Usuario', 'org-ana');
+      expect(resGet4.status).toBe(200);
+      expect(resGet4.body.length).toBe(1);
+      const bloqueioNovo = resGet4.body[0];
+
+      expect(bloqueioNovo.participanteId).toBe('p-1');
+      expect(bloqueioNovo.atividades).toEqual(['act-pos-1', 'act-pos-2']);
+
+      const dtBloqueio = DateTime.fromISO(bloqueioNovo.bloqueadoDesde, { setZone: true });
+      const dtFimPos2 = DateTime.fromISO('2026-10-20T10:00:00-03:00', { setZone: true });
+      expect(dtBloqueio.isValid).toBe(true);
+      expect(dtBloqueio.toMillis()).toBe(dtFimPos2.toMillis());
+
+      expect(bloqueioNovo.nome).toBe('Participante Um');
+    } finally {
+      appR16?.close?.();
+      if (fs.existsSync(dbPath)) {
+        try {
+          fs.unlinkSync(dbPath);
+        } catch {}
+      }
+    }
+  });
 });

@@ -1,6 +1,7 @@
 import { PainelQueryPort } from '../integrations/painel-query-port.js';
 import { Clock } from '../clock/clock.js';
 import { DateTime } from 'luxon';
+import { DesbloqueioRepository } from '../repositories/desbloqueio-repository.js';
 
 export interface BloqueioItemOutput {
   participanteId: string;
@@ -21,7 +22,11 @@ interface ParticipantData {
 }
 
 export class ListBloqueiosUseCase {
-  constructor(private painelQueryPort: PainelQueryPort, private clock: Clock) {}
+  constructor(
+    private painelQueryPort: PainelQueryPort,
+    private clock: Clock,
+    private desbloqueioRepository: DesbloqueioRepository
+  ) {}
 
   execute(): BloqueioItemOutput[] {
     const atividades = this.painelQueryPort.listarAtividades();
@@ -54,6 +59,14 @@ export class ListBloqueiosUseCase {
       for (const ins of atv.inscricoes) {
         if (ins.status !== 'confirmada') {
           continue;
+        }
+
+        const desbloqueadoEmStr = this.desbloqueioRepository.findLastByParticipant(ins.participanteId);
+        if (desbloqueadoEmStr) {
+          const unlockDt = DateTime.fromISO(desbloqueadoEmStr, { setZone: true });
+          if (unlockDt.isValid && maxFim <= unlockDt) {
+            continue;
+          }
         }
 
         let hasPresence = false;

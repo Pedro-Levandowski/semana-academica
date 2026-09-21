@@ -34,6 +34,8 @@ import { ListPainelAtividadesUseCase } from './application/list-painel-atividade
 import { ListSemChanceUseCase } from './application/list-sem-chance.js';
 import { ExportFrequenciaCsvUseCase } from './application/export-frequencia-csv.js';
 import { ListBloqueiosUseCase } from './application/list-bloqueios.js';
+import { DesbloqueioRepository } from './repositories/desbloqueio-repository.js';
+import { RemoveBloqueioUseCase } from './application/remove-bloqueio.js';
 
 export interface AppOptions {
   dbPath?: string;
@@ -75,10 +77,12 @@ export function createApp(options?: AppOptions | string) {
   const m2Port = opts.m2Port || new SQLiteM2Adapter(inscricaoRepository, activityRepository, clock);
   const m5Port = opts.m5Port || new SQLiteM5Adapter(inscricaoRepository);
   const painelQueryPort = opts.painelQueryPort || new SQLitePainelQueryAdapter(activityRepository, inscricaoRepository, presencaRepository, userRepository);
+  const desbloqueioRepository = new DesbloqueioRepository(db);
   const listPainelAtividadesUseCase = new ListPainelAtividadesUseCase(painelQueryPort, clock);
   const listSemChanceUseCase = new ListSemChanceUseCase(painelQueryPort, clock);
   const exportFrequenciaCsvUseCase = new ExportFrequenciaCsvUseCase(painelQueryPort, clock);
-  const listBloqueiosUseCase = new ListBloqueiosUseCase(painelQueryPort, clock);
+  const listBloqueiosUseCase = new ListBloqueiosUseCase(painelQueryPort, clock, desbloqueioRepository);
+  const removeBloqueioUseCase = new RemoveBloqueioUseCase(listBloqueiosUseCase, desbloqueioRepository, clock);
   const createActivityUseCase = new CreateActivityUseCase(activityRepository, roomRepository);
   const getActivityUseCase = new GetActivityUseCase(activityRepository);
   const listActivitiesUseCase = new ListActivitiesUseCase(activityRepository);
@@ -425,8 +429,13 @@ const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, in
     }
   });
 
-  app.delete('/painel/bloqueios/:participanteId', requireUser, requireOrg, (_req: Request, res: Response) => {
-    res.status(204).send();
+  app.delete('/painel/bloqueios/:participanteId', requireUser, requireOrg, (req: Request, res: Response, next: NextFunction) => {
+    try {
+      removeBloqueioUseCase.execute(req.params.participanteId);
+      res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
   });
 
   app.use((_req: Request, res: Response) => {

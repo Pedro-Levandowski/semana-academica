@@ -60,6 +60,7 @@ export function runReset(db: Database.Database, clock?: Clock): void {
     db.prepare('DELETE FROM usuarios').run();
     db.prepare('DELETE FROM salas').run();
     db.prepare('DELETE FROM relogio_estado').run();
+    db.prepare('DELETE FROM m5_desbloqueios').run();
 
     for (const u of OFICIAL_USUARIOS) {
       insertUsuario.run(u[0], u[1], u[2]);
