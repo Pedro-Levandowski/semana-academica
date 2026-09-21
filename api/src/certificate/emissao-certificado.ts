@@ -5,6 +5,8 @@ import { M3PresencePort } from '../integrations/m3-presence-port.js';
 import { M2IntegrationPort } from '../integrations/m2-port.js';
 import { gerarCodigo } from './gerar-codigo.js';
 
+export type GeradorDeCodigo = () => string;
+
 export interface ActivitySnapshot {
   id: string;
   cargaHorariaMinutos: number;
@@ -31,7 +33,8 @@ export class EmitirCertificado {
     private readonly clock: Clock,
     private readonly presencasPort: M3PresencePort,
     private readonly repository: CertificateRepository,
-    private readonly m2Port: M2IntegrationPort
+    private readonly m2Port: M2IntegrationPort,
+    private readonly geradorDeCodigo: GeradorDeCodigo = gerarCodigo
   ) {}
 
   execute(atividade: ActivitySnapshot, participanteId: string): EmissaoResult {
@@ -69,7 +72,7 @@ export class EmitirCertificado {
     }
 
     const certificado: Certificado = {
-      codigo: gerarCodigo(),
+      codigo: this.geradorDeCodigo(),
       atividadeId: atividade.id,
       participanteId,
       cargaHorariaMinutos: atividade.cargaHorariaMinutos,
