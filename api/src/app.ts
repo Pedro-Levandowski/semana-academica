@@ -33,6 +33,7 @@ import { PainelQueryPort, SQLitePainelQueryAdapter } from './integrations/painel
 import { ListPainelAtividadesUseCase } from './application/list-painel-atividades.js';
 import { ListSemChanceUseCase } from './application/list-sem-chance.js';
 import { ExportFrequenciaCsvUseCase } from './application/export-frequencia-csv.js';
+import { ListBloqueiosUseCase } from './application/list-bloqueios.js';
 
 export interface AppOptions {
   dbPath?: string;
@@ -77,6 +78,7 @@ export function createApp(options?: AppOptions | string) {
   const listPainelAtividadesUseCase = new ListPainelAtividadesUseCase(painelQueryPort, clock);
   const listSemChanceUseCase = new ListSemChanceUseCase(painelQueryPort, clock);
   const exportFrequenciaCsvUseCase = new ExportFrequenciaCsvUseCase(painelQueryPort, clock);
+  const listBloqueiosUseCase = new ListBloqueiosUseCase(painelQueryPort, clock);
   const createActivityUseCase = new CreateActivityUseCase(activityRepository, roomRepository);
   const getActivityUseCase = new GetActivityUseCase(activityRepository);
   const listActivitiesUseCase = new ListActivitiesUseCase(activityRepository);
@@ -414,8 +416,13 @@ const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, in
     }
   });
 
-  app.get('/painel/bloqueios', requireUser, requireOrg, (_req: Request, res: Response) => {
-    res.status(204).send();
+  app.get('/painel/bloqueios', requireUser, requireOrg, (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = listBloqueiosUseCase.execute();
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
   });
 
   app.delete('/painel/bloqueios/:participanteId', requireUser, requireOrg, (_req: Request, res: Response) => {
