@@ -75,13 +75,13 @@ export function createApp(options?: AppOptions | string) {
   const activityRepository = new ActivityRepository(db);
   const presencaRepository = new PresencaRepository(db);
   const m2Port = opts.m2Port || new SQLiteM2Adapter(inscricaoRepository, activityRepository, clock);
-  const m5Port = opts.m5Port || new SQLiteM5Adapter(inscricaoRepository);
   const painelQueryPort = opts.painelQueryPort || new SQLitePainelQueryAdapter(activityRepository, inscricaoRepository, presencaRepository, userRepository);
   const desbloqueioRepository = new DesbloqueioRepository(db);
   const listPainelAtividadesUseCase = new ListPainelAtividadesUseCase(painelQueryPort, clock);
   const listSemChanceUseCase = new ListSemChanceUseCase(painelQueryPort, clock);
   const exportFrequenciaCsvUseCase = new ExportFrequenciaCsvUseCase(painelQueryPort, clock);
   const listBloqueiosUseCase = new ListBloqueiosUseCase(painelQueryPort, clock, desbloqueioRepository);
+  const m5Port = opts.m5Port || new SQLiteM5Adapter(listBloqueiosUseCase);
   const removeBloqueioUseCase = new RemoveBloqueioUseCase(listBloqueiosUseCase, desbloqueioRepository, clock);
   const createActivityUseCase = new CreateActivityUseCase(activityRepository, roomRepository);
   const getActivityUseCase = new GetActivityUseCase(activityRepository);
