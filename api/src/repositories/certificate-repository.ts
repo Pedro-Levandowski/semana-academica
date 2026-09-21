@@ -1,5 +1,13 @@
 import Database from 'better-sqlite3';
 
+export function ehColisaoDeCodigoUnica(erro: unknown): boolean {
+  if (!erro || typeof erro !== 'object') {
+    return false;
+  }
+  const code = (erro as { code?: unknown }).code;
+  return code === 'SQLITE_CONSTRAINT_PRIMARYKEY' || code === 'SQLITE_CONSTRAINT_UNIQUE';
+}
+
 export interface CertificadoRow {
   codigo: string;
   atividadeId: string;

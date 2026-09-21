@@ -1,11 +1,13 @@
 import { DateTime } from 'luxon';
 import { Clock } from '../clock/clock.js';
-import { CertificateRepository } from '../repositories/certificate-repository.js';
+import { CertificateRepository, ehColisaoDeCodigoUnica } from '../repositories/certificate-repository.js';
 import { M3PresencePort } from '../integrations/m3-presence-port.js';
 import { M2IntegrationPort } from '../integrations/m2-port.js';
 import { gerarCodigo } from './gerar-codigo.js';
 
 export type GeradorDeCodigo = () => string;
+
+export const LIMITE_DE_TENTATIVAS = 5;
 
 export interface ActivitySnapshot {
   id: string;
@@ -71,16 +73,28 @@ export class EmitirCertificado {
       throw new Error('Relógio retornou instante sem representação ISO 8601');
     }
 
-    const certificado: Certificado = {
-      codigo: this.geradorDeCodigo(),
-      atividadeId: atividade.id,
-      participanteId,
-      cargaHorariaMinutos: atividade.cargaHorariaMinutos,
-      presencas,
-      encontros,
-      emitidoEm
-    };
-    this.repository.create(certificado);
-    return { ok: true, certificado, criado: true };
+    for (let tentativa = 0; tentativa < LIMITE_DE_TENTATIVAS; tentativa += 1) {
+      const certificado: Certificado = {
+        codigo: this.geradorDeCodigo(),
+        atividadeId: atividade.id,
+        participanteId,
+        cargaHorariaMinutos: atividade.cargaHorariaMinutos,
+        presencas,
+        encontros,
+        emitidoEm
+      };
+      try {
+        this.repository.create(certificado);
+        return { ok: true, certificado, criado: true };
+      } catch (erro) {
+        if (!ehColisaoDeCodigoUnica(erro)) {
+          throw erro;
+        }
+      }
+    }
+
+    throw new Error(
+      `Não foi possível obter um código único do certificado após ${LIMITE_DE_TENTATIVAS} tentativas`
+    );
   }
 }
