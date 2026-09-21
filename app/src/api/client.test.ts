@@ -141,6 +141,97 @@ describe('API Client', () => {
     );
   });
 
+  it('deve obter código do encontro em GET /encontros/:id/codigo', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ encontroId: 'enc_1', codigo: 'K7M2QX', trocaEm: '...', validoAte: '...' }),
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const res = await api.getCodigoEncontro('enc_1');
+    expect(res).toEqual({ encontroId: 'enc_1', codigo: 'K7M2QX', trocaEm: '...', validoAte: '...' });
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://localhost:3000/encontros/enc_1/codigo',
+      expect.any(Object)
+    );
+  });
+
+  it('deve registrar presença via POST /encontros/:id/presencas', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({ id: 'pre_1', encontroId: 'enc_1', participanteId: 'p-carla', origem: 'qr', lidoEm: '...', registradaEm: '...', justificativa: null }),
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const payload = { codigo: 'K7M2QX', lidoEm: '2026-10-19T10:00:00-03:00' };
+    const res = await api.registrarPresenca('enc_1', payload);
+    expect(res).toEqual({
+      presenca: { id: 'pre_1', encontroId: 'enc_1', participanteId: 'p-carla', origem: 'qr', lidoEm: '...', registradaEm: '...', justificativa: null },
+      status: 201,
+    });
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://localhost:3000/encontros/enc_1/presencas',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify(payload),
+      })
+    );
+  });
+
+  it('deve registrar presença manual via POST /encontros/:id/presencas/manual', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => ({ id: 'pre_1', encontroId: 'enc_1', participanteId: 'p-carla', origem: 'manual', lidoEm: '...', registradaEm: '...', justificativa: 'Justificativa válida' }),
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const payload = { participanteId: 'p-carla', justificativa: 'Justificativa válida' };
+    const res = await api.registrarPresencaManual('enc_1', payload);
+    expect(res).toEqual({
+      presenca: { id: 'pre_1', encontroId: 'enc_1', participanteId: 'p-carla', origem: 'manual', lidoEm: '...', registradaEm: '...', justificativa: 'Justificativa válida' },
+      status: 201,
+    });
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://localhost:3000/encontros/enc_1/presencas/manual',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify(payload),
+      })
+    );
+  });
+
+  it('deve listar presenças do encontro em GET /encontros/:id/presencas', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [{ id: 'pre_1', encontroId: 'enc_1', participanteId: 'p-carla', origem: 'qr', lidoEm: '...', registradaEm: '...', justificativa: null }],
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const res = await api.getPresencas('enc_1');
+    expect(res).toEqual([{ id: 'pre_1', encontroId: 'enc_1', participanteId: 'p-carla', origem: 'qr', lidoEm: '...', registradaEm: '...', justificativa: null }]);
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://localhost:3000/encontros/enc_1/presencas',
+      expect.any(Object)
+    );
+  });
+
+  it('deve suporte a chamadas de inscricoes (getInscricoes, createInscricao, confirmInscricao, cancelInscricao)', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [{ id: 'ins_1', atividadeId: 'atv_1', participanteId: 'p-carla', status: 'confirmada' }],
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const inscricoes = await (api as any).getInscricoes({ atividadeId: 'atv_1' });
+    expect(inscricoes).toHaveLength(1);
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://localhost:3000/inscricoes?atividadeId=atv_1',
+      expect.any(Object)
+    );
+  });
+
   it('deve lançar ApiError contendo erro e mensagem quando a resposta não for ok', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: false,

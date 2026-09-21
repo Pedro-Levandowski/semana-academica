@@ -1,0 +1,119 @@
+{
+ "info": {
+  "id": "ses_f460135eeffefQwh1l63rFFvWv",
+  "slug": "happy-mountain",
+  "projectID": "08a8850750a50d17a216613ef31c5f0b0d1b31ca",
+  "directory": "C:\\Users\\Lucas\\Desktop\\Faculdade\\sistema_academico\\semana-academica",
+  "path": "",
+  "title": "New session - 2026-09-19T14:07:57.969Z",
+  "agent": "build",
+  "model": {
+   "id": "gemini-3.6-flash",
+   "providerID": "google"
+  },
+  "version": "1.18.31",
+  "summary": {
+   "additions": 0,
+   "deletions": 0,
+   "files": 0
+  },
+  "cost": 0,
+  "tokens": {
+   "input": 0,
+   "output": 0,
+   "reasoning": 0,
+   "cache": {
+    "read": 0,
+    "write": 0
+   }
+  },
+  "time": {
+   "created": 1789826877969,
+   "updated": 1789826878993
+  }
+ },
+ "messages": [
+  {
+   "info": {
+    "role": "user",
+    "time": {
+     "created": 1789826878015
+    },
+    "agent": "build",
+    "model": {
+     "providerID": "google",
+     "modelID": "gemini-3.6-flash"
+    },
+    "summary": {
+     "diffs": []
+    },
+    "id": "msg_0b9feca3f0018gig4DGVbw8B2f",
+    "sessionID": "ses_f460135eeffefQwh1l63rFFvWv"
+   },
+   "parts": [
+    {
+     "type": "text",
+     "text": "@auditor audite o módulo M2 contra specs/M2-inscricoes.md",
+     "id": "prt_0b9feca40001BrwHRD77mn3DNS",
+     "sessionID": "ses_f460135eeffefQwh1l63rFFvWv",
+     "messageID": "msg_0b9feca3f0018gig4DGVbw8B2f"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0b9feca3f0018gig4DGVbw8B2f",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Lucas\\Desktop\\Faculdade\\sistema_academico\\semana-academica",
+     "root": "C:\\Users\\Lucas\\Desktop\\Faculdade\\sistema_academico\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "input": 0,
+     "output": 0,
+     "reasoning": 0,
+     "cache": {
+      "read": 0,
+      "write": 0
+     }
+    },
+    "modelID": "gemini-3.6-flash",
+    "providerID": "google",
+    "time": {
+     "created": 1789826878421,
+     "completed": 1789826958572
+    },
+    "error": {
+     "name": "APIError",
+     "data": {
+      "message": "Your prepayment credits are depleted. Please go to AI Studio at https://ai.studio/projects to manage your project and billing. Learn more at https://ai.google.dev/gemini-api/docs/billing#prepay.",
+      "statusCode": 402,
+      "isRetryable": false,
+      "responseHeaders": {
+       "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+       "content-length": "287",
+       "content-type": "text/event-stream",
+       "date": "Sat, 19 Sep 2026 14:09:18 GMT",
+       "server": "scaffolding on HTTPServer2",
+       "server-timing": "gfet4t7; dur=387",
+       "vary": "Origin, X-Origin, Referer",
+       "x-content-type-options": "nosniff",
+       "x-frame-options": "SAMEORIGIN",
+       "x-xss-protection": "0"
+      },
+      "responseBody": "{\n  \"error\": {\n    \"code\": 402,\n    \"message\": \"Your prepayment credits are depleted. Please go to AI Studio at https://ai.studio/projects to manage your project and billing. Learn more at https://ai.google.dev/gemini-api/docs/billing#prepay. \",\n    \"status\": \"RESOURCE_EXHAUSTED\"\n  }\n}\n",
+      "metadata": {
+       "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:streamGenerateContent?alt=sse"
+      }
+     }
+    },
+    "id": "msg_0b9fecbd5001GijeB7X01KsVfn",
+    "sessionID": "ses_f460135eeffefQwh1l63rFFvWv"
+   },
+   "parts": []
+  }
+ ]
+}

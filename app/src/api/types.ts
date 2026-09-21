@@ -13,6 +13,33 @@ export interface Encontro extends EncontroInput {
   id: string;
 }
 
+export interface CodigoDoEncontro {
+  encontroId: string;
+  codigo: string;
+  trocaEm: string;
+  validoAte: string;
+}
+
+export interface Presenca {
+  id: string;
+  encontroId: string;
+  participanteId: string;
+  origem: "qr" | "qr_offline" | "manual";
+  lidoEm: string;
+  registradaEm: string;
+  justificativa: string | null;
+}
+
+export interface RegistrarPresencaDTO {
+  codigo: string;
+  lidoEm?: string;
+}
+
+export interface RegistrarPresencaManualDTO {
+  participanteId: string;
+  justificativa: string;
+}
+
 export interface AtividadeInput {
   titulo?: string;
   tipo?: "palestra" | "minicurso";
@@ -46,6 +73,16 @@ export interface Atividade {
   ocupadas: number;
   vagasRestantes: number;
   emEspera: number;
+}
+
+export interface Inscricao {
+  id: string;
+  atividadeId: string;
+  participanteId: string;
+  status: "confirmada" | "em_espera" | "convocada" | "cancelada" | "expirada";
+  posicaoNaEspera: number | null;
+  convocadaAte: string | null;
+  criadaEm: string;
 }
 
 export interface ApiErrorResponse {
