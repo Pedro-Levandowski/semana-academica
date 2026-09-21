@@ -85,6 +85,40 @@ export interface Inscricao {
   criadaEm: string;
 }
 
+export interface Certificado {
+  codigo: string;
+  atividadeId: string;
+  participanteId: string;
+  cargaHorariaMinutos: number;
+  presencas: number;
+  encontros: number;
+  emitidoEm: string;
+}
+
+export interface ExtratoItem {
+  atividadeId: string;
+  titulo: string;
+  tipo: string;
+  cargaHorariaMinutos: number;
+  codigo: string | null;
+}
+
+export interface Extrato {
+  itens: ExtratoItem[];
+  palestrasMinutos: number;
+  minicursosMinutos: number;
+  totalMinutos: number;
+  aproveitadoMinutos: number;
+}
+
+export interface VerificacaoCertificado {
+  codigo: string;
+  participante: string;
+  atividade: string;
+  cargaHorariaMinutos: number;
+  emitidoEm: string;
+}
+
 export interface ApiErrorResponse {
   erro: string;
   mensagem: string;

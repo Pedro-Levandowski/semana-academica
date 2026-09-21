@@ -1,4 +1,4 @@
-import { Sala, Atividade, CreateAtividadeDTO, UpdateAtividadeDTO, CodigoDoEncontro, Presenca, RegistrarPresencaDTO, RegistrarPresencaManualDTO, Inscricao, ApiError } from "./types";
+import { Sala, Atividade, CreateAtividadeDTO, UpdateAtividadeDTO, CodigoDoEncontro, Presenca, RegistrarPresencaDTO, RegistrarPresencaManualDTO, Inscricao, Certificado, Extrato, VerificacaoCertificado, ApiError } from "./types";
 
 const getBaseUrl = () => {
   return (import.meta as any).env?.VITE_API_URL || "http://localhost:3000";
@@ -168,6 +168,24 @@ export const api = {
 
   confirmInscricao: async (id: string): Promise<Inscricao> => {
     return request<Inscricao>(`/inscricoes/${id}/confirmacao`, {
+      method: "POST",
+    });
+  },
+
+  getCertificados: async (): Promise<Certificado[]> => {
+    return request<Certificado[]>("/certificados");
+  },
+
+  getExtrato: async (): Promise<Extrato> => {
+    return request<Extrato>("/extrato");
+  },
+
+  getCertificadoPorCodigo: async (codigo: string): Promise<VerificacaoCertificado> => {
+    return request<VerificacaoCertificado>(`/certificados/${encodeURIComponent(codigo)}`);
+  },
+
+  emitirCertificado: async (atividadeId: string): Promise<Certificado> => {
+    return request<Certificado>(`/atividades/${encodeURIComponent(atividadeId)}/certificado`, {
       method: "POST",
     });
   },
