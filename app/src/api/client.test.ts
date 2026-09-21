@@ -251,3 +251,134 @@ describe('API Client', () => {
     }
   });
 });
+
+describe('API Client - M4 Certificados', () => {
+  const certificado = {
+    codigo: 'SA26-7K2M-9QXA',
+    atividadeId: 'atv_1a2b3c4d',
+    participanteId: 'p-carla',
+    cargaHorariaMinutos: 360,
+    presencas: 2,
+    encontros: 2,
+    emitidoEm: '2026-10-23T22:00:00-03:00',
+  };
+
+  it('deve listar certificados usando GET /certificados', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [certificado],
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const certificados = await api.getCertificados();
+
+    expect(certificados).toEqual([certificado]);
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toBe('http://localhost:3000/certificados');
+    expect(options.method).toBeUndefined();
+  });
+
+  it('deve consultar o extrato de horas usando GET /extrato', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        itens: [
+          {
+            atividadeId: 'atv_1a2b3c4d',
+            titulo: 'Flutter do zero',
+            tipo: 'minicurso',
+            cargaHorariaMinutos: 360,
+            codigo: null,
+          },
+        ],
+        palestrasMinutos: 0,
+        minicursosMinutos: 360,
+        totalMinutos: 360,
+        aproveitadoMinutos: 360,
+      }),
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const extrato = await api.getExtrato();
+
+    expect(extrato.totalMinutos).toBe(360);
+    expect(extrato.aproveitadoMinutos).toBe(360);
+    expect(extrato.itens).toHaveLength(1);
+    expect(extrato.itens).toEqual([
+      {
+        atividadeId: 'atv_1a2b3c4d',
+        titulo: 'Flutter do zero',
+        tipo: 'minicurso',
+        cargaHorariaMinutos: 360,
+        codigo: null,
+      },
+    ]);
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toBe('http://localhost:3000/extrato');
+    expect(options.method).toBeUndefined();
+  });
+
+  it('deve consultar a verificação pública em GET /certificados/:codigo codificando o código na URL', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        codigo: 'SA26-7K2M-9QXA',
+        participante: 'Carla M. S.',
+        atividade: 'Flutter do zero',
+        cargaHorariaMinutos: 360,
+        emitidoEm: '2026-10-23T22:00:00-03:00',
+      }),
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const verificacao = await api.getCertificadoPorCodigo('SA26-7K2M 9QXA');
+
+    expect(verificacao.codigo).toBe('SA26-7K2M-9QXA');
+    expect(verificacao.participante).toBe('Carla M. S.');
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toBe('http://localhost:3000/certificados/SA26-7K2M%209QXA');
+    expect(options.method).toBeUndefined();
+  });
+
+  it('deve consultar a verificação pública sem X-Usuario quando nenhum usuário estiver selecionado', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        codigo: 'SA26-7K2M-9QXA',
+        participante: 'Carla M. S.',
+        atividade: 'Flutter do zero',
+        cargaHorariaMinutos: 360,
+        emitidoEm: '2026-10-23T22:00:00-03:00',
+      }),
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    await api.getCertificadoPorCodigo('SA26-7K2M-9QXA');
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      'http://localhost:3000/certificados/SA26-7K2M-9QXA',
+      expect.objectContaining({
+        headers: expect.not.objectContaining({
+          'X-Usuario': expect.any(String),
+        }),
+      })
+    );
+  });
+
+  it('deve emitir certificado via POST /atividades/:id/certificado sem enviar corpo', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      json: async () => certificado,
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const emitido = await api.emitirCertificado('atv_1a2b3c4d');
+
+    expect(emitido).toEqual(certificado);
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toBe('http://localhost:3000/atividades/atv_1a2b3c4d/certificado');
+    expect(options.method).toBe('POST');
+    expect(options).not.toHaveProperty('body');
+  });
+});
