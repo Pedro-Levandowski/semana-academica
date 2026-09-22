@@ -1,4 +1,4 @@
-import { Sala, Atividade, CreateAtividadeDTO, UpdateAtividadeDTO, ApiError } from "./types";
+import { Sala, Atividade, PainelAtividade, CreateAtividadeDTO, UpdateAtividadeDTO, ApiError } from "./types";
 
 const getBaseUrl = () => {
   return (import.meta as any).env?.VITE_API_URL || "http://localhost:3000";
@@ -78,5 +78,9 @@ export const api = {
     return request<Atividade>(`/atividades/${id}/cancelamento`, {
       method: "POST",
     });
+  },
+
+  getPainelAtividades: async (): Promise<PainelAtividade[]> => {
+    return request<PainelAtividade[]>("/painel/atividades");
   },
 };

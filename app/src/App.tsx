@@ -1,5 +1,5 @@
 import React from 'react';
-import { useInRouterContext, MemoryRouter, Routes, Route } from 'react-router-dom';
+import { useInRouterContext, MemoryRouter, Routes, Route, Link } from 'react-router-dom';
 import { useSelectedUser } from './hooks/useSelectedUser';
 import { UserSelector } from './components/UserSelector';
 import { useProgramacao, DIAS_SEMANA } from './hooks/useProgramacao';
@@ -7,6 +7,7 @@ import { Programacao } from './components/Programacao';
 import { AtividadeDetalhe } from './components/AtividadeDetalhe';
 import { CriarAtividade } from './components/CriarAtividade';
 import { EditarAtividade } from './components/EditarAtividade';
+import { PainelOrganizacao } from './components/PainelOrganizacao';
 import { api } from './api/client';
 
 interface AppProps {
@@ -69,6 +70,14 @@ export function App({ apiClient = api, initialEntries }: AppProps) {
                 </div>
               </section>
 
+              {selectedUser.papel === 'organizacao' && (
+                <nav aria-label="Navegação da organização">
+                  <Link to="/painel" className="button button--secondary">
+                    Painel da organização
+                  </Link>
+                </nav>
+              )}
+
               <Routes>
                 <Route
                   path="/"
@@ -118,6 +127,20 @@ export function App({ apiClient = api, initialEntries }: AppProps) {
                       userPapel={selectedUser.papel}
                       apiClient={apiClient}
                     />
+                  }
+                />
+
+                <Route
+                  path="/painel"
+                  element={
+                    selectedUser.papel === 'organizacao' ? (
+                      <PainelOrganizacao
+                        selectedUserId={selectedUser.id}
+                        apiClient={apiClient}
+                      />
+                    ) : (
+                      <div role="alert">Acesso restrito</div>
+                    )
                   }
                 />
               </Routes>

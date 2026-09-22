@@ -1,3 +1,13 @@
+export interface PainelAtividade {
+  atividadeId: string;
+  titulo: string;
+  vagas: number;
+  ocupadas: number;
+  emEspera: number;
+  ocupacaoPercentual: number;
+  frequenciaPercentual: number | null;
+}
+
 export interface Sala {
   id: string;
   nome: string;
