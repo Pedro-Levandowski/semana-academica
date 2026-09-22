@@ -57,6 +57,11 @@ export function runMigrations(db: Database.Database): void {
       registradaEm TEXT NOT NULL,
       justificativa TEXT
     );
+
+    CREATE TABLE IF NOT EXISTS m5_desbloqueios (
+      participanteId TEXT PRIMARY KEY,
+      desbloqueadoEm TEXT NOT NULL
+    );
   `);
 
   const tableInfo = db.prepare("PRAGMA table_info(atividades)").all() as Array<{ name: string }>;

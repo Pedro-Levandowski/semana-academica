@@ -1,5 +1,5 @@
 import React from 'react';
-import { useInRouterContext, MemoryRouter, Routes, Route, useParams } from 'react-router-dom';
+import { useInRouterContext, MemoryRouter, Routes, Route, Link, useParams } from 'react-router-dom';
 import { useSelectedUser } from './hooks/useSelectedUser';
 import { UserSelector } from './components/UserSelector';
 import { useProgramacao, DIAS_SEMANA } from './hooks/useProgramacao';
@@ -7,6 +7,9 @@ import { Programacao } from './components/Programacao';
 import { AtividadeDetalhe } from './components/AtividadeDetalhe';
 import { CriarAtividade } from './components/CriarAtividade';
 import { EditarAtividade } from './components/EditarAtividade';
+import { PainelOrganizacao } from './components/PainelOrganizacao';
+import { SemChanceRelatorio } from './components/SemChanceRelatorio';
+import { BloqueiosPainel } from './components/BloqueiosPainel';
 import { CodigoEncontro } from './components/CodigoEncontro';
 import { RegistrarPresenca } from './components/RegistrarPresenca';
 import { RegistrarPresencaManual } from './components/RegistrarPresencaManual';
@@ -132,6 +135,17 @@ export function App({ apiClient = api, initialEntries }: AppProps) {
                 </div>
               </section>
 
+              {selectedUser.papel === 'organizacao' && (
+                <nav className="organization-nav" aria-label="Navegação da organização">
+                  <Link to="/painel" className="button button--secondary">
+                    Painel da organização
+                  </Link>
+                  <Link to="/painel/bloqueios" className="button button--secondary">
+                    Bloqueios
+                  </Link>
+                </nav>
+              )}
+
               <Routes>
                 <Route
                   path="/"
@@ -185,6 +199,20 @@ export function App({ apiClient = api, initialEntries }: AppProps) {
                 />
 
                 <Route
+                  path="/painel"
+                  element={
+                    selectedUser.papel === 'organizacao' ? (
+                      <PainelOrganizacao
+                        selectedUserId={selectedUser.id}
+                        apiClient={apiClient}
+                      />
+                    ) : (
+                      <div role="alert">Acesso restrito</div>
+                    )
+                  }
+                />
+
+                <Route
                   path="/encontros/:encontroId/codigo"
                   element={
                     <CodigoEncontroRoute
@@ -196,6 +224,20 @@ export function App({ apiClient = api, initialEntries }: AppProps) {
                 />
 
                 <Route
+                  path="/painel/atividades/:id/sem-chance"
+                  element={
+                    selectedUser.papel === 'organizacao' ? (
+                      <SemChanceRelatorio
+                        selectedUserId={selectedUser.id}
+                        apiClient={apiClient}
+                      />
+                    ) : (
+                      <div role="alert">Acesso restrito</div>
+                    )
+                  }
+                />
+
+                <Route
                   path="/encontros/:encontroId/presenca"
                   element={
                     <RegistrarPresencaRoute
@@ -203,6 +245,20 @@ export function App({ apiClient = api, initialEntries }: AppProps) {
                       userPapel={selectedUser.papel}
                       apiClient={apiClient}
                     />
+                  }
+                />
+
+                <Route
+                  path="/painel/bloqueios"
+                  element={
+                    selectedUser.papel === 'organizacao' ? (
+                      <BloqueiosPainel
+                        selectedUserId={selectedUser.id}
+                        apiClient={apiClient}
+                      />
+                    ) : (
+                      <div role="alert">Acesso restrito</div>
+                    )
                   }
                 />
 

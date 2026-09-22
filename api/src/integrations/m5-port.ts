@@ -1,8 +1,11 @@
 import { DateTime } from 'luxon';
-import { InscricaoRepository } from '../repositories/inscricao-repository.js';
 
 export interface M5IntegrationPort {
   isParticipantBlocked(participanteId: string, agora: DateTime): boolean;
+}
+
+export interface BloqueiosQueryPort {
+  execute(): { participanteId: string }[];
 }
 
 export class NeutralM5Adapter implements M5IntegrationPort {
@@ -12,19 +15,10 @@ export class NeutralM5Adapter implements M5IntegrationPort {
 }
 
 export class SQLiteM5Adapter implements M5IntegrationPort {
-  constructor(private inscricaoRepository: InscricaoRepository) {}
+  constructor(private bloqueiosQuery: BloqueiosQueryPort) {}
 
-  isParticipantBlocked(participanteId: string, agora: DateTime): boolean {
-    const endedActivities = this.inscricaoRepository.getEndedActivitiesForParticipant(participanteId);
-    let zeroPresencaCount = 0;
-    for (const endedAtv of endedActivities) {
-      const maxFim = DateTime.fromISO(endedAtv.maxFim, { setZone: true });
-      if (agora >= maxFim) {
-        if (!this.inscricaoRepository.hasPresencaInActivity(endedAtv.atividadeId, participanteId)) {
-          zeroPresencaCount++;
-        }
-      }
-    }
-    return zeroPresencaCount >= 2;
+  isParticipantBlocked(participanteId: string, _agora: DateTime): boolean {
+    const bloqueios = this.bloqueiosQuery.execute();
+    return bloqueios.some(b => b.participanteId === participanteId);
   }
 }
