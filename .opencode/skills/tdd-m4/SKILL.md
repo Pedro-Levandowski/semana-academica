@@ -8,6 +8,13 @@ description: Implementa M4-certificados por TDD, fatia a fatia — vermelho, ver
 A fonte de verdade é `specs/M4-certificados.md`. Não invente regras de negócio.
 Não altere a spec. Não acesse documentos externos de requisitos.
 
+## Motivação
+
+Esta skill foi criada para padronizar a implementação do M4 por TDD, mantendo
+cada ciclo RED → GREEN → REFACTOR rastreável às regras de `specs/M4-certificados.md`
+e evitando que regras de negócio sejam inventadas ou que testes sejam alterados
+apenas para acompanhar a implementação.
+
 O ciclo é o mesmo do `tdd` geral — teste que falha, código mínimo, refactor — mas
 ancorado nas 4 fatias e 18 regras de M4. Uma regra ou grupo coeso por ciclo TDD.
 
