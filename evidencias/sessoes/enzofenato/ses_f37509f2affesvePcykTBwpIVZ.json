@@ -1,0 +1,2341 @@
+{
+ "info": {
+  "id": "ses_f37509f2affesvePcykTBwpIVZ",
+  "slug": "calm-orchid",
+  "projectID": "08a8850750a50d17a216613ef31c5f0b0d1b31ca",
+  "directory": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+  "path": "",
+  "title": "Testes RED da tela Verificação de Certificado",
+  "agent": "build",
+  "model": {
+   "id": "big-pickle",
+   "providerID": "opencode"
+  },
+  "version": "1.18.32",
+  "summary": {
+   "additions": 0,
+   "deletions": 0,
+   "files": 0
+  },
+  "cost": 0,
+  "tokens": {
+   "input": 164741,
+   "output": 11609,
+   "reasoning": 29,
+   "cache": {
+    "read": 1224192,
+    "write": 0
+   }
+  },
+  "time": {
+   "created": 1790073331926,
+   "updated": 1790073789986
+  }
+ },
+ "messages": [
+  {
+   "info": {
+    "role": "user",
+    "time": {
+     "created": 1790073331979
+    },
+    "agent": "build",
+    "model": {
+     "providerID": "opencode",
+     "modelID": "big-pickle"
+    },
+    "summary": {
+     "diffs": [
+      {
+       "file": "app/src/components/VerificarCertificado.test.tsx",
+       "patch": "Index: app/src/components/VerificarCertificado.test.tsx\n===================================================================\n--- app/src/components/VerificarCertificado.test.tsx\t\n+++ app/src/components/VerificarCertificado.test.tsx\t\n@@ -0,0 +1,179 @@\n+import { describe, it, expect, beforeEach, vi } from 'vitest';\n+import { render, screen, act, fireEvent } from '@testing-library/react';\n+import userEvent from '@testing-library/user-event';\n+import { VerificarCertificado } from './VerificarCertificado';\n+import { api } from '../api/client';\n+import { formatarDataHoraBrasilia } from '../utils/date';\n+\n+describe('VerificarCertificado Component', () => {\n+  beforeEach(() => {\n+    vi.restoreAllMocks();\n+  });\n+\n+  const verificacao = {\n+    codigo: 'SA26-7K2M-9QXA',\n+    participante: 'Carla M. S.',\n+    atividade: 'Flutter do zero',\n+    cargaHorariaMinutos: 360,\n+    emitidoEm: '2026-10-23T22:00:00-03:00',\n+  };\n+\n+  it('contexto público: sem selectedUserId/userPapel renderiza o formulário e não consulta automaticamente', () => {\n+    const getCertificadoPorCodigoMock = vi.fn();\n+    const fakeClient = {\n+      ...api,\n+      getCertificadoPorCodigo: getCertificadoPorCodigoMock,\n+    };\n+\n+    render(<VerificarCertificado apiClient={fakeClient} />);\n+\n+    expect(screen.getByLabelText('Código do Certificado:')).toBeInTheDocument();\n+    expect(\n+      screen.getByRole('button', { name: /verificar certificado/i })\n+    ).toBeInTheDocument();\n+    expect(getCertificadoPorCodigoMock).not.toHaveBeenCalled();\n+  });\n+\n+  it('tempo de espera: consulta ao enviar, mostra loading acessível e desabilita o botão', async () => {\n+    let resolvePromise: any;\n+    const pendingPromise = new Promise((resolve) => {\n+      resolvePromise = resolve;\n+    });\n+    const getCertificadoPorCodigoMock = vi.fn().mockReturnValue(pendingPromise);\n+    const fakeClient = {\n+      ...api,\n+      getCertificadoPorCodigo: getCertificadoPorCodigoMock,\n+    };\n+\n+    render(<VerificarCertificado apiClient={fakeClient} />);\n+\n+    await userEvent.type(\n+      screen.getByLabelText('Código do Certificado:'),\n+      'SA26-7K2M-9QXA'\n+    );\n+    fireEvent.click(\n+      screen.getByRole('button', { name: /verificar certificado/i })\n+    );\n+\n+    expect(getCertificadoPorCodigoMock).toHaveBeenCalledWith('SA26-7K2M-9QXA');\n+    expect(screen.getByRole('status')).toHaveTextContent(\n+      'Verificando certificado...'\n+    );\n+    expect(screen.getByRole('button', { name: /verificando/i })).toBeDisabled();\n+\n+    await act(async () => {\n+      resolvePromise(verificacao);\n+    });\n+  });\n+\n+  it('sucesso: apresenta exatamente os campos públicos da Verificacao', async () => {\n+    const getCertificadoPorCodigoMock = vi.fn().mockResolvedValue({\n+      ...verificacao,\n+      participanteId: 'p-carla',\n+      presencas: 2,\n+      encontros: 2,\n+    });\n+    const fakeClient = {\n+      ...api,\n+      getCertificadoPorCodigo: getCertificadoPorCodigoMock,\n+    };\n+\n+    render(<VerificarCertificado apiClient={fakeClient} />);\n+\n+    await userEvent.type(\n+      screen.getByLabelText('Código do Certificado:'),\n+      'SA26-7K2M-9QXA'\n+    );\n+    fireEvent.click(\n+      screen.getByRole('button', { name: /verificar certificado/i })\n+    );\n+\n+    const container = await screen.findByTestId(\n+      'verificar-certificado-container'\n+    );\n+\n+    expect(container).toHaveTextContent('SA26-7K2M-9QXA');\n+    expect(container).toHaveTextContent('Carla M. S.');\n+    expect(container).toHaveTextContent('Flutter do zero');\n+    expect(container).toHaveTextContent('360');\n+    expect(container).toHaveTextContent(\n+      formatarDataHoraBrasilia(verificacao.emitidoEm)\n+    );\n+    expect(container).not.toHaveTextContent('p-carla');\n+  });\n+\n+  it('não encontrado: exibe alert com NAO_ENCONTRADO e mensagem do 404', async () => {\n+    const getCertificadoPorCodigoMock = vi.fn().mockRejectedValue({\n+      erro: 'NAO_ENCONTRADO',\n+      mensagem: 'Recurso não encontrado',\n+    });\n+    const fakeClient = {\n+      ...api,\n+      getCertificadoPorCodigo: getCertificadoPorCodigoMock,\n+    };\n+\n+    render(<VerificarCertificado apiClient={fakeClient} />);\n+\n+    await userEvent.type(\n+      screen.getByLabelText('Código do Certificado:'),\n+      'SA26-7K2M-9QXA'\n+    );\n+    fireEvent.click(\n+      screen.getByRole('button', { name: /verificar certificado/i })\n+    );\n+\n+    const alert = await screen.findByRole('alert');\n+    expect(alert).toHaveTextContent('NAO_ENCONTRADO');\n+    expect(alert).toHaveTextContent('Recurso não encontrado');\n+  });\n+\n+  it('erro genérico: exibe role=\"alert\" com código e mensagem distintos do 404', async () => {\n+    const getCertificadoPorCodigoMock = vi.fn().mockRejectedValue({\n+      erro: 'ERRO_INTERNO',\n+      mensagem: 'Falha ao verificar certificado',\n+    });\n+    const fakeClient = {\n+      ...api,\n+      getCertificadoPorCodigo: getCertificadoPorCodigoMock,\n+    };\n+\n+    render(<VerificarCertificado apiClient={fakeClient} />);\n+\n+    await userEvent.type(\n+      screen.getByLabelText('Código do Certificado:'),\n+      'SA26-7K2M-9QXA'\n+    );\n+    fireEvent.click(\n+      screen.getByRole('button', { name: /verificar certificado/i })\n+    );\n+\n+    const alert = await screen.findByRole('alert');\n+    expect(alert).toHaveTextContent('ERRO_INTERNO');\n+    expect(alert).toHaveTextContent('Falha ao verificar certificado');\n+    expect(alert).not.toHaveTextContent(/não encontrado/i);\n+  });\n+\n+  it('normalização: envia para a API o código com trim e uppercase', async () => {\n+    const getCertificadoPorCodigoMock = vi.fn().mockResolvedValue(verificacao);\n+    const fakeClient = {\n+      ...api,\n+      getCertificadoPorCodigo: getCertificadoPorCodigoMock,\n+    };\n+\n+    render(<VerificarCertificado apiClient={fakeClient} />);\n+\n+    await userEvent.type(\n+      screen.getByLabelText('Código do Certificado:'),\n+      '  sa26-7k2m-9qxa  '\n+    );\n+    fireEvent.click(\n+      screen.getByRole('button', { name: /verificar certificado/i })\n+    );\n+\n+    expect(getCertificadoPorCodigoMock).toHaveBeenCalledWith('SA26-7K2M-9QXA');\n+\n+    expect(\n+      await screen.findByTestId('verificar-certificado-container')\n+    ).toBeInTheDocument();\n+  });\n+});\n\\ No newline at end of file\n",
+       "additions": 179,
+       "deletions": 0,
+       "status": "added"
+      }
+     ]
+    },
+    "id": "msg_0c8af610b001qUhK0b8aTRqj2T",
+    "sessionID": "ses_f37509f2affesvePcykTBwpIVZ"
+   },
+   "parts": [
+    {
+     "type": "text",
+     "text": "Vamos iniciar a FATIA UI-4 do M4 — Verificação Pública de Certificado.\n\nEstado atual:\n- UI-1 cliente API M4 concluída;\n- UI-2 Meus Certificados concluída;\n- UI-3 Extrato de Horas concluída;\n- suíte da interface estava em 122 testes verdes;\n- existe erro baseline de typecheck/build em useCodigoEncontro.ts:\n  Cannot find namespace 'NodeJS'\n  NÃO corrigir nesta fatia.\n\nNesta sessão faça SOMENTE os testes RED da UI-4.\n\nNÃO implemente componente.\nNÃO implemente hook.\nNÃO altere App.tsx.\nNÃO altere CSS.\nNÃO altere backend.\n\nUse a skill tdd-m4.\n\nConsulte:\n- AGENTS.md\n- app/AGENTS.md\n- specs/M4-certificados.md\n- contrato-api.md\n- app/src/api/client.ts\n- app/src/api/types.ts\n- componentes/testes existentes\n- padrões de formulário existentes no frontend\n- padrões de erro/loading existentes\n- app/src/utils/date.ts\n\nNÃO consulte requisitos-envolvidos.md.\n\nOBJETIVO\n\nCriar os testes RED mínimos para a tela pública:\n\nVerificação de Certificado\n\nEla utilizará:\n\nGET /certificados/:codigo\n\npor meio de:\n\napiClient.getCertificadoPorCodigo(codigo)\n\nIMPORTANTE\n\nEsta tela é PÚBLICA.\n\nEla deve funcionar:\n- sem selectedUserId;\n- sem X-Usuario;\n- sem exigir papel participante;\n- sem guarda de autenticação.\n\nA integração da rota /verificar em App.tsx pertence à UI-5 e NÃO deve ser feita agora.\n\nCONTRATO DE SUCESSO\n\nVerificacaoCertificado:\n\n{\n  codigo: string,\n  participante: string,\n  atividade: string,\n  cargaHorariaMinutos: number,\n  emitidoEm: string\n}\n\nNão exibir nem esperar campos privados.\n\nTESTES RED\n\nCrie testes que caracterizem pelo menos:\n\n1. ESTADO INICIAL\n\nRenderizar o formulário sem executar consulta automaticamente.\n\nProvar:\n- campo para código;\n- botão de verificar;\n- getCertificadoPorCodigo NÃO chamado antes do submit.\n\n2. SUBMIT + LOADING\n\nUsuário informa:\n\nSA26-7K2M-9QXA\n\ne envia.\n\nUse Promise pendente.\n\nProvar:\n- getCertificadoPorCodigo chamado;\n- estado de loading acessível;\n- botão desabilitado enquanto aguarda.\n\nUse userEvent se esse já for o padrão/dependência existente.\nNão instale dependência nova.\n\n3. SUCESSO\n\nFake retorna:\n\n{\n  codigo: \"SA26-7K2M-9QXA\",\n  participante: \"Carla M. S.\",\n  atividade: \"Flutter do zero\",\n  cargaHorariaMinutos: 360,\n  emitidoEm: \"2026-10-23T22:00:00-03:00\"\n}\n\nProvar que a tela mostra exatamente os campos públicos:\n\n- codigo;\n- participante;\n- atividade;\n- cargaHorariaMinutos;\n- emitidoEm formatado pelo utilitário existente.\n\nNão exigir participanteId, presencas, encontros ou qualquer campo privado.\n\n4. 404 — NÃO ENCONTRADO\n\ngetCertificadoPorCodigo rejeita:\n\n{\n  erro: \"NAO_ENCONTRADO\",\n  mensagem: \"Recurso não encontrado\"\n}\n\nEsperar uma mensagem acessível indicando que o certificado não foi encontrado.\n\nPreserve o erro/mensagem quando compatível com o padrão atual.\n\n5. ERRO GENÉRICO\n\nRejeitar, por exemplo:\n\n{\n  erro: \"ERRO_INTERNO\",\n  mensagem: \"Falha ao verificar certificado\"\n}\n\nEsperar:\n- role=\"alert\";\n- código/mensagem conforme padrão da aplicação.\n\n6. NORMALIZAÇÃO LEVE DO CÓDIGO\n\nCaracterize que a interface aceita entrada como:\n\n\"  sa26-7k2m-9qxa  \"\n\ne consulta a API com:\n\n\"SA26-7K2M-9QXA\"\n\nSomente:\n- trim;\n- uppercase.\n\nNÃO implemente validação própria complexa do formato.\n\nA API continua sendo a autoridade.\n\n7. CONTEXTO PÚBLICO\n\nProve no nível do componente que ele pode ser renderizado e utilizado sem selectedUserId/userPapel.\n\nSe a própria assinatura futura do componente não precisar dessas props, não invente props apenas para esse teste.\n\nO teste deve deixar claro que a funcionalidade não depende de autenticação.\n\nEVITE TESTES REDUNDANTES\n\nSe estado inicial e contexto público puderem ser comprovados no mesmo teste sem perder clareza, isso é aceitito.\n\nO número exato de testes pode ser 6 ou 7, conforme a organização mais simples.\n\nARQUITETURA FUTURA\n\nProvavelmente:\n\napp/src/components/VerificarCertificado.tsx\n\ne, somente se o padrão justificar:\n\napp/src/hooks/useVerificarCertificado.ts\n\nAnalise os padrões existentes.\n\nComo a consulta ocorre sob ação explícita de formulário, NÃO force um hook com useEffect se isso não fizer sentido.\n\nPode ser mais simples manter:\n- resultado;\n- loading;\n- erro;\n\nno próprio componente.\n\nNesta sessão NÃO crie produção.\n\nAPI FAKE\n\nUse:\n\n{\n  ...api,\n  getCertificadoPorCodigo: vi.fn(...)\n}\n\nNão suba API real.\nNão use internet.\n\nNÃO TESTAR NESTA FATIA\n\n- rota /verificar em App.tsx;\n- link para a tela;\n- Meus Certificados;\n- Extrato;\n- emissão;\n- autenticação;\n- alteração da política global de X-Usuario.\n\nTESTE\n\nExecute somente:\n\nnpx vitest run src/components/VerificarCertificado.test.tsx\n\nQueremos RED legítimo pela ausência do componente.\n\nDepois:\n\ngit status --short\n\nRELATÓRIO\n\nInforme:\n- arquivo criado;\n- quantidade de testes;\n- estados cobertos;\n- como o contexto público foi caracterizado;\n- como o submit foi simulado;\n- como o loading foi testado;\n- como o 404 foi diferenciado do erro genérico;\n- como trim/uppercase foi caracterizado;\n- campos públicos verificados no sucesso;\n- RED obtido;\n- erro principal;\n- coleta ou execução;\n- confirmação de que nenhum código de produção foi alterado/criado;\n- git status --short.\n\nNÃO faça git add.\nNÃO faça commit.\nNÃO faça push. ",
+     "id": "prt_0c8af6110001jD6EevgnG8P9OI",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8af610b001qUhK0b8aTRqj2T"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8af610b001qUhK0b8aTRqj2T",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 22578,
+     "input": 20718,
+     "output": 68,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 1792
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073332026,
+     "completed": 1790073340486
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c8af613a001KBVnAenOAaJdJv",
+    "sessionID": "ses_f37509f2affesvePcykTBwpIVZ"
+   },
+   "parts": [
+    {
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-start",
+     "id": "prt_0c8af7b46001f6zYSiImO768eW",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8af613a001KBVnAenOAaJdJv"
+    },
+    {
+     "type": "reasoning",
+     "text": "Let me start by loading the tdd-m4 skill as instructed, and gather the necessary context files.",
+     "time": {
+      "start": 1790073338705,
+      "end": 1790073339138
+     },
+     "id": "prt_0c8af7b51001OxAvJQfpmt6kjj",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8af613a001KBVnAenOAaJdJv"
+    },
+    {
+     "type": "text",
+     "text": "\n\n",
+     "time": {
+      "start": 1790073339145,
+      "end": 1790073339360
+     },
+     "id": "prt_0c8af7d09001g9XyFy2YjbKdD7",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8af613a001KBVnAenOAaJdJv"
+    },
+    {
+     "type": "tool",
+     "tool": "skill",
+     "callID": "call_04bb2640836443eaababe31c",
+     "state": {
+      "status": "completed",
+      "input": {
+       "name": "tdd-m4"
+      },
+      "output": "<skill_content name=\"tdd-m4\">\n# Skill: tdd-m4\n\n# TDD para M4-certificados\n\nA fonte de verdade é `specs/M4-certificados.md`. Não invente regras de negócio.\nNão altere a spec. Não acesse documentos externos de requisitos.\n\nO ciclo é o mesmo do `tdd` geral — teste que falha, código mínimo, refactor — mas\nancorado nas 4 fatias e 12 regras de M4. Uma regra ou grupo coeso por ciclo TDD.\n\n## Onde o teste mora\n\nTeste verifica comportamento pela interface pública (HTTP), nunca implementação.\nUse Vitest + Supertest, a aplicação Express de `createApp()` sem abrir porta,\ne as rotas `/_teste/*` com `MODO_TESTE=1` para setup e controle do relógio.\n\nArquivos de teste em `api/tests/`. Para rodar: `npm --prefix api test`.\n\nRegra do projeto: não importe serviço nem repositório no teste — se importar,\no teste quebra em refatoração sem que o comportamento tenha mudado.\n\n## Fatias e regras\n\nCada fatia é um entregável vertical que pode ser testado sozinho.\nImplemente as fatias nesta ordem. Dentro de cada fatia, uma regra ou grupo\ncoeso de regras por ciclo TDD.\n\n### Fatia 1 — emissão do certificado\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R1 | Presença mínima de 75% (`presencas / encontros`, sem arredondamento) | 1, 2, 3, 4 |\n| R2 | Emissão somente após encerramento da atividade | 5, 6 |\n| R12 | Precedência: `ATIVIDADE_NAO_ENCERRADA` antes de `PRESENCA_INSUFICIENTE` | 20 |\n| R9 | Idempotência: 201 na primeira vez, 200 nas seguintes, mesmo código | 17 |\n\nOrdem sugerida dentro da fatia:\n1. R1 — teste presence check, implemente, refactor.\n2. R2 — teste encerramento, implemente, refactor.\n3. R12 — teste precedência quando ambos falham, implemente, refactor.\n4. R9 — teste idempotência 201→200, implemente, refactor.\n\n### Fatia 2 — código e listagem\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R6 | Formato `SA26-XXXX-XXXX`, unicidade, mesmo código na reemissão | 11, 12 |\n| R11 | Alfabeto: maiúsculas + dígitos, sem `I`, `O`, `0`, `1` | 19 |\n\nOrdem sugerida dentro da fatia:\n1. R6 — teste formato e unicidade, implemente geração, refactor.\n2. R11 — teste exclusão de caracteres ambíguos, implemente, refactor.\n3. R9 (continuação) — teste `GET /certificados` retornando apenas emitidos.\n\n### Fatia 3 — verificação pública\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R8 | `GET /certificados/:codigo` sem `X-Usuario`, campos públicos apenas | 15, 16 |\n| R7 | Abreviação do nome: primeiro nome + iniciais + partículas por extenso | 13, 14 |\n\nOrdem sugerida dentro da fatia:\n1. R8 — teste rota pública sem header, campos corretos, implemente, refactor.\n2. R7 — teste abreviação com partículas, implemente, refactor.\n\n### Fatia 4 — extrato de horas complementares\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R3 | Cargas brutas: `palestrasMinutos`, `minicursosMinutos`, `totalMinutos` sem teto | 7, 8, 9, 10 |\n| R4 | Teto de palestras: `min(240, palestrasMinutos)` | 7, 8, 9 |\n| R5 | Teto total: `aproveitadoMinutos = min(1200, min(240, palestrasMinutos) + minicursosMinutos)` | 7, 8 |\n| R10 | Itens do extrato: `codigo` preenchido ou `null` conforme emissão | 18 |\n\nOrdem sugerida dentro da fatia:\n1. R3+R4+R5 — teste cálculos de extrato (juntos, são uma unidade coesa), implemente, refactor.\n2. R10 — teste composição dos itens com código/null, implemente, refactor.\n\n## O ciclo TDD, passo a passo\n\nPara cada regra (ou grupo coeso), nestes passos:\n\n1. **RED**: Escreva um teste que prova o critério de aceite. Rode. **Ele tem que falhar.**\n   Se passar antes do código existir, algo está errado — descubra o quê antes de seguir.\n   O nome do teste descreve a regra em português:\n   `it('recusa certificado com menos de 75% de presenca')`.\n\n2. **GREEN**: Escreva o mínimo de código que faz o teste passar.\n   Nada de já implementar a regra seguinte \"que eu vou precisar mesmo\".\n   Rode o teste individual. Verde? Rode a suíte inteira. Verde? Próximo passo.\n\n3. **REFACTOR**: Com verde, limpe o código sem alterar comportamento.\n   Extraia funções, melhore nomes, remova duplicação. Rode a suíte inteira de novo.\n   Ainda verde? Próxima regra.\n\n## A regra que não se quebra\n\n**Quando o teste falha, o suspeito é o código.**\n\nSe você mudar um teste para ele passar, trocou o contrato pela implementação e o\nverde virou enfeite. Só se altera um teste quando a **spec** mudou — e aí você diz\nqual regra da spec mudou e por quê.\n\nVale para o valor esperado, para o status HTTP e para o cenário. Trocar\n`expect(response.body.presencas).toBe(3)` por `expect(response.body.presencas).toBe(0)`\nporque o código deu 0 é a forma mais comum de mentir sozinho.\n\n## Três testes que não valem nada\n\n- **Acoplado à implementação** — chama serviço ou repositório direto, ou confere o\n  dado espiando o `Map`/banco. Quebra em refatoração, não em regressão.\n- **Tautológico** — o esperado é calculado do mesmo jeito que o código calcula.\n  Passa por construção, nunca discorda. O valor esperado vem da spec, escrito na mão.\n- **Frouxo** — confere só o status e ignora o corpo. `201` com o `codigo` errado passa.\n\n## Dependências de M2 e M3\n\nM4 depende de dados que vêm de outros módulos. Não implemente esses módulos —\nuse as interfaces e portas de integração que já existem.\n\n### M3 — Presenças\n\n- Porta: `M3PresencePort` em `src/integrations/m3-presence-port.ts`\n- Método: `countPresencas(atividadeId, participanteId) → number`\n- Estado atual: `NeutralM3PresenceAdapter` retorna sempre 0.\n- Para testes de emissão (R1), registre presenças via rotas HTTP do M3\n  (`POST /encontros/:id/presencas`) no setup do teste. O adapter real do M3\n  deve ser ativado em ambiente de teste, ou o teste deve montar o cenário\n  pelas rotas existentes da API.\n- Se M3 não estiver funcional, documente o bloqueio e não simule dados.\n\n### M2 — Inscrições\n\n- Porta: `M2IntegrationPort` em `src/integrations/m2-port.ts`\n- Estado atual: `NeutralM2Adapter` não expõe listagem de inscrições por participante.\n- Para R10 (extrato), M4 precisa saber em quais atividades o participante está\n  inscrito e se há certificado emitido para cada uma.\n- Se a porta de M2 não fornecer esse dado, documente o bloqueio — não invente\n  persistência de inscrições dentro de M4.\n\n### M1 — Atividades\n\n- Já acessível via `ActivityRepository`. M4 precisa de `titulo`, `tipo`,\n  `cargaHorariaMinutos`, `encontros` (total de encontros) e `dataTermino`\n  (para R2).\n- Não altere o repositório de M1. Se faltar campo, documente o bloqueio.\n\n## Validações adicionais do contrato\n\nAlém das regras R1–R12, o `contrato-api.md` lista códigos de erro que o M4\ndeve retornar. Teste-os quando implementar a rota correspondente:\n\n| Código | HTTP | Quando |\n|--------|------|--------|\n| `NAO_INSCRITO` | 403 | Participante não inscrito na atividade |\n| `ATIVIDADE_CANCELADA` | 422 | Atividade foi cancelada |\n| `ATIVIDADE_NAO_ENCERRADA` | 422 | Atividade ainda não encerrada (R2) |\n| `PRESENCA_INSUFICIENTE` | 422 | Presença abaixo de 75% (R1) |\n\n## Execução e verificação\n\nApós cada regra implementada (GREEN + REFACTOR):\n\n1. Rode `npm --prefix api test` — suíte inteira tem que estar verde.\n2. Rode `npx tsc --noEmit` dentro de `api/` — typecheck tem que passar.\n3. Se falhar, corrija antes de seguir para a próxima regra.\n\nTerminada a última fatia, rode a suíte inteira uma vez e relate o número real\nde testes que apareceu na saída. Não estime, não arredonde.\n\n## Commits\n\nFaça commits pequenos, um por regra ou grupo coeso de regras dentro da fatia.\nMensagem no padrão do projeto, identificando a regra:\n\n```\nM4: implementa R1 — presença mínima de 75%\nM4: implementa R2 — emissão após encerramento\nM4: implementa R9 — idempotência 201/200\n```\n\nAntes de commitar, verifique `git status` e `git diff` para confirmar que\napenas arquivos intencionais estão staged.\n\n## Rastreabilidade\n\nCada regra da spec deve ter:\n- Pelo menos um teste que a comprove (critério de aceite correspondente).\n- Implementação que o teste exercita.\n- Referência explícita: nome do teste cita a regra, commit cita a regra.\n\nSe uma regra não tem teste, ela não está implementada — pare e escreva o teste.\n\n## O que não fazer\n\n- Não acesse documentos externos de requisitos.\n- Não altere `specs/M4-certificados.md`.\n- Não altere `contrato-api.md`.\n- Não implemente código de M1, M2 ou M3 — apenas use suas portas/interfaces.\n- Não altere testes existentes apenas para fazê-los passar.\n- Não altere código de outros módulos.\n- Não faça commit de código que não esteja verde na suíte inteira.\n\nBase directory for this skill: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\.opencode\\skills\\tdd-m4\nRelative paths in this skill (e.g., scripts/, reference/) are relative to this base directory.\nNote: file list is sampled.\n\n<skill_files>\n\n</skill_files>\n</skill_content>",
+      "metadata": {
+       "name": "tdd-m4",
+       "dir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\.opencode\\skills\\tdd-m4",
+       "truncated": false
+      },
+      "title": "Loaded skill: tdd-m4",
+      "time": {
+       "start": 1790073339322,
+       "end": 1790073339440
+      }
+     },
+     "id": "prt_0c8af7d5d001v4Yn2k7hzwGKFk",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8af613a001KBVnAenOAaJdJv"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-finish",
+     "tokens": {
+      "total": 22578,
+      "input": 20718,
+      "output": 68,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 1792
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8af8017001Ovn4Zd53GEfsxY",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8af613a001KBVnAenOAaJdJv"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8af610b001qUhK0b8aTRqj2T",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 25704,
+     "input": 2825,
+     "output": 351,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 22528
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073340500,
+     "completed": 1790073347496
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c8af8254001xZv0614KPWsKfe",
+    "sessionID": "ses_f37509f2affesvePcykTBwpIVZ"
+   },
+   "parts": [
+    {
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-start",
+     "id": "prt_0c8af8888001IgqIPysizCkYdD",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8af8254001xZv0614KPWsKfe"
+    },
+    {
+     "type": "reasoning",
+     "text": "Let me start by reading the necessary context files. The user's request is about the frontend (app/), not the backend. Also there's a \"grilling\" skill and \"to-spec\" skill. But the user explicitly asked to use tdd-m4 skill. Let me read the context files.\n\nLet me read:\n- AGENTS.md (already have in system prompt)\n- app/AGENTS.md\n- specs/M4-certificados.md\n- contrato-api.md\n- app/src/api/client.ts\n- app/src/api/types.ts\n- componentes/testes existentes\n- padrões de formulário existentes no frontend\n- padrões de erro/loading existentes\n- app/src/utils/date.ts\n\nLet me start exploring the app structure.",
+     "time": {
+      "start": 1790073342097,
+      "end": 1790073343623
+     },
+     "id": "prt_0c8af8891001X71nakwGJgC7PK",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8af8254001xZv0614KPWsKfe"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_e7dd43e604114b7aa29fe3f2",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\AGENTS.md"
+      },
+      "output": "[2195 caracteres omitidos]",
+      "title": "app\\AGENTS.md",
+      "time": {
+       "start": 1790073343838,
+       "end": 1790073344053
+      }
+     },
+     "id": "prt_0c8af8e8b0013YQs7JmZjkqkKB",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8af8254001xZv0614KPWsKfe"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_84e4071ba6ae401e989a5aa0",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md"
+      },
+      "output": "[16300 caracteres omitidos]",
+      "title": "specs\\M4-certificados.md",
+      "time": {
+       "start": 1790073344137,
+       "end": 1790073344257
+      }
+     },
+     "id": "prt_0c8af8f99001SNkifiH5SX7WUL",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8af8254001xZv0614KPWsKfe"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_748c3141d2ca4817a3e06713",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\contrato-api.md"
+      },
+      "output": "[13910 caracteres omitidos]",
+      "title": "contrato-api.md",
+      "time": {
+       "start": 1790073346469,
+       "end": 1790073346540
+      }
+     },
+     "id": "prt_0c8af90ad001hHRbhZGDrNDl2D",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8af8254001xZv0614KPWsKfe"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-finish",
+     "tokens": {
+      "total": 25704,
+      "input": 2825,
+      "output": 351,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 22528
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8af9bcf0010o47VkhK9stvVa",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8af8254001xZv0614KPWsKfe"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8af610b001qUhK0b8aTRqj2T",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 37320,
+     "input": 11506,
+     "output": 214,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 25600
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073347511,
+     "completed": 1790073352938
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c8af9db70018klRJaOjkRmUa6",
+    "sessionID": "ses_f37509f2affesvePcykTBwpIVZ"
+   },
+   "parts": [
+    {
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-start",
+     "id": "prt_0c8afa5550019V4PJmxQ7E9QmB",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8af9db70018klRJaOjkRmUa6"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now let me look at the app structure, the API client, types, components tests, existing tests, and patterns.",
+     "time": {
+      "start": 1790073349470,
+      "end": 1790073350971
+     },
+     "id": "prt_0c8afa55e00101EFvnsAT0vCGE",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8af9db70018klRJaOjkRmUa6"
+    },
+    {
+     "type": "text",
+     "text": "Agora vou explorar a estrutura da interface e os padrões existentes.",
+     "time": {
+      "start": 1790073350983,
+      "end": 1790073351934
+     },
+     "id": "prt_0c8afab47001SR7EwVagfsCrkB",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8af9db70018klRJaOjkRmUa6"
+    },
+    {
+     "type": "tool",
+     "tool": "glob",
+     "callID": "call_0f226217f783444087de1720",
+     "state": {
+      "status": "completed",
+      "input": {
+       "pattern": "app/src/**/*.{ts,tsx}"
+      },
+      "output": "[3528 caracteres omitidos]",
+      "title": "",
+      "time": {
+       "start": 1790073351207,
+       "end": 1790073351325
+      }
+     },
+     "id": "prt_0c8afabb8001LrzZRUtT23AQi3",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8af9db70018klRJaOjkRmUa6"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_76a15e5a55d3440a84e05725",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\client.ts"
+      },
+      "output": "[8998 caracteres omitidos]",
+      "title": "app\\src\\api\\client.ts",
+      "time": {
+       "start": 1790073351465,
+       "end": 1790073351583
+      }
+     },
+     "id": "prt_0c8afac66001pRWAZxlrgijdF1",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8af9db70018klRJaOjkRmUa6"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_729122b82aa942c783e9543c",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\types.ts"
+      },
+      "output": "[3489 caracteres omitidos]",
+      "title": "app\\src\\api\\types.ts",
+      "time": {
+       "start": 1790073351762,
+       "end": 1790073351854
+      }
+     },
+     "id": "prt_0c8afad56001gY7s5F7HBVcwLz",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8af9db70018klRJaOjkRmUa6"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-finish",
+     "tokens": {
+      "total": 37320,
+      "input": 11506,
+      "output": 214,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 25600
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8afb0e7001UhUtTny7MaJB9X",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8af9db70018klRJaOjkRmUa6"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8af610b001qUhK0b8aTRqj2T",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 42856,
+     "input": 5453,
+     "output": 283,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 37120
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073352980,
+     "completed": 1790073358677
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c8afb314001VDYHP5LBznS5gS",
+    "sessionID": "ses_f37509f2affesvePcykTBwpIVZ"
+   },
+   "parts": [
+    {
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-start",
+     "id": "prt_0c8afba44001VMEhqIX2G1DakM",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8afb314001VDYHP5LBznS5gS"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now let me look at the existing test patterns, particularly for M4 UI components (MeusCertificados, ExtratoHoras), and existing form patterns. Let me read the component tests and the components, plus date utils, hooks, and the useCertificados hook.",
+     "time": {
+      "start": 1790073354828,
+      "end": 1790073355404
+     },
+     "id": "prt_0c8afba4c0017s4sAplUnl12Rg",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8afb314001VDYHP5LBznS5gS"
+    },
+    {
+     "type": "text",
+     "text": "Agora vou ler os padrões de testes e componentes existentes do frontend.",
+     "time": {
+      "start": 1790073355413,
+      "end": 1790073357460
+     },
+     "id": "prt_0c8afbc94001TGgL0xPBlLsCMG",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8afb314001VDYHP5LBznS5gS"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_b7621a4e173042a694ccaba9",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\MeusCertificados.test.tsx"
+      },
+      "output": "[4790 caracteres omitidos]",
+      "title": "app\\src\\components\\MeusCertificados.test.tsx",
+      "time": {
+       "start": 1790073356089,
+       "end": 1790073356334
+      }
+     },
+     "id": "prt_0c8afbd3c0019sHyOElBnKJ6Ym",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8afb314001VDYHP5LBznS5gS"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_ef8d56f85768452cb70c0b94",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\MeusCertificados.tsx"
+      },
+      "output": "[3475 caracteres omitidos]",
+      "title": "app\\src\\components\\MeusCertificados.tsx",
+      "time": {
+       "start": 1790073356800,
+       "end": 1790073356924
+      }
+     },
+     "id": "prt_0c8afbf45001VyMg8TLxKKF8zI",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8afb314001VDYHP5LBznS5gS"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_9d6a7d4708a949ec9e23ca07",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\utils\\date.ts"
+      },
+      "output": "[946 caracteres omitidos]",
+      "title": "app\\src\\utils\\date.ts",
+      "time": {
+       "start": 1790073357372,
+       "end": 1790073357602
+      }
+     },
+     "id": "prt_0c8afc22f001vpaD4lhnffxqm6",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8afb314001VDYHP5LBznS5gS"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-finish",
+     "tokens": {
+      "total": 42856,
+      "input": 5453,
+      "output": 283,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 37120
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8afc72d00103ivd3iTJpZ4NN",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8afb314001VDYHP5LBznS5gS"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8af610b001qUhK0b8aTRqj2T",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 45909,
+     "input": 2880,
+     "output": 277,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 42752
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073358695,
+     "completed": 1790073365036
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c8afc967001wASp035WMOdbXF",
+    "sessionID": "ses_f37509f2affesvePcykTBwpIVZ"
+   },
+   "parts": [
+    {
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-start",
+     "id": "prt_0c8afd634001rBfYHPvx5sU9sB",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8afc967001wASp035WMOdbXF"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now let me look at more test patterns. Let me look at the ExtratoHoras tests, and some other form pattern examples (like RegistrarPresenca which has a form with submit + loading), and the hooks (useCertificados, useExtrato). Also let me check the useCertificados hook and package.json to see dependencies (does userEvent exist?).",
+     "time": {
+      "start": 1790073361975,
+      "end": 1790073363118
+     },
+     "id": "prt_0c8afd637001c3u5r67Lklu91f",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8afc967001wASp035WMOdbXF"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_c4ab38f8ada0440fa4142634",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\ExtratoHoras.test.tsx"
+      },
+      "output": "[6307 caracteres omitidos]",
+      "title": "app\\src\\components\\ExtratoHoras.test.tsx",
+      "time": {
+       "start": 1790073363213,
+       "end": 1790073363308
+      }
+     },
+     "id": "prt_0c8afdab40013rdPNyRLCBY9PZ",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8afc967001wASp035WMOdbXF"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_f9b56f025dd74caaa487f301",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\hooks\\useCertificados.ts"
+      },
+      "output": "[1401 caracteres omitidos]",
+      "title": "app\\src\\hooks\\useCertificados.ts",
+      "time": {
+       "start": 1790073363443,
+       "end": 1790073363576
+      }
+     },
+     "id": "prt_0c8afdb14001SwjCU783LclUae",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8afc967001wASp035WMOdbXF"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_185a0b7748a84039a99cd91c",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\package.json"
+      },
+      "output": "[978 caracteres omitidos]",
+      "title": "app\\package.json",
+      "time": {
+       "start": 1790073363853,
+       "end": 1790073363984
+      }
+     },
+     "id": "prt_0c8afdbfb001mslzqkLSuxfv5h",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8afc967001wASp035WMOdbXF"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-finish",
+     "tokens": {
+      "total": 45909,
+      "input": 2880,
+      "output": 277,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 42752
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8afe016001IdnmKMK7jBBl1C",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8afc967001wASp035WMOdbXF"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8af610b001qUhK0b8aTRqj2T",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 49013,
+     "input": 2858,
+     "output": 331,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 45824
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073365057,
+     "completed": 1790073376575
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c8afe241001pf3j55F4bLWdve",
+    "sessionID": "ses_f37509f2affesvePcykTBwpIVZ"
+   },
+   "parts": [
+    {
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-start",
+     "id": "prt_0c8aff2ab001hA4srpxGRkP7yH",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8afe241001pf3j55F4bLWdve"
+    },
+    {
+     "type": "reasoning",
+     "text": "userEvent is available (`@testing-library/user-event`). Let me look at an existing form component with submit + loading + userEvent, like RegistrarPresenca or CodigoEncontro test, to understand patterns. Let me check the RegistrarPresenca component and test, CodigoEncontro test. Also check the App.test.tsx and M2ExtensionPoint test for patterns. Also, let me check `users.ts` for papel. And the consistency of existing patterns for the ApiError handling.",
+     "time": {
+      "start": 1790073369268,
+      "end": 1790073374292
+     },
+     "id": "prt_0c8aff2b4001qX1QeEe1xsD5jN",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8afe241001pf3j55F4bLWdve"
+    },
+    {
+     "type": "text",
+     "text": "Vou ver padrões de formulários com submit/loading/erro existentes.",
+     "time": {
+      "start": 1790073374306,
+      "end": 1790073375466
+     },
+     "id": "prt_0c8b00662001VgGZMKV4NoH1pU",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8afe241001pf3j55F4bLWdve"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_e3f14cd0fea94f2ba4f506e8",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\RegistrarPresenca.test.tsx"
+      },
+      "output": "[7419 caracteres omitidos]",
+      "title": "app\\src\\components\\RegistrarPresenca.test.tsx",
+      "time": {
+       "start": 1790073374719,
+       "end": 1790073374858
+      }
+     },
+     "id": "prt_0c8b006e9001U52MuKCrdosheC",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8afe241001pf3j55F4bLWdve"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_8a29ffda559248a8bf457509",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\RegistrarPresenca.tsx"
+      },
+      "output": "[4684 caracteres omitidos]",
+      "title": "app\\src\\components\\RegistrarPresenca.tsx",
+      "time": {
+       "start": 1790073374993,
+       "end": 1790073375144
+      }
+     },
+     "id": "prt_0c8b00820001IIg0PHq49vPJKm",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8afe241001pf3j55F4bLWdve"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_04583b6c5b9e400f87ef555a",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\CodigoEncontro.test.tsx"
+      },
+      "output": "[6912 caracteres omitidos]",
+      "title": "app\\src\\components\\CodigoEncontro.test.tsx",
+      "time": {
+       "start": 1790073375415,
+       "end": 1790073375525
+      }
+     },
+     "id": "prt_0c8b0092a001Jo51jR32nDibSZ",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8afe241001pf3j55F4bLWdve"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-finish",
+     "tokens": {
+      "total": 49013,
+      "input": 2858,
+      "output": 331,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 45824
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8b00d52001X6yYlb1LVs6uMc",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8afe241001pf3j55F4bLWdve"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8af610b001qUhK0b8aTRqj2T",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 55038,
+     "input": 5857,
+     "output": 285,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 48896
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073376591,
+     "completed": 1790073382843
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c8b00f4f0014A6CNali2kp7m2",
+    "sessionID": "ses_f37509f2affesvePcykTBwpIVZ"
+   },
+   "parts": [
+    {
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-start",
+     "id": "prt_0c8b016fa0010uCgV5AEvZueAB",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b00f4f0014A6CNali2kp7m2"
+    },
+    {
+     "type": "reasoning",
+     "text": "I have a good picture of the test patterns. Now let me check a few more things:\n1. The RegistrarPresencaManual test to see form patterns and button disabled during submit\n2. The ExtratoHoras component and useExtrato hook \n3. The users.ts file for papel\n4. Check git status\n5. Check the vite config for test setup\n\nLet me look at the RegistrarPresencaManual.test.tsx and useRegistrarPresenca.ts hook for form submit/loading patterns.",
+     "time": {
+      "start": 1790073378564,
+      "end": 1790073380241
+     },
+     "id": "prt_0c8b017040010JUsGR51KmsbvJ",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b00f4f0014A6CNali2kp7m2"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_31326fd42acb4e7dbc8674f7",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\hooks\\useRegistrarPresenca.ts"
+      },
+      "output": "[3947 caracteres omitidos]",
+      "title": "app\\src\\hooks\\useRegistrarPresenca.ts",
+      "time": {
+       "start": 1790073380476,
+       "end": 1790073380591
+      }
+     },
+     "id": "prt_0c8b01d9b001LOpASeV2pZ87Ts",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b00f4f0014A6CNali2kp7m2"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_864e6279b43c46a89f6af61d",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\RegistrarPresencaManual.test.tsx"
+      },
+      "output": "[9239 caracteres omitidos]",
+      "title": "app\\src\\components\\RegistrarPresencaManual.test.tsx",
+      "time": {
+       "start": 1790073381201,
+       "end": 1790073381273
+      }
+     },
+     "id": "prt_0c8b01f1a001NnV4FAqCgTajw5",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b00f4f0014A6CNali2kp7m2"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_a8632ceef39f4d6b8c2fe06a",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git status --short"
+      },
+      "output": "(no output)",
+      "metadata": {
+       "output": "(no output)",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git status --short",
+      "time": {
+       "start": 1790073381341,
+       "end": 1790073381800
+      }
+     },
+     "id": "prt_0c8b02157001jzWbhT2U8ReY77",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b00f4f0014A6CNali2kp7m2"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-finish",
+     "tokens": {
+      "total": 55038,
+      "input": 5857,
+      "output": 285,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 48896
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8b025bd001JjOdAAse96C4JP",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b00f4f0014A6CNali2kp7m2"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8af610b001qUhK0b8aTRqj2T",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 59164,
+     "input": 4124,
+     "output": 256,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 54784
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073382862,
+     "completed": 1790073397435
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c8b027ce0014Oou8WmnJjmKtR",
+    "sessionID": "ses_f37509f2affesvePcykTBwpIVZ"
+   },
+   "parts": [
+    {
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-start",
+     "id": "prt_0c8b02e4f00199qYbvRRAW4w99",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b027ce0014Oou8WmnJjmKtR"
+    },
+    {
+     "type": "reasoning",
+     "text": "Git status is clean. Now let me check the App.test.tsx to see how components are wired and to see the loading pattern for form-submit button disabled. Also, let me look at the AtividadeDetalhe or CriarAtividade for button disabled during submitting pattern. Let me check one that disables the button during submit.\n\nLet me look at the App.test.tsx and users.ts and vite.config / setupTests.",
+     "time": {
+      "start": 1790073384529,
+      "end": 1790073390591
+     },
+     "id": "prt_0c8b02e51001Jz6Tx7q6FxU8N5",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b027ce0014Oou8WmnJjmKtR"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_e3b76ad9a45f40f88f1caf8d",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\App.test.tsx"
+      },
+      "output": "[59077 caracteres omitidos]",
+      "title": "app\\src\\App.test.tsx",
+      "time": {
+       "start": 1790073390966,
+       "end": 1790073391004
+      }
+     },
+     "id": "prt_0c8b04602001AVdyebao4rnpu6",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b027ce0014Oou8WmnJjmKtR"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_c6ede8fda1c946d2b3a2cc92",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\users.ts"
+      },
+      "output": "[1086 caracteres omitidos]",
+      "title": "app\\src\\users.ts",
+      "time": {
+       "start": 1790073396366,
+       "end": 1790073396382
+      }
+     },
+     "id": "prt_0c8b047b5001ZV2ZzOUyihCq8R",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b027ce0014Oou8WmnJjmKtR"
+    },
+    {
+     "type": "tool",
+     "tool": "glob",
+     "callID": "call_25bce651e40144318f690c39",
+     "state": {
+      "status": "completed",
+      "input": {
+       "pattern": "app/vite.config.*"
+      },
+      "output": "[82 caracteres omitidos]",
+      "title": "",
+      "time": {
+       "start": 1790073396590,
+       "end": 1790073396655
+      }
+     },
+     "id": "prt_0c8b05cc2001FheWRj4zOYybTq",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b027ce0014Oou8WmnJjmKtR"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-finish",
+     "tokens": {
+      "total": 59164,
+      "input": 4124,
+      "output": 256,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 54784
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8b05f320016QWMIUOKcZw2w0",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b027ce0014Oou8WmnJjmKtR"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8af610b001qUhK0b8aTRqj2T",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 78419,
+     "input": 19132,
+     "output": 151,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 59136
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073397441,
+     "completed": 1790073400970
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c8b060c1001yPLvwSM730pQCF",
+    "sessionID": "ses_f37509f2affesvePcykTBwpIVZ"
+   },
+   "parts": [
+    {
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-start",
+     "id": "prt_0c8b067e8001PxI4n4OK0rkzg7",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b060c1001yPLvwSM730pQCF"
+    },
+    {
+     "type": "reasoning",
+     "text": "Let me read the vite.config.ts and setupTests.ts to confirm test environment config.",
+     "time": {
+      "start": 1790073399275,
+      "end": 1790073399638
+     },
+     "id": "prt_0c8b067eb0017nbwVr44y5LOG9",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b060c1001yPLvwSM730pQCF"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_afb490c10d434a36b335def1",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\vite.config.ts"
+      },
+      "output": "[434 caracteres omitidos]",
+      "title": "app\\vite.config.ts",
+      "time": {
+       "start": 1790073399874,
+       "end": 1790073399895
+      }
+     },
+     "id": "prt_0c8b06958001bSGKxfxuDZf7ck",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b060c1001yPLvwSM730pQCF"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_0c23364deed34cd592d6dd1b",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\setupTests.ts"
+      },
+      "output": "[207 caracteres omitidos]",
+      "title": "app\\src\\setupTests.ts",
+      "time": {
+       "start": 1790073400112,
+       "end": 1790073400121
+      }
+     },
+     "id": "prt_0c8b06a47001X1DQW8tXxhLVWc",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b060c1001yPLvwSM730pQCF"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-finish",
+     "tokens": {
+      "total": 78419,
+      "input": 19132,
+      "output": 151,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 59136
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8b06cf6001iSFonRdvBvOD7a",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b060c1001yPLvwSM730pQCF"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8af610b001qUhK0b8aTRqj2T",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 86414,
+     "input": 313,
+     "output": 7765,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 78336
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073400976,
+     "completed": 1790073535916
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c8b06e90001wIECtmE4jK9T6w",
+    "sessionID": "ses_f37509f2affesvePcykTBwpIVZ"
+   },
+   "parts": [
+    {
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-start",
+     "id": "prt_0c8b073e70012h355hG5QSOSCC",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b06e90001wIECtmE4jK9T6w"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now I have a good understanding of the patterns. Let me check baseline test count and confirm the existing state. Let me run the full test suite quickly to confirm 122 green tests as baseline. Actually the user says suite was at 122 tests green. Let me just confirm but not run the whole suite perhaps. I should focus on the target.\n\nLet me plan the test file. The component will be `VerificarCertificado`. The test file: `app/src/components/VerificarCertificado.test.tsx`.\n\nTest cases to create (6 or 7):\n1. ESTADO INICIAL + CONTEXTO PÚBLICO (merge or separate): renders form (codigo field, verificar button) without calling getCertificadoPorCodigo, and with no selectedUserId/userPapel props. — I can combine these: render `<VerificarCertificado apiClient={fakeClient} />` with no selectedUserId/userPapel props, assert input + button present, and getCertificadoPorCodigo not called.\n\n2. SUBMIT + LOADING: type \"SA26-7K2M-9QXA\", submit, use pending promise. Assert getCertificadoPorCodigo was called, loading state accessible (role=\"status\" maybe), button disabled. Since the component doesn't exist yet, I need to pick accessible tests that will pass once implemented. Use userEvent.\n\n3. SUCESSO: fake resolves with the verificacao payload; assert public fields shown: codigo, participante, atividade, cargaHorariaMinutos (360), emitidoEm formatted by formatarDataHoraBrasilia. And NOT require private fields (queryByText for participanteId etc. not present — but since they're not rendered, we can assert queryByText returns null). Note: the payload doesn't have private fields, so asserting absence is trivially true. But we can assert that private fields aren't in the DOM. Actually since fake payload has no private fields, the assertion is fine.\n\n4. 404 — NAO_ENCONTRADO: reject with { erro: 'NAO_ENCONTRADO', mensagem: 'Recurso não encontrado' }. Expect an accessible message indicating cert not found. \"Mensagem acessível\" — role=\"alert\" with code/mensagem per app pattern. So assert findByRole('alert') contains NAO_ENCONTRADO and 'Recurso não encontrado' or a friendly message. I'll check both code and message.\n\n5. ERRO GENÉRICO: reject with { erro: 'ERRO_INTERNO', mensagem: 'Falha ao verificar certificado' }. Expect role=\"alert\" with code/mensagem per app pattern. Assert alert text contains ERRO_INTERNO and 'Falha ao verificar certificado'.\n\n6. NORMALIZAÇÃO: type \"  sa26-7k2m-9qxa  \", submit, assert getCertificadoPorCodigo called with \"SA26-7K2M-9QXA\" (trim + uppercase).\n\nSo 6 tests. Public context can be merged into test 1. Let me structure:\n\nTest 1: 'deve renderizar o formulário sem consulta automática e funcionar sem selectedUserId/userPapel' — render with only apiClient. Assert:\n- getByRole('heading', { name: ... }) maybe heading 'Verificação de Certificado'. Hmm, I don't want to over-constrain. But heading is a nice semantic. Let me use data-testid-based assertions? The components use data-testid extensively. But the future component doesn't exist, I can decide the test attribute names. But I need to be careful about how the component will be implemented later; the tests define the contract. I'll use role-based queries where possible and data-testid where needed to be robust.\n\nActually for state initial, \"campo para código\" and \"botão de verificar\": \n- getByLabelText(/código/i) — but need the label. Multiple components use `htmlFor` label associations. I'll define label \"Código do Certificado:\" and input id \"verificar-codigo-input\". Then query `screen.getByLabelText('Código do Certificado:')`.\n- getByRole('button', { name: /verificar/i }).\n\nAlso assert getCertificadoPorCodigo not called.\n\nTest 2: submit + loading:\n- render with fake client returning pending promise.\n- type 'SA26-7K2M-9QXA' into the input.\n- click button.\n- expect getCertificadoPorCodigo toHaveBeenCalledWith('SA26-7K2M-9QXA').\n- expect button disabled. Button text during loading: 'Verificando...' maybe. I'll assert `getByRole('button', { name: /verificando/i })` is disabled. Hmm, but existing patterns: RegistrarPresenca disables during submitting via `disabled={submitting || !codigo.trim()}` and shows 'Registrando...'. The App CriarAtividade test asserts `getByRole('button', { name: 'Criando atividade...' })` toBeDisabled.\n\nSo I'll assert a loading indicator: role=\"status\" with text like 'Verificando certificado...'. Let me define: while loading show `<div role=\"status\" aria-live=\"polite\">Verificando certificado...</div>` and button disabled with text 'Verificando...'.\n\nI'll assert:\n- getCertificadoPorCodigo called once with 'SA26-7K2M-9QXA'\n- getByRole('status') present (loading state accessible)\n- button disabled. But there are two buttons? No, just one submit button. getByRole('button', { name: /verificando/i }) toBeDisabled.\n\nThen resolve the pending promise to flush, inside act.\n\nTest 3: success:\n- fake resolves with payload { codigo, participante, atividade, cargaHorariaMinutos, emitidoEm }.\n- After submit, findByRole... Actually need to await the rendered result. Since after click, promise resolves, we can use findByTestId or findByText.\n- Assert container shows codigo 'SA26-7K2M-9QXA', participante 'Carla M. S.', atividade 'Flutter do zero', cargaHorariaMinutos '360', emitidoEm formatted via formatarDataHoraBrasilia.\n- Also assert private fields NOT present: queryByText('p-carla') null? participanteId value 'p-carla' won't be in DOM. But to be meaningful: assert `expect(screen.queryByText('presencas')).not...`. Hmm. Asserting not rendering private fields requires the payload to include them and ensure component doesn't show. But the fake with public contract only won't have private fields. The test spec says \"Não exigir participanteId, presencas, encontros ou qualquer campo privado.\" So in the success test, do NOT require private fields — i.e., don't assert them. I think adding an assertion that private fields are not displayed would be a stronger test. I could make the fake return additional private fields (they'd be extra keys in the object; the promise mock just returns the object). Actually I could include extra private fields in the mock resolve value: pass an object with private fields included. The component types would be `VerificacaoCertificado` but the mock can return anything since it's `vi.fn().mockResolvedValue(...)`. Then assert that even though the API returned private fields, the screen does NOT show them. That characterizes the projection. This aligns with spec R8 criterion 16: response doesn't expose those. But that's an API-side test. For the frontend screen, we show only public fields — a reasonable contract to assert.\n\nHmm, but is it \"exigir\" (require) private fields? The user says don't require. Including them in the fake and asserting they're NOT rendered is a good characterization of \"screen shows exactly the public fields\". Let me do that: mockResolvedValue with the public fields plus extra private fields `participanteId: 'p-carla', presencas: 2, encontros: 2`. And assert the container does not contain 'p-carla'... wait, 'participante' value is 'Carla M. S.' — no collision. But if container includes codigo etc., p-carla is not present. Let me assert `expect(container).not.toHaveTextContent('p-carla')`. That's clean.\n\nActually wait — would the component receive an object typed as VerificacaoCertificado but with extra runtime keys? Fine.\n\nTest 4: 404:\n- reject with { erro: 'NAO_ENCONTRADO', mensagem: 'Recurso não encontrado' }.\n- After submit, findByRole('alert'). Assert alert has NAO_ENCONTRADO and 'Recurso não encontrado' OR friendly message. What does \"Preserve o erro/mensagem quando compatível com o padrão atual\" mean? Existing pattern for errors: MeusCertificados error div: `<strong>Não foi possível carregar os certificados.</strong><span>Erro (ERRO_CERTIFICADOS): Falha ao carregar os certificados</span>`. RegistrarPresenca: `Erro ({error.erro}): {error.mensagem}`.\n\nI'll assert alert contains 'NAO_ENCONTRADO' and contains 'Recurso não encontrado'. To be safe and \"accessible message indicating certificate not found\", I'll assert:\n- role=\"alert\" present\n- contains 'NAO_ENCONTRADO'\n- contains /não encontrado/i (message + maybe friendly prefix)\n\nActually, to make the 404 distinct from generic error, I can assert a friendly prefix message like 'Certificado não encontrado.' plus the code/mensagem. That aligns with CodigoEncontro special error for FORA_DA_JANELA: shows 'Fora do horário permitido.' friendly + raw message. This differentiates 404. Let me define:\n404 alert: `<strong>Certificado não encontrado.</strong><span>Erro (NAO_ENCONTRADO): Recurso não encontrado</span>`\n\nSo test asserts:\n- `const alert = await screen.findByRole('alert')`\n- alert toHaveTextContent('Certificado não encontrado.')\n- toHaveTextContent('NAO_ENCONTRADO')\n- toHaveTextContent('Recurso não encontrado')\n\nThat differentiates 404 from generic error. Good.\n\nTest 5: generic error:\n- reject with { erro: 'ERRO_INTERNO', mensagem: 'Falha ao verificar certificado' }.\n- alert role with both code and mensagem.\n- assert alert contains 'ERRO_INTERNO' and 'Falha ao verificar certificado'. And assert it does NOT contain 'não encontrado' — this differentiates from 404 explicitly. Nice: `expect(alert).not.toHaveTextContent(/não encontrado/i)` — but ERRO_INTERNO message doesn't include that. Good distinct.\n\nTest 6: normalization:\n- fake resolves with payload.\n- type \"  sa26-7k2m-9qxa  \"\n- click verify\n- expect getCertificadoPorCodigo called with 'SA26-7K2M-9QXA' exactly.\n- Optionally assert success visible.\n\nNow about the loading test's \"estado de loading acessível\" — using role=\"status\". Also button disabled while awaiting. Good.\n\nNow, about userEvent: it's available. Use userEvent.setup() and `await userEvent.type(...)`. The existing patterns use `userEvent.type`. I'll follow.\n\nSince component doesn't exist, `import { VerificarCertificado } from './VerificarCertificado'` will fail at compile/import time → RED legitimately. Actually vitest will report an error like \"Failed to resolve import\". That's a RED. The user wants \"RED legítimo pela ausência do componente\".\n\nLet me check the useCodigoEncontro NodeJS baseline — they said NOT to fix. The command to run is exactly `npx vitest run src/components/VerificarCertificado.test.tsx`. Since we run a single file, the NodeJS error in useCodigoEncontro.ts won't affect this run (only if imported). Good.\n\nAlso note: there might be an ESLint? Not mentioned. Just run vitest.\n\nLet me double check the exact success scenario values:\n{\n  codigo: \"SA26-7K2M-9QXA\",\n  participante: \"Carla M. S.\",\n  atividade: \"Flutter do zero\",\n  cargaHorariaMinutos: 360,\n  emitidoEm: \"2026-10-23T22:00:00-03:00\"\n}\n\nformatarDataHoraBrasilia('2026-10-23T22:00:00-03:00') — the util formats with America/Sao_Paulo timezone. This will produce something like \"23/10/2026, 22:00:00\". I'll compute via the util in the test (same as MeusCertificados test does), which is consistent with existing patterns (`formatarDataHoraBrasilia(certificadoEmitido.emitidoEm)`).\n\nNow, about the context public test. I'll render `<VerificarCertificado apiClient={fakeClient} />` without selectedUserId/userPapel. That proves it doesn't depend on auth props. And also combine with initial state: no query called. This is the merged test (test 1).\n\nNow write the test file. I need to consider: do I want data-testids? Existing components use data-testid heavily. To be robust and aligned, I'll use a container data-testid \"verificar-certificado-container\" for success assertion, and input data-testid maybe. But using getByLabelText for the input is better accessibility practice (AGENTS.md: associate labels). Let me define label text. I'll use label 'Código do Certificado:'. Buttons: 'Verificar Certificado' (submit), disabled text 'Verificando...'. \n\nWait — in test 2 I assert disabled button with name /verificando/i after submit. But the initial button name is 'Verificar Certificado'. Note that 'Verificar Certificado' also contains 'verificar'. With query `getByRole('button', { name: /verificando/i })` after click, only the \"Verificando...\" button exists. Good.\n\nFor loading status text: 'Verificando certificado...'.\n\nLet me now also think: should I include a test for \"botão desabilitado\" in test 2 — yes. And \"estado de loading acessível\" — role=\"status\".\n\nOne concern: In test 2, after asserting disabled, I resolve the pending promise inside act to avoid act warnings. Provide a resolved value (public payload). Good.\n\nNow the field: For accessibility, label association. Input query `screen.getByLabelText('Código do Certificado:')`. In the loading test, type into it with userEvent.\n\nFor normalization test, I type \"  sa26-7k2m-9qxa  \". userEvent.type will type each character including spaces. Good.\n\nNow the submit: The form should submit on button click. I'll fireEvent.click or userEvent.click on the button. Existing patterns use fireEvent.click(submitBtn) after userEvent.type. I'll follow that.\n\nNow regarding query for \"botão de verificar\" in test 1: `screen.getByRole('button', { name: /verificar certificado/i })`. \n\nLet me write the tests now.\n\nLet me also double check the import for formatting date - `import { formatarDataHoraBrasilia } from '../utils/date';`. The success test asserts container has formatted emitidoEm.\n\nAlso success: load of the result. After userEvent.type and fireEvent.click, the promise resolves. Need `await screen.findByTestId('verificar-certificado-container')` then assert text content.\n\nLet me write:\n\n```tsx\nimport { describe, it, expect, beforeEach, vi } from 'vitest';\nimport { render, screen, act, fireEvent } from '@testing-library/react';\nimport userEvent from '@testing-library/user-event';\nimport { VerificarCertificado } from './VerificarCertificado';\nimport { api } from '../api/client';\nimport { formatarDataHoraBrasilia } from '../utils/date';\n\ndescribe('VerificarCertificado Component', () => {\n  beforeEach(() => {\n    vi.restoreAllMocks();\n  });\n\n  const verificacao = {\n    codigo: 'SA26-7K2M-9QXA',\n    participante: 'Carla M. S.',\n    atividade: 'Flutter do zero',\n    cargaHorariaMinutos: 360,\n    emitidoEm: '2026-10-23T22:00:00-03:00',\n  };\n\n  it('T4-01: sem selectedUserId/userPapel, renderiza o formulário sem consulta automática (contexto público)', () => {\n    const getCertificadoPorCodigoMock = vi.fn();\n    const fakeClient = {\n      ...api,\n      getCertificadoPorCodigo: getCertificadoPorCodigoMock,\n    };\n\n    render(<VerificarCertificado apiClient={fakeClient} />);\n\n    expect(screen.getByLabelText('Código do Certificado:')).toBeInTheDocument();\n    expect(screen.getByRole('button', { name: /verificar certificado/i })).toBeInTheDocument();\n    expect(getCertificadoPorCodigoMock).not.toHaveBeenCalled();\n  });\n  ...\n```\n\nWait — should I include a test-id on the input? getByLabelText works with the label's htmlFor. Let me not use data-testid except container. Actually for robustness in typing, getByLabelText is enough.\n\nLet me handle loading test:\n\n```tsx\n  it('no submit, mostra loading acessível e desabilita o botão enquanto a promessa está pendente', async () => {\n    let resolvePromise: any;\n    const pendingPromise = new Promise((resolve) => {\n      resolvePromise = resolve;\n    });\n    const getCertificadoPorCodigoMock = vi.fn().mockReturnValue(pendingPromise);\n    const fakeClient = {\n      ...api,\n      getCertificadoPorCodigo: getCertificadoPorCodigoMock,\n    };\n\n    render(<VerificarCertificado apiClient={fakeClient} />);\n\n    const input = screen.getByLabelText('Código do Certificado:');\n    await userEvent.type(input, 'SA26-7K2M-9QXA');\n    fireEvent.click(screen.getByRole('button', { name: /verificar certificado/i }));\n\n    expect(getCertificadoPorCodigoMock).toHaveBeenCalledWith('SA26-7K2M-9QXA');\n    expect(screen.getByRole('status')).toHaveTextContent('Verificando certificado...');\n    expect(screen.getByRole('button', { name: /verificando/i })).toBeDisabled();\n\n    await act(async () => {\n      resolvePromise(verificacao);\n    });\n  });\n```\n\nNote: since the mock returns pendingPromise and component will set submitting true synchronously on click (before awaiting), the buttons/status render synchronously after the click event handler runs (React state update). fireEvent.click wraps in act, so after click, state updated. Good.\n\nSuccess test:\n\n```tsx\n  it('apresenta exatamente os campos públicos após verificação bem-sucedida', async () => {\n    const getCertificadoPorCodigoMock = vi.fn().mockResolvedValue({\n      ...verificacao,\n      participanteId: 'p-carla',\n      presencas: 2,\n      encontros: 2,\n    });\n    const fakeClient = { ...api, getCertificadoPorCodigo: getCertificadoPorCodigoMock };\n\n    render(<VerificarCertificado apiClient={fakeClient} />);\n\n    await userEvent.type(screen.getByLabelText('Código do Certificado:'), 'SA26-7K2M-9QXA');\n    fireEvent.click(screen.getByRole('button', { name: /verificar certificado/i }));\n\n    const container = await screen.findByTestId('verificar-certificado-container');\n    expect(container).toHaveTextContent('SA26-7K2M-9QXA');\n    expect(container).toHaveTextContent('Carla M. S.');\n    expect(container).toHaveTextContent('Flutter do zero');\n    expect(container).toHaveTextContent('360');\n    expect(container).toHaveTextContent(formatarDataHoraBrasilia(verificacao.emitidoEm));\n    expect(container).not.toHaveTextContent('p-carla');\n  });\n```\n\nHmm, but wait: the getCertificadoPorCodigoMock returns object with private fields, meaning the runtime component receives extra private fields. The component (future) renders only public. So asserting container not to have 'p-carla' proves projection. Good. But would the type of the mock's resolve be ok? vi.fn().mockResolvedValue accepts anything. Fine.\n\n404 test:\n\n```tsx\n  it('exibe mensagem acessível de não encontrado quando a API rejeita com NAO_ENCONTRADO', async () => {\n    const getCertificadoPorCodigoMock = vi.fn().mockRejectedValue({\n      erro: 'NAO_ENCONTRADO',\n      mensagem: 'Recurso não encontrado',\n    });\n    const fakeClient = { ...api, getCertificadoPorCodigo: getCertificadoPorCodigoMock };\n\n    render(<VerificarCertificado apiClient={fakeClient} />);\n\n    await userEvent.type(screen.getByLabelText('Código do Certificado:'), 'SA26-7K2M-9QXA');\n    fireEvent.click(screen.getByRole('button', { name: /verificar certificado/i }));\n\n    const alert = await screen.findByRole('alert');\n    expect(alert).toHaveTextContent('NAO_ENCONTRADO');\n    expect(alert).toHaveTextContent('Recurso não encontrado');\n  });\n```\n\nShould I also assert a friendly message \"Certificado não encontrado.\"? That depends on future implementation choice. The pattern CodigoEncontro uses a testid for special errors. To keep the test focused and distinguish 404 from generic, I can assert the alert contains 'não encontrado' via the mensagem which already has \"não encontrado\". Actually \"Recurso não encontrado\" contains \"não encontrado\". So I could assert `toHaveTextContent(/não encontrado/i)` — this comes from the API message. That's enough to signal not found while remaining implementation-flexible. But wait: would the alert render the raw mensagem? Existing patterns do: `Erro (ERRO_CERTIFICADOS): Falha ao carregar os certificados`. For consistency I'll assert code + mensagem. That satisfies \"Esperar uma mensagem acessível indicando que o certificado não foi encontrado.\" and \"Preserve o erro/mensagem\".\n\nGeneric error test:\n\n```tsx\n  it('exibe role=\"alert\" com código e mensagem para erro genérico verificação', async () => {\n    const getCertificadoPorCodigoMock = vi.fn().mockRejectedValue({\n      erro: 'ERRO_INTERNO',\n      mensagem: 'Falha ao verificar certificado',\n    });\n    const fakeClient = { ...api, getCertificadoPorCodigo: getCertificadoPorCodigoMock };\n\n    render(<VerificarCertificado apiClient={fakeClient} />);\n\n    await userEvent.type(screen.getByLabelText('Código do Certificado:'), 'SA26-7K2M-9QXA');\n    fireEvent.click(screen.getByRole('button', { name: /verificar certificado/i }));\n\n    const alert = await screen.findByRole('alert');\n    expect(alert).toHaveTextContent('ERRO_INTERNO');\n    expect(alert).toHaveTextContent('Falha ao verificar certificado');\n    expect(alert).not.toHaveTextContent(/não encontrado/i);\n  });\n```\n\nWait — is `screen.findByRole('alert')` ambiguous when both 404 and generic rendered? Only one runs per test. Good.\n\nNormalization test:\n\n```tsx\n  it('normaliza o código com trim e uppercase antes de consultar a API', async () => {\n    const getCertificadoPorCodigoMock = vi.fn().mockResolvedValue(verificacao);\n    const fakeClient = { ...api, getCertificadoPorCodigo: getCertificadoPorCodigoMock };\n\n    render(<VerificarCertificado apiClient={fakeClient} />);\n\n    await userEvent.type(screen.getByLabelText('Código do Certificado:'), '  sa26-7k2m-9qxa  ');\n    fireEvent.click(screen.getByRole('button', { name: /verificar certificado/i }));\n\n    expect(getCertificadoPorCodigoMock).toHaveBeenCalledWith('SA26-7K2M-9QXA');\n\n    expect(await screen.findByTestId('verificar-certificado-container')).toBeInTheDocument();\n  });\n```\n\nHmm, the last findByTestId might over-constrain but it's fine — the mock resolves successfully so a container should render. Actually it's fine to keep it; proves the query succeeded. Or I could drop it. I'll keep it minimal — assert the called argument only, then await the container to confirm it worked. It's a good characterization.\n\nNow, one question: the loading test uses userEvent.type with 'SA26-7K2M-9QXA'. And normalization test with \"  sa26-7k2m-9qxa  \". userEvent.type handles spaces fine.\n\nBut note: after the user types and clicks, in test 2 the button name to check during pendência is /verificando/i. In the normalization and 404 tests the component resolves/rejects after microtask; but I use findBy* so fine.\n\nNow there is a subtlety: In test 2, we check `screen.getByRole('status')`. But if Resolve... Actually there is also initially no status. After click, status shows. Fine.\n\nBut careful: the input label and button — after submitting, are they still on screen? Yes. OK.\n\nNow, act warnings: In tests where the promise rejects/resolves without awaiting, vitest/React may warn about state update outside act. Using findBy* handles the async. For the mockRejectedValue case, find hits after rejection processed. userEvent and fireEvent are wrapped. Should be fine.\n\nFor the normalization test, no await of the async done; findByTestId handles it.\n\nNow there's a subtle issue with `toHaveBeenCalledWith('SA26-7K2M-9QXA')` in test 2 before resolving — the call happens synchronously during click handler. Good.\n\nNow the naming: The user's list said tests should \"Caracterizem\". I'll write descriptive Portuguese names.\n\nLet me also consider whether to add `it` names referencing regras? The skill says name describes rule in Portuguese. UI fatia — these are UI tests, no R number needed, but naming is descriptive.\n\nNumbers: 6 tests. Good.\n\nLet me also make sure \"botão de verificar\" in the initial state test: role button name. I'll use /verificar certificado/i.\n\nNow, will import of the non-existent component produce RED? vitest: importing './VerificarCertificado' fails \"Failed to resolve import ... /VerificarCertificado\". The whole file fails to load → RED. Good enough. The user asked RED legítimo pela ausência do componente.\n\nNow writing the file. Let me also confirm the directory path: app/src/components/VerificarCertificado.test.tsx.\n\nLet me write.",
+     "time": {
+      "start": 1790073402345,
+      "end": 1790073520013
+     },
+     "id": "prt_0c8b073e9001VW6wY8FU4fw1fG",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b06e90001wIECtmE4jK9T6w"
+    },
+    {
+     "type": "text",
+     "text": "Padrões claros. Vou criar o arquivo de testes RED da fatia UI-4.",
+     "time": {
+      "start": 1790073520018,
+      "end": 1790073534436
+     },
+     "id": "prt_0c8b23f92001Sps70moUTtA2Hu",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b06e90001wIECtmE4jK9T6w"
+    },
+    {
+     "type": "tool",
+     "tool": "write",
+     "callID": "call_69ee4ec9659a4e559e0eb4dc",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\VerificarCertificado.test.tsx",
+       "content": "import { describe, it, expect, beforeEach, vi } from 'vitest';\nimport { render, screen, act, fireEvent } from '@testing-library/react';\nimport userEvent from '@testing-library/user-event';\nimport { VerificarCertificado } from './VerificarCertificado';\nimport { api } from '../api/client';\nimport { formatarDataHoraBrasilia } from '../utils/date';\n\ndescribe('VerificarCertificado Component', () => {\n  beforeEach(() => {\n    vi.restoreAllMocks();\n  });\n\n  const verificacao = {\n    codigo: 'SA26-7K2M-9QXA',\n    participante: 'Carla M. S.',\n    atividade: 'Flutter do zero',\n    cargaHorariaMinutos: 360,\n    emitidoEm: '2026-10-23T22:00:00-03:00',\n  };\n\n  it('contexto público: sem selectedUserId/userPapel renderiza o formulário e não consulta automaticamente', () => {\n    const getCertificadoPorCodigoMock = vi.fn();\n    const fakeClient = {\n      ...api,\n      getCertificadoPorCodigo: getCertificadoPorCodigoMock,\n    };\n\n    render(<VerificarCertificado apiClient={fakeClient} />);\n\n    expect(screen.getByLabelText('Código do Certificado:')).toBeInTheDocument();\n    expect(\n      screen.getByRole('button', { name: /verificar certificado/i })\n    ).toBeInTheDocument();\n    expect(getCertificadoPorCodigoMock).not.toHaveBeenCalled();\n  });\n\n  it('tempo de espera: consulta ao enviar, mostra loading acessível e desabilita o botão', async () => {\n    let resolvePromise: any;\n    const pendingPromise = new Promise((resolve) => {\n      resolvePromise = resolve;\n    });\n    const getCertificadoPorCodigoMock = vi.fn().mockReturnValue(pendingPromise);\n    const fakeClient = {\n      ...api,\n      getCertificadoPorCodigo: getCertificadoPorCodigoMock,\n    };\n\n    render(<VerificarCertificado apiClient={fakeClient} />);\n\n    await userEvent.type(\n      screen.getByLabelText('Código do Certificado:'),\n      'SA26-7K2M-9QXA'\n    );\n    fireEvent.click(\n      screen.getByRole('button', { name: /verificar certificado/i })\n    );\n\n    expect(getCertificadoPorCodigoMock).toHaveBeenCalledWith('SA26-7K2M-9QXA');\n    expect(screen.getByRole('status')).toHaveTextContent(\n      'Verificando certificado...'\n    );\n    expect(screen.getByRole('button', { name: /verificando/i })).toBeDisabled();\n\n    await act(async () => {\n      resolvePromise(verificacao);\n    });\n  });\n\n  it('sucesso: apresenta exatamente os campos públicos da Verificacao', async () => {\n    const getCertificadoPorCodigoMock = vi.fn().mockResolvedValue({\n      ...verificacao,\n      participanteId: 'p-carla',\n      presencas: 2,\n      encontros: 2,\n    });\n    const fakeClient = {\n      ...api,\n      getCertificadoPorCodigo: getCertificadoPorCodigoMock,\n    };\n\n    render(<VerificarCertificado apiClient={fakeClient} />);\n\n    await userEvent.type(\n      screen.getByLabelText('Código do Certificado:'),\n      'SA26-7K2M-9QXA'\n    );\n    fireEvent.click(\n      screen.getByRole('button', { name: /verificar certificado/i })\n    );\n\n    const container = await screen.findByTestId(\n      'verificar-certificado-container'\n    );\n\n    expect(container).toHaveTextContent('SA26-7K2M-9QXA');\n    expect(container).toHaveTextContent('Carla M. S.');\n    expect(container).toHaveTextContent('Flutter do zero');\n    expect(container).toHaveTextContent('360');\n    expect(container).toHaveTextContent(\n      formatarDataHoraBrasilia(verificacao.emitidoEm)\n    );\n    expect(container).not.toHaveTextContent('p-carla');\n  });\n\n  it('não encontrado: exibe alert com NAO_ENCONTRADO e mensagem do 404', async () => {\n    const getCertificadoPorCodigoMock = vi.fn().mockRejectedValue({\n      erro: 'NAO_ENCONTRADO',\n      mensagem: 'Recurso não encontrado',\n    });\n    const fakeClient = {\n      ...api,\n      getCertificadoPorCodigo: getCertificadoPorCodigoMock,\n    };\n\n    render(<VerificarCertificado apiClient={fakeClient} />);\n\n    await userEvent.type(\n      screen.getByLabelText('Código do Certificado:'),\n      'SA26-7K2M-9QXA'\n    );\n    fireEvent.click(\n      screen.getByRole('button', { name: /verificar certificado/i })\n    );\n\n    const alert = await screen.findByRole('alert');\n    expect(alert).toHaveTextContent('NAO_ENCONTRADO');\n    expect(alert).toHaveTextContent('Recurso não encontrado');\n  });\n\n  it('erro genérico: exibe role=\"alert\" com código e mensagem distintos do 404', async () => {\n    const getCertificadoPorCodigoMock = vi.fn().mockRejectedValue({\n      erro: 'ERRO_INTERNO',\n      mensagem: 'Falha ao verificar certificado',\n    });\n    const fakeClient = {\n      ...api,\n      getCertificadoPorCodigo: getCertificadoPorCodigoMock,\n    };\n\n    render(<VerificarCertificado apiClient={fakeClient} />);\n\n    await userEvent.type(\n      screen.getByLabelText('Código do Certificado:'),\n      'SA26-7K2M-9QXA'\n    );\n    fireEvent.click(\n      screen.getByRole('button', { name: /verificar certificado/i })\n    );\n\n    const alert = await screen.findByRole('alert');\n    expect(alert).toHaveTextContent('ERRO_INTERNO');\n    expect(alert).toHaveTextContent('Falha ao verificar certificado');\n    expect(alert).not.toHaveTextContent(/não encontrado/i);\n  });\n\n  it('normalização: envia para a API o código com trim e uppercase', async () => {\n    const getCertificadoPorCodigoMock = vi.fn().mockResolvedValue(verificacao);\n    const fakeClient = {\n      ...api,\n      getCertificadoPorCodigo: getCertificadoPorCodigoMock,\n    };\n\n    render(<VerificarCertificado apiClient={fakeClient} />);\n\n    await userEvent.type(\n      screen.getByLabelText('Código do Certificado:'),\n      '  sa26-7k2m-9qxa  '\n    );\n    fireEvent.click(\n      screen.getByRole('button', { name: /verificar certificado/i })\n    );\n\n    expect(getCertificadoPorCodigoMock).toHaveBeenCalledWith('SA26-7K2M-9QXA');\n\n    expect(\n      await screen.findByTestId('verificar-certificado-container')\n    ).toBeInTheDocument();\n  });\n});"
+      },
+      "output": "Wrote file successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "filepath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\VerificarCertificado.test.tsx",
+       "exists": false,
+       "truncated": false
+      },
+      "title": "app\\src\\components\\VerificarCertificado.test.tsx",
+      "time": {
+       "start": 1790073534303,
+       "end": 1790073534343
+      }
+     },
+     "id": "prt_0c8b24036001bJ1W17Z32ITi4X",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b06e90001wIECtmE4jK9T6w"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "169ebf6d7528f4995987a9ce0911f41077462ac3",
+     "type": "step-finish",
+     "tokens": {
+      "total": 86414,
+      "input": 313,
+      "output": 7765,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 78336
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8b27a8e001p4pPYvCUKqBpGv",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b06e90001wIECtmE4jK9T6w"
+    },
+    {
+     "type": "patch",
+     "hash": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "files": [
+      "C:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app/src/components/VerificarCertificado.test.tsx"
+     ],
+     "id": "prt_0c8b27da6001IKP2CPPZr0GqKa",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b06e90001wIECtmE4jK9T6w"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8af610b001qUhK0b8aTRqj2T",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 86561,
+     "input": 157,
+     "output": 132,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 86272
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073535926,
+     "completed": 1790073544959
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c8b27db60013y8Iyo2KxEUVcS",
+    "sessionID": "ses_f37509f2affesvePcykTBwpIVZ"
+   },
+   "parts": [
+    {
+     "snapshot": "169ebf6d7528f4995987a9ce0911f41077462ac3",
+     "type": "step-start",
+     "id": "prt_0c8b28561001KQl3frVT0Q2hTI",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b27db60013y8Iyo2KxEUVcS"
+    },
+    {
+     "type": "text",
+     "text": "Agora executo o teste para confirmar o RED legítimo.\n\n",
+     "time": {
+      "start": 1790073537928,
+      "end": 1790073538540
+     },
+     "id": "prt_0c8b28588001uVPbNo6cu4riCy",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b27db60013y8Iyo2KxEUVcS"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_a659e88acaad40e6a5ca1d52",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "npx vitest run src/components/VerificarCertificado.test.tsx",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app",
+       "timeout": 120000
+      },
+      "output": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app\u001b[39m\n\n\n\u001b[31m⎯⎯⎯⎯⎯⎯\u001b[39m\u001b[1m\u001b[41m Failed Suites 1 \u001b[49m\u001b[22m\u001b[31m⎯⎯⎯⎯⎯⎯⎯\u001b[39m\n\n\u001b[41m\u001b[1m FAIL \u001b[22m\u001b[49m src/components/VerificarCertificado.test.tsx\u001b[2m [ src/components/VerificarCertificado.test.tsx ]\u001b[22m\n\u001b[31m\u001b[1mError\u001b[22m: Failed to resolve import \"./VerificarCertificado\" from \"src/components/VerificarCertificado.test.tsx\". Does the file exist?\u001b[39m\n  Plugin: \u001b[35mvite:import-analysis\u001b[39m\n  File: \u001b[36mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app/src/components/VerificarCertificado.test.tsx\u001b[39m:4:37\n\u001b[33m  3  |  import { render, screen, act, fireEvent } from \"@testing-library/react\";\n  4  |  import userEvent from \"@testing-library/user-event\";\n  5  |  import { VerificarCertificado } from \"./VerificarCertificado\";\n     |                                        ^\n  6  |  import { api } from \"../api/client\";\n  7  |  import { formatarDataHoraBrasilia } from \"../utils/date\";\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m TransformPluginContext._formatLog ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m42658:41\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m TransformPluginContext.error ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m42655:16\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[31m1 failed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[2mno tests\u001b[22m\n\u001b[2m   Start at \u001b[22m 07:39:01\n\u001b[2m   Duration \u001b[22m 2.60s\u001b[2m (transform 69ms, setup 295ms, collect 0ms, tests 0ms, environment 1.31s, prepare 365ms)\u001b[22m\n\n\u001b[90m \u001b[2m❯\u001b[22m normalizeUrl ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m40634:23\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m40753:37\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m TransformPluginContext.transform ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m40680:7\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m EnvironmentPluginContainer.transform ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m42453:18\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m loadAndTransform ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m35845:27\u001b[22m\u001b[39m\n\n\u001b[31m\u001b[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\u001b[22m\u001b[39m\n\n",
+      "metadata": {
+       "output": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app\u001b[39m\n\n\n\u001b[31m⎯⎯⎯⎯⎯⎯\u001b[39m\u001b[1m\u001b[41m Failed Suites 1 \u001b[49m\u001b[22m\u001b[31m⎯⎯⎯⎯⎯⎯⎯\u001b[39m\n\n\u001b[41m\u001b[1m FAIL \u001b[22m\u001b[49m src/components/VerificarCertificado.test.tsx\u001b[2m [ src/components/VerificarCertificado.test.tsx ]\u001b[22m\n\u001b[31m\u001b[1mError\u001b[22m: Failed to resolve import \"./VerificarCertificado\" from \"src/components/VerificarCertificado.test.tsx\". Does the file exist?\u001b[39m\n  Plugin: \u001b[35mvite:import-analysis\u001b[39m\n  File: \u001b[36mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app/src/components/VerificarCertificado.test.tsx\u001b[39m:4:37\n\u001b[33m  3  |  import { render, screen, act, fireEvent } from \"@testing-library/react\";\n  4  |  import userEvent from \"@testing-library/user-event\";\n  5  |  import { VerificarCertificado } from \"./VerificarCertificado\";\n     |                                        ^\n  6  |  import { api } from \"../api/client\";\n  7  |  import { formatarDataHoraBrasilia } from \"../utils/date\";\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m TransformPluginContext._formatLog ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m42658:41\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m TransformPluginContext.error ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m42655:16\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[31m1 failed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[2mno tests\u001b[22m\n\u001b[2m   Start at \u001b[22m 07:39:01\n\u001b[2m   Duration \u001b[22m 2.60s\u001b[2m (transform 69ms, setup 295ms, collect 0ms, tests 0ms, environment 1.31s, prepare 365ms)\u001b[22m\n\n\u001b[90m \u001b[2m❯\u001b[22m normalizeUrl ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m40634:23\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m40753:37\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m TransformPluginContext.transform ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m40680:7\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m EnvironmentPluginContainer.transform ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m42453:18\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m loadAndTransform ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m35845:27\u001b[22m\u001b[39m\n\n\u001b[31m\u001b[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\u001b[22m\u001b[39m\n\n",
+       "exit": 1,
+       "truncated": false
+      },
+      "title": "npx vitest run src/components/VerificarCertificado.test.tsx",
+      "time": {
+       "start": 1790073538514,
+       "end": 1790073544091
+      }
+     },
+     "id": "prt_0c8b2864400105HyWy87v2g4W9",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b27db60013y8Iyo2KxEUVcS"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "169ebf6d7528f4995987a9ce0911f41077462ac3",
+     "type": "step-finish",
+     "tokens": {
+      "total": 86561,
+      "input": 157,
+      "output": 132,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 86272
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8b29f4d001f4Mj7h9FnqHweu",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b27db60013y8Iyo2KxEUVcS"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8af610b001qUhK0b8aTRqj2T",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 87738,
+     "input": 1400,
+     "output": 66,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 86272
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073544967,
+     "completed": 1790073549521
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c8b2a1070012rBG3VF7QOvsVI",
+    "sessionID": "ses_f37509f2affesvePcykTBwpIVZ"
+   },
+   "parts": [
+    {
+     "snapshot": "169ebf6d7528f4995987a9ce0911f41077462ac3",
+     "type": "step-start",
+     "id": "prt_0c8b2a8d6001g6hbKD7FVPPQSQ",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b2a1070012rBG3VF7QOvsVI"
+    },
+    {
+     "type": "reasoning",
+     "text": "RED obtido legitimamente pela ausência do componente. Vou confirmar o git status.",
+     "time": {
+      "start": 1790073546969,
+      "end": 1790073547419
+     },
+     "id": "prt_0c8b2a8d90016Fkp1KB6AA6gkW",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b2a1070012rBG3VF7QOvsVI"
+    },
+    {
+     "type": "text",
+     "text": "\n\n",
+     "time": {
+      "start": 1790073547425,
+      "end": 1790073548063
+     },
+     "id": "prt_0c8b2aaa1001v1CP9otp6W6oRT",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b2a1070012rBG3VF7QOvsVI"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_854a1567d7f14dc6865deffa",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git status --short"
+      },
+      "output": "?? app/src/components/VerificarCertificado.test.tsx\n",
+      "metadata": {
+       "output": "?? app/src/components/VerificarCertificado.test.tsx\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git status --short",
+      "time": {
+       "start": 1790073548056,
+       "end": 1790073548469
+      }
+     },
+     "id": "prt_0c8b2ad0d001rJ4LwIvWxV2CCq",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b2a1070012rBG3VF7QOvsVI"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "169ebf6d7528f4995987a9ce0911f41077462ac3",
+     "type": "step-finish",
+     "tokens": {
+      "total": 87738,
+      "input": 1400,
+      "output": 66,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 86272
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8b2b0da0019jiMiUHi3iwjF6",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b2a1070012rBG3VF7QOvsVI"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8af610b001qUhK0b8aTRqj2T",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 88432,
+     "input": 210,
+     "output": 670,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 87552
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073549529,
+     "completed": 1790073570648
+    },
+    "finish": "stop",
+    "id": "msg_0c8b2b2d9001HM4FPy68maFTxM",
+    "sessionID": "ses_f37509f2affesvePcykTBwpIVZ"
+   },
+   "parts": [
+    {
+     "snapshot": "169ebf6d7528f4995987a9ce0911f41077462ac3",
+     "type": "step-start",
+     "id": "prt_0c8b2c1ee00165hDZhOfiYpEmU",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b2b2d9001HM4FPy68maFTxM"
+    },
+    {
+     "type": "text",
+     "text": "RED confirmado. Relatório:\n\n**Arquivo criado:** `app/src/components/VerificarCertificado.test.tsx` (única alteração, untracked).\n\n**Quantidade de testes:** 6.\n\n**Estados cobertos:**\n1. Estado inicial + contexto público (sem `selectedUserId`/`userPapel`, formulário renderizado, `getCertificadoPorCodigo` não chamado)\n2. Submit + loading (promessa pendente, `role=\"status\"`, botão desabilitado)\n3. Sucesso (campos públicos exibidos)\n4. 404 `NAO_ENCONTRADO`\n5. Erro genérico `ERRO_INTERNO`\n6. Normalização trim/uppercase\n\n**Contexto público:** renderizado com apenas `apiClient` — sem props de autenticação — e o teste 1 prova que a consulta não dispara sozinha.\n\n**Submit simulado:** `userEvent.type` no campo de código (dependência já existente) + `fireEvent.click` no botão \"Verificar Certificado\".\n\n**Loading:** mock retorna `Promise` pendente; após o clique, verificado `getByRole('status')` com \"Verificando certificado...\" e botão `/verificando/i` `.toBeDisabled()`.\n\n**404 vs erro genérico:** ambos via `mockRejectedValue`. O 404 exige o alert com `NAO_ENCONTRADO` + mensagem \"Recurso não encontrado\"; o genérico exige `ERRO_INTERNO` + \"Falha ao verificar certificado\" e **nega** `/não encontrado/i`, diferenciando-os.\n\n**Trim/uppercase:** entrada `\"  sa26-7k2m-9qxa  \"` → `expect(getCertificadoPorCodigoMock).toHaveBeenCalledWith('SA26-7K2M-9QXA')`.\n\n**Campos públicos verificados no sucesso:** `codigo`, `participante`, `atividade`, `cargaHorariaMinutos` (360) e `emitidoEm` formatado por `formatarDataHoraBrasilia`. O fake retorna também `participanteId/presencas/encontros` e o container **não** exibe `p-carla` — prova a projeção apenas pública.\n\n**RED obtido:** sim. Suíte falha na importação: `Failed to resolve import \"./VerificarCertificado\" from ... Does the file exist?`\n\n**Erro principal:** `vite:import-analysis` — componente `VerificarCertificado.tsx` não existe.\n\n**Coleta/execução:** `npx vitest run src/components/VerificarCertificado.test.tsx` (1 arquivo, \"no tests\" pois a suíte falha ao carregar).\n\n**Produção:** nenhum código de produção alterado/criado — apenas o arquivo de teste.\n\n**git status --short:**\n```\n?? app/src/components/VerificarCertificado.test.tsx\n```\n\nSem `git add`, commit ou push.",
+     "time": {
+      "start": 1790073553478,
+      "end": 1790073569142
+     },
+     "id": "prt_0c8b2c246001nIw3bPB3APkqIS",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b2b2d9001HM4FPy68maFTxM"
+    },
+    {
+     "reason": "stop",
+     "snapshot": "169ebf6d7528f4995987a9ce0911f41077462ac3",
+     "type": "step-finish",
+     "tokens": {
+      "total": 88432,
+      "input": 210,
+      "output": 670,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 87552
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8b302110014zGCadoQejUATd",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b2b2d9001HM4FPy68maFTxM"
+    }
+   ]
+  },
+  {
+   "info": {
+    "role": "user",
+    "time": {
+     "created": 1790073593506
+    },
+    "agent": "build",
+    "model": {
+     "providerID": "opencode",
+     "modelID": "big-pickle"
+    },
+    "summary": {
+     "diffs": [
+      {
+       "file": "app/src/components/VerificarCertificado.test.tsx",
+       "patch": "Index: app/src/components/VerificarCertificado.test.tsx\n===================================================================\n--- app/src/components/VerificarCertificado.test.tsx\t\n+++ app/src/components/VerificarCertificado.test.tsx\t\n@@ -1,179 +1,173 @@\n import { describe, it, expect, beforeEach, vi } from 'vitest';\n import { render, screen, act, fireEvent } from '@testing-library/react';\n import userEvent from '@testing-library/user-event';\n import { VerificarCertificado } from './VerificarCertificado';\n import { api } from '../api/client';\n import { formatarDataHoraBrasilia } from '../utils/date';\n \n describe('VerificarCertificado Component', () => {\n   beforeEach(() => {\n     vi.restoreAllMocks();\n   });\n \n   const verificacao = {\n     codigo: 'SA26-7K2M-9QXA',\n     participante: 'Carla M. S.',\n     atividade: 'Flutter do zero',\n     cargaHorariaMinutos: 360,\n     emitidoEm: '2026-10-23T22:00:00-03:00',\n   };\n \n   it('contexto público: sem selectedUserId/userPapel renderiza o formulário e não consulta automaticamente', () => {\n     const getCertificadoPorCodigoMock = vi.fn();\n     const fakeClient = {\n       ...api,\n       getCertificadoPorCodigo: getCertificadoPorCodigoMock,\n     };\n \n     render(<VerificarCertificado apiClient={fakeClient} />);\n \n     expect(screen.getByLabelText('Código do Certificado:')).toBeInTheDocument();\n     expect(\n       screen.getByRole('button', { name: /verificar certificado/i })\n     ).toBeInTheDocument();\n     expect(getCertificadoPorCodigoMock).not.toHaveBeenCalled();\n   });\n \n   it('tempo de espera: consulta ao enviar, mostra loading acessível e desabilita o botão', async () => {\n     let resolvePromise: any;\n     const pendingPromise = new Promise((resolve) => {\n       resolvePromise = resolve;\n     });\n     const getCertificadoPorCodigoMock = vi.fn().mockReturnValue(pendingPromise);\n     const fakeClient = {\n       ...api,\n       getCertificadoPorCodigo: getCertificadoPorCodigoMock,\n     };\n \n     render(<VerificarCertificado apiClient={fakeClient} />);\n \n     await userEvent.type(\n       screen.getByLabelText('Código do Certificado:'),\n       'SA26-7K2M-9QXA'\n     );\n     fireEvent.click(\n       screen.getByRole('button', { name: /verificar certificado/i })\n     );\n \n     expect(getCertificadoPorCodigoMock).toHaveBeenCalledWith('SA26-7K2M-9QXA');\n     expect(screen.getByRole('status')).toHaveTextContent(\n       'Verificando certificado...'\n     );\n     expect(screen.getByRole('button', { name: /verificando/i })).toBeDisabled();\n \n     await act(async () => {\n       resolvePromise(verificacao);\n     });\n   });\n \n   it('sucesso: apresenta exatamente os campos públicos da Verificacao', async () => {\n-    const getCertificadoPorCodigoMock = vi.fn().mockResolvedValue({\n-      ...verificacao,\n-      participanteId: 'p-carla',\n-      presencas: 2,\n-      encontros: 2,\n-    });\n+    const getCertificadoPorCodigoMock = vi.fn().mockResolvedValue(verificacao);\n     const fakeClient = {\n       ...api,\n       getCertificadoPorCodigo: getCertificadoPorCodigoMock,\n     };\n \n     render(<VerificarCertificado apiClient={fakeClient} />);\n \n     await userEvent.type(\n       screen.getByLabelText('Código do Certificado:'),\n       'SA26-7K2M-9QXA'\n     );\n     fireEvent.click(\n       screen.getByRole('button', { name: /verificar certificado/i })\n     );\n \n     const container = await screen.findByTestId(\n       'verificar-certificado-container'\n     );\n \n     expect(container).toHaveTextContent('SA26-7K2M-9QXA');\n     expect(container).toHaveTextContent('Carla M. S.');\n     expect(container).toHaveTextContent('Flutter do zero');\n     expect(container).toHaveTextContent('360');\n     expect(container).toHaveTextContent(\n       formatarDataHoraBrasilia(verificacao.emitidoEm)\n     );\n-    expect(container).not.toHaveTextContent('p-carla');\n   });\n \n   it('não encontrado: exibe alert com NAO_ENCONTRADO e mensagem do 404', async () => {\n     const getCertificadoPorCodigoMock = vi.fn().mockRejectedValue({\n       erro: 'NAO_ENCONTRADO',\n       mensagem: 'Recurso não encontrado',\n     });\n     const fakeClient = {\n       ...api,\n       getCertificadoPorCodigo: getCertificadoPorCodigoMock,\n     };\n \n     render(<VerificarCertificado apiClient={fakeClient} />);\n \n     await userEvent.type(\n       screen.getByLabelText('Código do Certificado:'),\n       'SA26-7K2M-9QXA'\n     );\n     fireEvent.click(\n       screen.getByRole('button', { name: /verificar certificado/i })\n     );\n \n     const alert = await screen.findByRole('alert');\n     expect(alert).toHaveTextContent('NAO_ENCONTRADO');\n     expect(alert).toHaveTextContent('Recurso não encontrado');\n   });\n \n   it('erro genérico: exibe role=\"alert\" com código e mensagem distintos do 404', async () => {\n     const getCertificadoPorCodigoMock = vi.fn().mockRejectedValue({\n       erro: 'ERRO_INTERNO',\n       mensagem: 'Falha ao verificar certificado',\n     });\n     const fakeClient = {\n       ...api,\n       getCertificadoPorCodigo: getCertificadoPorCodigoMock,\n     };\n \n     render(<VerificarCertificado apiClient={fakeClient} />);\n \n     await userEvent.type(\n       screen.getByLabelText('Código do Certificado:'),\n       'SA26-7K2M-9QXA'\n     );\n     fireEvent.click(\n       screen.getByRole('button', { name: /verificar certificado/i })\n     );\n \n     const alert = await screen.findByRole('alert');\n     expect(alert).toHaveTextContent('ERRO_INTERNO');\n     expect(alert).toHaveTextContent('Falha ao verificar certificado');\n     expect(alert).not.toHaveTextContent(/não encontrado/i);\n   });\n \n   it('normalização: envia para a API o código com trim e uppercase', async () => {\n     const getCertificadoPorCodigoMock = vi.fn().mockResolvedValue(verificacao);\n     const fakeClient = {\n       ...api,\n       getCertificadoPorCodigo: getCertificadoPorCodigoMock,\n     };\n \n     render(<VerificarCertificado apiClient={fakeClient} />);\n \n     await userEvent.type(\n       screen.getByLabelText('Código do Certificado:'),\n       '  sa26-7k2m-9qxa  '\n     );\n     fireEvent.click(\n       screen.getByRole('button', { name: /verificar certificado/i })\n     );\n \n     expect(getCertificadoPorCodigoMock).toHaveBeenCalledWith('SA26-7K2M-9QXA');\n \n     expect(\n       await screen.findByTestId('verificar-certificado-container')\n     ).toBeInTheDocument();\n   });\n });\n\\ No newline at end of file\n",
+       "additions": 1,
+       "deletions": 7,
+       "status": "modified"
+      }
+     ]
+    },
+    "id": "msg_0c8b35ea1001EwhZpKau3FK5Vs",
+    "sessionID": "ses_f37509f2affesvePcykTBwpIVZ"
+   },
+   "parts": [
+    {
+     "type": "text",
+     "text": "Faça somente um ajuste no RED atual de VerificarCertificado.test.tsx.\n\nNo fake usado no teste de SUCESSO, remova quaisquer campos que não pertençam ao contrato público VerificacaoCertificado.\n\nO objeto retornado por getCertificadoPorCodigo deve conter EXATAMENTE:\n\n{\n  codigo: \"SA26-7K2M-9QXA\",\n  participante: \"Carla M. S.\",\n  atividade: \"Flutter do zero\",\n  cargaHorariaMinutos: 360,\n  emitidoEm: \"2026-10-23T22:00:00-03:00\"\n}\n\nRemova também qualquer assert criado especificamente para provar que participanteId, presencas ou encontros não aparecem, pois esses campos nunca são retornados por esse endpoint.\n\nNão faça nenhuma outra alteração.\n\nDepois execute novamente:\n\nnpx vitest run src/components/VerificarCertificado.test.tsx\n\nO resultado deve continuar RED pela ausência de ./VerificarCertificado.\n\nDepois:\n\ngit status --short\n\nNão faça git add.\nNão faça commit.\nNão faça push. ",
+     "id": "prt_0c8b35ea3001nR7AV4j4Jhe2dt",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b35ea1001EwhZpKau3FK5Vs"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8b35ea1001EwhZpKau3FK5Vs",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 88801,
+     "input": 368,
+     "output": 113,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 88320
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073593536,
+     "completed": 1790073597565
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c8b35ec0001lz0zuzS5KdKG3X",
+    "sessionID": "ses_f37509f2affesvePcykTBwpIVZ"
+   },
+   "parts": [
+    {
+     "snapshot": "169ebf6d7528f4995987a9ce0911f41077462ac3",
+     "type": "step-start",
+     "id": "prt_0c8b366760013iSQ2rlTgwpJ8I",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b35ec0001lz0zuzS5KdKG3X"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_afd13118ce854d5eac07a97d",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\VerificarCertificado.test.tsx",
+       "offset": 63,
+       "limit": 30
+      },
+      "output": "[1145 caracteres omitidos]",
+      "title": "app\\src\\components\\VerificarCertificado.test.tsx",
+      "time": {
+       "start": 1790073596127,
+       "end": 1790073596212
+      }
+     },
+     "id": "prt_0c8b366c40018owioRnyP499VS",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b35ec0001lz0zuzS5KdKG3X"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "169ebf6d7528f4995987a9ce0911f41077462ac3",
+     "type": "step-finish",
+     "tokens": {
+      "total": 88801,
+      "input": 368,
+      "output": 113,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 88320
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8b36c3a001w05gcX3zpmS6dP",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b35ec0001lz0zuzS5KdKG3X"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8b35ea1001EwhZpKau3FK5Vs",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 92732,
+     "input": 84243,
+     "output": 268,
+     "reasoning": 29,
+     "cache": {
+      "write": 0,
+      "read": 8192
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073597576,
+     "completed": 1790073609799
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c8b36e88001RPz4WtMD04rYkl",
+    "sessionID": "ses_f37509f2affesvePcykTBwpIVZ"
+   },
+   "parts": [
+    {
+     "snapshot": "169ebf6d7528f4995987a9ce0911f41077462ac3",
+     "type": "step-start",
+     "id": "prt_0c8b392610014JA4VMmvxs8Pq4",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b36e88001RPz4WtMD04rYkl"
+    },
+    {
+     "type": "reasoning",
+     "text": "Edit the success test: remove extra private fields and the `expect(container).not.toHaveTextContent('p-carla');` assert.",
+     "time": {
+      "start": 1790073606786,
+      "end": 1790073607046
+     },
+     "id": "prt_0c8b39282001XMY0764wMVrwzq",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b36e88001RPz4WtMD04rYkl"
+    },
+    {
+     "type": "tool",
+     "tool": "edit",
+     "callID": "call_e0e775230bc14a9dbf4eebe5",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\VerificarCertificado.test.tsx",
+       "oldString": "    const getCertificadoPorCodigoMock = vi.fn().mockResolvedValue({\n      ...verificacao,\n      participanteId: 'p-carla',\n      presencas: 2,\n      encontros: 2,\n    });",
+       "newString": "    const getCertificadoPorCodigoMock = vi.fn().mockResolvedValue(verificacao);"
+      },
+      "output": "Edit applied successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "diff": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\VerificarCertificado.test.tsx\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\VerificarCertificado.test.tsx\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\VerificarCertificado.test.tsx\n@@ -66,14 +66,9 @@\n   });\n });\n \n it('sucesso: apresenta exatamente os campos públicos da Verificacao', async () => {\n-  const getCertificadoPorCodigoMock = vi.fn().mockResolvedValue({\n-    ...verificacao,\n-    participanteId: 'p-carla',\n-    presencas: 2,\n-    encontros: 2,\n-  });\n+  const getCertificadoPorCodigoMock = vi.fn().mockResolvedValue(verificacao);\n   const fakeClient = {\n     ...api,\n     getCertificadoPorCodigo: getCertificadoPorCodigoMock,\n   };\n",
+       "filediff": {
+        "file": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\VerificarCertificado.test.tsx",
+        "patch": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\VerificarCertificado.test.tsx\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\VerificarCertificado.test.tsx\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\VerificarCertificado.test.tsx\n@@ -66,14 +66,9 @@\n   });\n });\n \n it('sucesso: apresenta exatamente os campos públicos da Verificacao', async () => {\n-  const getCertificadoPorCodigoMock = vi.fn().mockResolvedValue({\n-    ...verificacao,\n-    participanteId: 'p-carla',\n-    presencas: 2,\n-    encontros: 2,\n-  });\n+  const getCertificadoPorCodigoMock = vi.fn().mockResolvedValue(verificacao);\n   const fakeClient = {\n     ...api,\n     getCertificadoPorCodigo: getCertificadoPorCodigoMock,\n   };\n",
+        "additions": 1,
+        "deletions": 6
+       },
+       "truncated": false
+      },
+      "title": "app\\src\\components\\VerificarCertificado.test.tsx",
+      "time": {
+       "start": 1790073607592,
+       "end": 1790073607665
+      }
+     },
+     "id": "prt_0c8b3938b001U173s7v5WOB0FB",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b36e88001RPz4WtMD04rYkl"
+    },
+    {
+     "type": "tool",
+     "tool": "edit",
+     "callID": "call_7bad4b41927f45489efe574d",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\VerificarCertificado.test.tsx",
+       "oldString": "    expect(container).toHaveTextContent(\n      formatarDataHoraBrasilia(verificacao.emitidoEm)\n    );\n    expect(container).not.toHaveTextContent('p-carla');",
+       "newString": "    expect(container).toHaveTextContent(\n      formatarDataHoraBrasilia(verificacao.emitidoEm)\n    );"
+      },
+      "output": "Edit applied successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "diff": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\VerificarCertificado.test.tsx\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\VerificarCertificado.test.tsx\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\VerificarCertificado.test.tsx\n@@ -93,9 +93,8 @@\n   expect(container).toHaveTextContent('360');\n   expect(container).toHaveTextContent(\n     formatarDataHoraBrasilia(verificacao.emitidoEm)\n   );\n-  expect(container).not.toHaveTextContent('p-carla');\n });\n \n it('não encontrado: exibe alert com NAO_ENCONTRADO e mensagem do 404', async () => {\n   const getCertificadoPorCodigoMock = vi.fn().mockRejectedValue({\n",
+       "filediff": {
+        "file": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\VerificarCertificado.test.tsx",
+        "patch": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\VerificarCertificado.test.tsx\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\VerificarCertificado.test.tsx\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\VerificarCertificado.test.tsx\n@@ -93,9 +93,8 @@\n   expect(container).toHaveTextContent('360');\n   expect(container).toHaveTextContent(\n     formatarDataHoraBrasilia(verificacao.emitidoEm)\n   );\n-  expect(container).not.toHaveTextContent('p-carla');\n });\n \n it('não encontrado: exibe alert com NAO_ENCONTRADO e mensagem do 404', async () => {\n   const getCertificadoPorCodigoMock = vi.fn().mockRejectedValue({\n",
+        "additions": 0,
+        "deletions": 1
+       },
+       "truncated": false
+      },
+      "title": "app\\src\\components\\VerificarCertificado.test.tsx",
+      "time": {
+       "start": 1790073608126,
+       "end": 1790073608177
+      }
+     },
+     "id": "prt_0c8b395af001XO1xNLKLgvJEnU",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b36e88001RPz4WtMD04rYkl"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "0310070a217bc79d18fd5abe10f44364425d9e06",
+     "type": "step-finish",
+     "tokens": {
+      "total": 92732,
+      "input": 84243,
+      "output": 268,
+      "reasoning": 29,
+      "cache": {
+       "write": 0,
+       "read": 8192
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8b39aff001C2EuK7lLOxTRSK",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b36e88001RPz4WtMD04rYkl"
+    },
+    {
+     "type": "patch",
+     "hash": "169ebf6d7528f4995987a9ce0911f41077462ac3",
+     "files": [
+      "C:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app/src/components/VerificarCertificado.test.tsx"
+     ],
+     "id": "prt_0c8b39e3d0017OzCoKmPMTwe71",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b36e88001RPz4WtMD04rYkl"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8b35ea1001EwhZpKau3FK5Vs",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 89697,
+     "input": 1004,
+     "output": 117,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 88576
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073609813,
+     "completed": 1790073682694
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c8b39e55001myx4X1X3gHXbxU",
+    "sessionID": "ses_f37509f2affesvePcykTBwpIVZ"
+   },
+   "parts": [
+    {
+     "snapshot": "0310070a217bc79d18fd5abe10f44364425d9e06",
+     "type": "step-start",
+     "id": "prt_0c8b3a5c7001L85Nbj3FTg959w",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b39e55001myx4X1X3gHXbxU"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_a8769b5b536c449b9bd1e367",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "npx vitest run src/components/VerificarCertificado.test.tsx",
+       "timeout": 120000,
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app"
+      },
+      "output": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app\u001b[39m\n\n\n\u001b[31m⎯⎯⎯⎯⎯⎯\u001b[39m\u001b[1m\u001b[41m Failed Suites 1 \u001b[49m\u001b[22m\u001b[31m⎯⎯⎯⎯⎯⎯⎯\u001b[39m\n\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[31m1 failed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[2mno tests\u001b[22m\n\u001b[2m   Start at \u001b[22m 07:40:44\n\u001b[2m   Duration \u001b[22m 36.28s\u001b[2m (transform 53ms, setup 6.14s, collect 0ms, tests 0ms, environment 28.70s, prepare 795ms)\u001b[22m\n\n\u001b[41m\u001b[1m FAIL \u001b[22m\u001b[49m src/components/VerificarCertificado.test.tsx\u001b[2m [ src/components/VerificarCertificado.test.tsx ]\u001b[22m\n\u001b[31m\u001b[1mError\u001b[22m: Failed to resolve import \"./VerificarCertificado\" from \"src/components/VerificarCertificado.test.tsx\". Does the file exist?\u001b[39m\n  Plugin: \u001b[35mvite:import-analysis\u001b[39m\n  File: \u001b[36mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app/src/components/VerificarCertificado.test.tsx\u001b[39m:4:37\n\u001b[33m  3  |  import { render, screen, act, fireEvent } from \"@testing-library/react\";\n  4  |  import userEvent from \"@testing-library/user-event\";\n  5  |  import { VerificarCertificado } from \"./VerificarCertificado\";\n     |                                        ^\n  6  |  import { api } from \"../api/client\";\n  7  |  import { formatarDataHoraBrasilia } from \"../utils/date\";\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m TransformPluginContext._formatLog ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m42658:41\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m TransformPluginContext.error ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m42655:16\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m normalizeUrl ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m40634:23\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m40753:37\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m TransformPluginContext.transform ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m40680:7\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m EnvironmentPluginContainer.transform ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m42453:18\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m loadAndTransform ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m35845:27\u001b[22m\u001b[39m\n\n\u001b[31m\u001b[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\u001b[22m\u001b[39m\n\n",
+      "metadata": {
+       "output": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app\u001b[39m\n\n\n\u001b[31m⎯⎯⎯⎯⎯⎯\u001b[39m\u001b[1m\u001b[41m Failed Suites 1 \u001b[49m\u001b[22m\u001b[31m⎯⎯⎯⎯⎯⎯⎯\u001b[39m\n\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[31m1 failed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[2mno tests\u001b[22m\n\u001b[2m   Start at \u001b[22m 07:40:44\n\u001b[2m   Duration \u001b[22m 36.28s\u001b[2m (transform 53ms, setup 6.14s, collect 0ms, tests 0ms, environment 28.70s, prepare 795ms)\u001b[22m\n\n\u001b[41m\u001b[1m FAIL \u001b[22m\u001b[49m src/components/VerificarCertificado.test.tsx\u001b[2m [ src/components/VerificarCertificado.test.tsx ]\u001b[22m\n\u001b[31m\u001b[1mError\u001b[22m: Failed to resolve import \"./VerificarCertificado\" from \"src/components/VerificarCertificado.test.tsx\". Does the file exist?\u001b[39m\n  Plugin: \u001b[35mvite:import-analysis\u001b[39m\n  File: \u001b[36mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app/src/components/VerificarCertificado.test.tsx\u001b[39m:4:37\n\u001b[33m  3  |  import { render, screen, act, fireEvent } from \"@testing-library/react\";\n  4  |  import userEvent from \"@testing-library/user-event\";\n  5  |  import { VerificarCertificado } from \"./VerificarCertificado\";\n     |                                        ^\n  6  |  import { api } from \"../api/client\";\n  7  |  import { formatarDataHoraBrasilia } from \"../utils/date\";\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m TransformPluginContext._formatLog ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m42658:41\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m TransformPluginContext.error ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m42655:16\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m normalizeUrl ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m40634:23\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m40753:37\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m TransformPluginContext.transform ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m40680:7\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m EnvironmentPluginContainer.transform ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m42453:18\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m loadAndTransform ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m35845:27\u001b[22m\u001b[39m\n\n\u001b[31m\u001b[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\u001b[22m\u001b[39m\n\n",
+       "exit": 1,
+       "truncated": false
+      },
+      "title": "npx vitest run src/components/VerificarCertificado.test.tsx",
+      "time": {
+       "start": 1790073612354,
+       "end": 1790073681623
+      }
+     },
+     "id": "prt_0c8b3a606001rToh6kmaSQj1wW",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b39e55001myx4X1X3gHXbxU"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "0310070a217bc79d18fd5abe10f44364425d9e06",
+     "type": "step-finish",
+     "tokens": {
+      "total": 89697,
+      "input": 1004,
+      "output": 117,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 88576
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8b4b89e001AfGXOgUok6ZOll",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b39e55001myx4X1X3gHXbxU"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8b35ea1001EwhZpKau3FK5Vs",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 90918,
+     "input": 1210,
+     "output": 108,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 89600
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073682713,
+     "completed": 1790073686570
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c8b4bb18001N1Ln445aFzDDEf",
+    "sessionID": "ses_f37509f2affesvePcykTBwpIVZ"
+   },
+   "parts": [
+    {
+     "snapshot": "0310070a217bc79d18fd5abe10f44364425d9e06",
+     "type": "step-start",
+     "id": "prt_0c8b4c1730014falD1XQIEIO8g",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b4bb18001N1Ln445aFzDDEf"
+    },
+    {
+     "type": "text",
+     "text": "Ajuste feito. O fake do teste de sucesso agora retorna exatamente os 5 campos públicos, e o assert `not.toHaveTextContent('p-carla')` foi removido.\n\nRED confirmado novamente — mesmo erro, pela ausência de `./VerificarCertificado`.",
+     "time": {
+      "start": 1790073684344,
+      "end": 1790073685482
+     },
+     "id": "prt_0c8b4c178001TNp6NugizqZa2Y",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b4bb18001N1Ln445aFzDDEf"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_f8d81ec1962f47be811c2226",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git status --short"
+      },
+      "output": "?? app/src/components/VerificarCertificado.test.tsx\n",
+      "metadata": {
+       "output": "?? app/src/components/VerificarCertificado.test.tsx\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git status --short",
+      "time": {
+       "start": 1790073685412,
+       "end": 1790073685762
+      }
+     },
+     "id": "prt_0c8b4c595001nkSKcoXhhRw9AV",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b4bb18001N1Ln445aFzDDEf"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "0310070a217bc79d18fd5abe10f44364425d9e06",
+     "type": "step-finish",
+     "tokens": {
+      "total": 90918,
+      "input": 1210,
+      "output": 108,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 89600
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8b4c888001yM9yjDCv6MJuOR",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b4bb18001N1Ln445aFzDDEf"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8b35ea1001EwhZpKau3FK5Vs",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 90977,
+     "input": 62,
+     "output": 35,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 90880
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073686581,
+     "completed": 1790073690193
+    },
+    "finish": "stop",
+    "id": "msg_0c8b4ca350014gNXEAovv1h6XZ",
+    "sessionID": "ses_f37509f2affesvePcykTBwpIVZ"
+   },
+   "parts": [
+    {
+     "snapshot": "0310070a217bc79d18fd5abe10f44364425d9e06",
+     "type": "step-start",
+     "id": "prt_0c8b4d373001lKe3ngNdHailVC",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b4ca350014gNXEAovv1h6XZ"
+    },
+    {
+     "type": "text",
+     "text": "Único arquivo em aberto: `app/src/components/VerificarCertificado.test.tsx` (untracked). Sem add, commit ou push.",
+     "time": {
+      "start": 1790073688956,
+      "end": 1790073689388
+     },
+     "id": "prt_0c8b4d37c0014e49NUdZwgaNUp",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b4ca350014gNXEAovv1h6XZ"
+    },
+    {
+     "reason": "stop",
+     "snapshot": "0310070a217bc79d18fd5abe10f44364425d9e06",
+     "type": "step-finish",
+     "tokens": {
+      "total": 90977,
+      "input": 62,
+      "output": 35,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 90880
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8b4d6a8001hc0DnuDq34KrmM",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b4ca350014gNXEAovv1h6XZ"
+    }
+   ]
+  },
+  {
+   "info": {
+    "role": "user",
+    "time": {
+     "created": 1790073783121
+    },
+    "agent": "build",
+    "model": {
+     "providerID": "opencode",
+     "modelID": "big-pickle"
+    },
+    "summary": {
+     "diffs": []
+    },
+    "id": "msg_0c8b64350001vtiwVB7SdEWjQK",
+    "sessionID": "ses_f37509f2affesvePcykTBwpIVZ"
+   },
+   "parts": [
+    {
+     "type": "text",
+     "text": "git add app/src/components/VerificarCertificado.test.tsx\ngit status --short\ngit diff --cached --stat ",
+     "id": "prt_0c8b64351001WghpxKkRE6iCLR",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b64350001vtiwVB7SdEWjQK"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8b64350001vtiwVB7SdEWjQK",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 91085,
+     "input": 127,
+     "output": 78,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 90880
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073783132,
+     "completed": 1790073786951
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c8b6435c001vUQkm8P2QEk2Hz",
+    "sessionID": "ses_f37509f2affesvePcykTBwpIVZ"
+   },
+   "parts": [
+    {
+     "snapshot": "0310070a217bc79d18fd5abe10f44364425d9e06",
+     "type": "step-start",
+     "id": "prt_0c8b64bf9001VBFg6PaBVWMyaW",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b6435c001vUQkm8P2QEk2Hz"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_be563e7587f94941987e7f54",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git add app/src/components/VerificarCertificado.test.tsx; if ($?) { git status --short }; if ($?) { git diff --cached --stat }"
+      },
+      "output": "warning: in the working copy of 'app/src/components/VerificarCertificado.test.tsx', LF will be replaced by CRLF the next time Git touches it\nA  app/src/components/VerificarCertificado.test.tsx\n app/src/components/VerificarCertificado.test.tsx | 173 +++++++++++++++++++++++\n 1 file changed, 173 insertions(+)\n",
+      "metadata": {
+       "output": "warning: in the working copy of 'app/src/components/VerificarCertificado.test.tsx', LF will be replaced by CRLF the next time Git touches it\nA  app/src/components/VerificarCertificado.test.tsx\n app/src/components/VerificarCertificado.test.tsx | 173 +++++++++++++++++++++++\n 1 file changed, 173 insertions(+)\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git add app/src/components/VerificarCertificado.test.tsx; if ($?) { git status --short }; if ($?) { git diff --cached --stat }",
+      "time": {
+       "start": 1790073785786,
+       "end": 1790073786193
+      }
+     },
+     "id": "prt_0c8b64cb8001Q1fyk2KUIaZU76",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b6435c001vUQkm8P2QEk2Hz"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "0310070a217bc79d18fd5abe10f44364425d9e06",
+     "type": "step-finish",
+     "tokens": {
+      "total": 91085,
+      "input": 127,
+      "output": 78,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 90880
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8b650b4001S1krKscrV60xCz",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b6435c001vUQkm8P2QEk2Hz"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8b64350001vtiwVB7SdEWjQK",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 91215,
+     "input": 294,
+     "output": 41,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 90880
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073786959,
+     "completed": 1790073789976
+    },
+    "finish": "stop",
+    "id": "msg_0c8b6524f001S3NP9RrdZvm5TK",
+    "sessionID": "ses_f37509f2affesvePcykTBwpIVZ"
+   },
+   "parts": [
+    {
+     "snapshot": "0310070a217bc79d18fd5abe10f44364425d9e06",
+     "type": "step-start",
+     "id": "prt_0c8b65929001RNQY6GTGpdjvzw",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b6524f001S3NP9RrdZvm5TK"
+    },
+    {
+     "type": "text",
+     "text": "Arquivo adicionado ao stage:\n\n- `A  app/src/components/VerificarCertificado.test.tsx` — único arquivo staged, +173 linhas (novo).",
+     "time": {
+      "start": 1790073788752,
+      "end": 1790073789188
+     },
+     "id": "prt_0c8b65950001LOrjvy1aEcfqne",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b6524f001S3NP9RrdZvm5TK"
+    },
+    {
+     "reason": "stop",
+     "snapshot": "0310070a217bc79d18fd5abe10f44364425d9e06",
+     "type": "step-finish",
+     "tokens": {
+      "total": 91215,
+      "input": 294,
+      "output": 41,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 90880
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8b65c8a001i8JlgZRHfCZPWU",
+     "sessionID": "ses_f37509f2affesvePcykTBwpIVZ",
+     "messageID": "msg_0c8b6524f001S3NP9RrdZvm5TK"
+    }
+   ]
+  }
+ ]
+}

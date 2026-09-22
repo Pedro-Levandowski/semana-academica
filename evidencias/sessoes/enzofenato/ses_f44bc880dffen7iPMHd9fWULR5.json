@@ -1,0 +1,1310 @@
+{
+ "info": {
+  "id": "ses_f44bc880dffen7iPMHd9fWULR5",
+  "slug": "silent-planet",
+  "projectID": "08a8850750a50d17a216613ef31c5f0b0d1b31ca",
+  "directory": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+  "path": "",
+  "title": "Refactor da Fatia 4 — GET /extrato",
+  "agent": "build",
+  "model": {
+   "id": "big-pickle",
+   "providerID": "opencode"
+  },
+  "version": "1.18.31",
+  "summary": {
+   "additions": 0,
+   "deletions": 0,
+   "files": 0
+  },
+  "cost": 0,
+  "tokens": {
+   "input": 49340,
+   "output": 7225,
+   "reasoning": 0,
+   "cache": {
+    "read": 423424,
+    "write": 0
+   }
+  },
+  "time": {
+   "created": 1789848156146,
+   "updated": 1789848241348
+  }
+ },
+ "messages": [
+  {
+   "info": {
+    "role": "user",
+    "time": {
+     "created": 1789848156247
+    },
+    "agent": "build",
+    "model": {
+     "providerID": "opencode",
+     "modelID": "big-pickle"
+    },
+    "summary": {
+     "diffs": []
+    },
+    "id": "msg_0bb437857001v7e7AkdqrOIp70",
+    "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5"
+   },
+   "parts": [
+    {
+     "type": "text",
+     "text": "Vamos executar a fase REFACTOR da Fatia 4 do M4 — GET /extrato.\n\nUse a skill tdd-m4.\n\nEstado atual:\n- RED foi registrado separadamente;\n- GREEN foi implementado e commitado;\n- tests/extrato.test.ts: 13/13 verdes;\n- suíte completa: 253/253 verdes;\n- nenhuma regressão nova de typecheck;\n- existem 7 erros TS2339 de baseline anteriores ao M4.\n\nRevise exclusivamente a implementação desta fatia:\n\n- api/src/certificate/extrato.ts\n- alterações relacionadas ao GET /extrato em api/src/app.ts\n- alterações relacionadas ao M2IntegrationPort em api/src/integrations/m2-port.ts\n\nConsulte também:\n- specs/M4-certificados.md\n- contrato-api.md\n- AGENTS.md\n- api/tests/extrato.test.ts\n\nNÃO consulte requisitos-envolvidos.md.\n\nObjetivo:\nverificar se existe alguma refatoração pequena e segura que melhore:\n- clareza;\n- duplicação;\n- separação de responsabilidades;\n- integração M2 → M4;\n- reutilização das funções existentes de cálculo;\n- aderência à arquitetura do projeto.\n\nRestrições:\n- não alterar comportamento;\n- não alterar contrato;\n- não alterar spec;\n- não alterar testes para fazê-los passar;\n- não adicionar funcionalidade;\n- não implementar outras pendências do M4;\n- não corrigir os 7 erros de typecheck do baseline;\n- não fazer refatoração apenas para produzir alteração.\n\nSe a implementação já estiver adequada, NÃO altere nenhum arquivo e informe:\n\"REFACTOR: nenhuma alteração necessária.\"\n\nSe houver refatoração realmente justificável:\n1. faça somente a alteração mínima;\n2. execute tests/extrato.test.ts;\n3. execute a suíte completa;\n4. informe exatamente o que mudou e por quê.\n\nAo final, execute:\ngit status --short\n\nNão faça git add.\nNão faça commit.\nNão faça push. ",
+     "id": "prt_0bb43785d0014NKD3h7HBt0ngd",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb437857001v7e7AkdqrOIp70"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bb437857001v7e7AkdqrOIp70",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 21569,
+     "input": 19716,
+     "output": 61,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 1792
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789848156343,
+     "completed": 1789848164879
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bb4378b70019XeW4UDAa53yxh",
+    "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5"
+   },
+   "parts": [
+    {
+     "snapshot": "bd600048f0ddfb21c49f073ab2f8c345bd757234",
+     "type": "step-start",
+     "id": "prt_0bb439230001T0fwbGSxaflvuI",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb4378b70019XeW4UDAa53yxh"
+    },
+    {
+     "type": "reasoning",
+     "text": "Let me start by loading the tdd-m4 skill as instructed.",
+     "time": {
+      "start": 1789848162872,
+      "end": 1789848162893
+     },
+     "id": "prt_0bb4392380019yS6fUd4r6vQ1U",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb4378b70019XeW4UDAa53yxh"
+    },
+    {
+     "type": "text",
+     "text": "\n\n",
+     "time": {
+      "start": 1789848162902,
+      "end": 1789848162995
+     },
+     "id": "prt_0bb4392560019ypGrw1uaWzJ74",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb4378b70019XeW4UDAa53yxh"
+    },
+    {
+     "type": "tool",
+     "tool": "skill",
+     "callID": "call_86e4d27ffb8d4fb19eb56141",
+     "state": {
+      "status": "completed",
+      "input": {
+       "name": "tdd-m4"
+      },
+      "output": "<skill_content name=\"tdd-m4\">\n# Skill: tdd-m4\n\n# TDD para M4-certificados\n\nA fonte de verdade é `specs/M4-certificados.md`. Não invente regras de negócio.\nNão altere a spec. Não acesse documentos externos de requisitos.\n\nO ciclo é o mesmo do `tdd` geral — teste que falha, código mínimo, refactor — mas\nancorado nas 4 fatias e 12 regras de M4. Uma regra ou grupo coeso por ciclo TDD.\n\n## Onde o teste mora\n\nTeste verifica comportamento pela interface pública (HTTP), nunca implementação.\nUse Vitest + Supertest, a aplicação Express de `createApp()` sem abrir porta,\ne as rotas `/_teste/*` com `MODO_TESTE=1` para setup e controle do relógio.\n\nArquivos de teste em `api/tests/`. Para rodar: `npm --prefix api test`.\n\nRegra do projeto: não importe serviço nem repositório no teste — se importar,\no teste quebra em refatoração sem que o comportamento tenha mudado.\n\n## Fatias e regras\n\nCada fatia é um entregável vertical que pode ser testado sozinho.\nImplemente as fatias nesta ordem. Dentro de cada fatia, uma regra ou grupo\ncoeso de regras por ciclo TDD.\n\n### Fatia 1 — emissão do certificado\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R1 | Presença mínima de 75% (`presencas / encontros`, sem arredondamento) | 1, 2, 3, 4 |\n| R2 | Emissão somente após encerramento da atividade | 5, 6 |\n| R12 | Precedência: `ATIVIDADE_NAO_ENCERRADA` antes de `PRESENCA_INSUFICIENTE` | 20 |\n| R9 | Idempotência: 201 na primeira vez, 200 nas seguintes, mesmo código | 17 |\n\nOrdem sugerida dentro da fatia:\n1. R1 — teste presence check, implemente, refactor.\n2. R2 — teste encerramento, implemente, refactor.\n3. R12 — teste precedência quando ambos falham, implemente, refactor.\n4. R9 — teste idempotência 201→200, implemente, refactor.\n\n### Fatia 2 — código e listagem\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R6 | Formato `SA26-XXXX-XXXX`, unicidade, mesmo código na reemissão | 11, 12 |\n| R11 | Alfabeto: maiúsculas + dígitos, sem `I`, `O`, `0`, `1` | 19 |\n\nOrdem sugerida dentro da fatia:\n1. R6 — teste formato e unicidade, implemente geração, refactor.\n2. R11 — teste exclusão de caracteres ambíguos, implemente, refactor.\n3. R9 (continuação) — teste `GET /certificados` retornando apenas emitidos.\n\n### Fatia 3 — verificação pública\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R8 | `GET /certificados/:codigo` sem `X-Usuario`, campos públicos apenas | 15, 16 |\n| R7 | Abreviação do nome: primeiro nome + iniciais + partículas por extenso | 13, 14 |\n\nOrdem sugerida dentro da fatia:\n1. R8 — teste rota pública sem header, campos corretos, implemente, refactor.\n2. R7 — teste abreviação com partículas, implemente, refactor.\n\n### Fatia 4 — extrato de horas complementares\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R3 | Cargas brutas: `palestrasMinutos`, `minicursosMinutos`, `totalMinutos` sem teto | 7, 8, 9, 10 |\n| R4 | Teto de palestras: `min(240, palestrasMinutos)` | 7, 8, 9 |\n| R5 | Teto total: `aproveitadoMinutos = min(1200, min(240, palestrasMinutos) + minicursosMinutos)` | 7, 8 |\n| R10 | Itens do extrato: `codigo` preenchido ou `null` conforme emissão | 18 |\n\nOrdem sugerida dentro da fatia:\n1. R3+R4+R5 — teste cálculos de extrato (juntos, são uma unidade coesa), implemente, refactor.\n2. R10 — teste composição dos itens com código/null, implemente, refactor.\n\n## O ciclo TDD, passo a passo\n\nPara cada regra (ou grupo coeso), nestes passos:\n\n1. **RED**: Escreva um teste que prova o critério de aceite. Rode. **Ele tem que falhar.**\n   Se passar antes do código existir, algo está errado — descubra o quê antes de seguir.\n   O nome do teste descreve a regra em português:\n   `it('recusa certificado com menos de 75% de presenca')`.\n\n2. **GREEN**: Escreva o mínimo de código que faz o teste passar.\n   Nada de já implementar a regra seguinte \"que eu vou precisar mesmo\".\n   Rode o teste individual. Verde? Rode a suíte inteira. Verde? Próximo passo.\n\n3. **REFACTOR**: Com verde, limpe o código sem alterar comportamento.\n   Extraia funções, melhore nomes, remova duplicação. Rode a suíte inteira de novo.\n   Ainda verde? Próxima regra.\n\n## A regra que não se quebra\n\n**Quando o teste falha, o suspeito é o código.**\n\nSe você mudar um teste para ele passar, trocou o contrato pela implementação e o\nverde virou enfeite. Só se altera um teste quando a **spec** mudou — e aí você diz\nqual regra da spec mudou e por quê.\n\nVale para o valor esperado, para o status HTTP e para o cenário. Trocar\n`expect(response.body.presencas).toBe(3)` por `expect(response.body.presencas).toBe(0)`\nporque o código deu 0 é a forma mais comum de mentir sozinho.\n\n## Três testes que não valem nada\n\n- **Acoplado à implementação** — chama serviço ou repositório direto, ou confere o\n  dado espiando o `Map`/banco. Quebra em refatoração, não em regressão.\n- **Tautológico** — o esperado é calculado do mesmo jeito que o código calcula.\n  Passa por construção, nunca discorda. O valor esperado vem da spec, escrito na mão.\n- **Frouxo** — confere só o status e ignora o corpo. `201` com o `codigo` errado passa.\n\n## Dependências de M2 e M3\n\nM4 depende de dados que vêm de outros módulos. Não implemente esses módulos —\nuse as interfaces e portas de integração que já existem.\n\n### M3 — Presenças\n\n- Porta: `M3PresencePort` em `src/integrations/m3-presence-port.ts`\n- Método: `countPresencas(atividadeId, participanteId) → number`\n- Estado atual: `NeutralM3PresenceAdapter` retorna sempre 0.\n- Para testes de emissão (R1), registre presenças via rotas HTTP do M3\n  (`POST /encontros/:id/presencas`) no setup do teste. O adapter real do M3\n  deve ser ativado em ambiente de teste, ou o teste deve montar o cenário\n  pelas rotas existentes da API.\n- Se M3 não estiver funcional, documente o bloqueio e não simule dados.\n\n### M2 — Inscrições\n\n- Porta: `M2IntegrationPort` em `src/integrations/m2-port.ts`\n- Estado atual: `NeutralM2Adapter` não expõe listagem de inscrições por participante.\n- Para R10 (extrato), M4 precisa saber em quais atividades o participante está\n  inscrito e se há certificado emitido para cada uma.\n- Se a porta de M2 não fornecer esse dado, documente o bloqueio — não invente\n  persistência de inscrições dentro de M4.\n\n### M1 — Atividades\n\n- Já acessível via `ActivityRepository`. M4 precisa de `titulo`, `tipo`,\n  `cargaHorariaMinutos`, `encontros` (total de encontros) e `dataTermino`\n  (para R2).\n- Não altere o repositório de M1. Se faltar campo, documente o bloqueio.\n\n## Validações adicionais do contrato\n\nAlém das regras R1–R12, o `contrato-api.md` lista códigos de erro que o M4\ndeve retornar. Teste-os quando implementar a rota correspondente:\n\n| Código | HTTP | Quando |\n|--------|------|--------|\n| `NAO_INSCRITO` | 403 | Participante não inscrito na atividade |\n| `ATIVIDADE_CANCELADA` | 422 | Atividade foi cancelada |\n| `ATIVIDADE_NAO_ENCERRADA` | 422 | Atividade ainda não encerrada (R2) |\n| `PRESENCA_INSUFICIENTE` | 422 | Presença abaixo de 75% (R1) |\n\n## Execução e verificação\n\nApós cada regra implementada (GREEN + REFACTOR):\n\n1. Rode `npm --prefix api test` — suíte inteira tem que estar verde.\n2. Rode `npx tsc --noEmit` dentro de `api/` — typecheck tem que passar.\n3. Se falhar, corrija antes de seguir para a próxima regra.\n\nTerminada a última fatia, rode a suíte inteira uma vez e relate o número real\nde testes que apareceu na saída. Não estime, não arredonde.\n\n## Commits\n\nFaça commits pequenos, um por regra ou grupo coeso de regras dentro da fatia.\nMensagem no padrão do projeto, identificando a regra:\n\n```\nM4: implementa R1 — presença mínima de 75%\nM4: implementa R2 — emissão após encerramento\nM4: implementa R9 — idempotência 201/200\n```\n\nAntes de commitar, verifique `git status` e `git diff` para confirmar que\napenas arquivos intencionais estão staged.\n\n## Rastreabilidade\n\nCada regra da spec deve ter:\n- Pelo menos um teste que a comprove (critério de aceite correspondente).\n- Implementação que o teste exercita.\n- Referência explícita: nome do teste cita a regra, commit cita a regra.\n\nSe uma regra não tem teste, ela não está implementada — pare e escreva o teste.\n\n## O que não fazer\n\n- Não acesse documentos externos de requisitos.\n- Não altere `specs/M4-certificados.md`.\n- Não altere `contrato-api.md`.\n- Não implemente código de M1, M2 ou M3 — apenas use suas portas/interfaces.\n- Não altere testes existentes apenas para fazê-los passar.\n- Não altere código de outros módulos.\n- Não faça commit de código que não esteja verde na suíte inteira.\n\nBase directory for this skill: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\.opencode\\skills\\tdd-m4\nRelative paths in this skill (e.g., scripts/, reference/) are relative to this base directory.\nNote: file list is sampled.\n\n<skill_files>\n\n</skill_files>\n</skill_content>",
+      "metadata": {
+       "name": "tdd-m4",
+       "dir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\.opencode\\skills\\tdd-m4",
+       "truncated": false
+      },
+      "title": "Loaded skill: tdd-m4",
+      "time": {
+       "start": 1789848162954,
+       "end": 1789848163093
+      }
+     },
+     "id": "prt_0bb4392630011s7d6C8GPkWiWa",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb4378b70019XeW4UDAa53yxh"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "bd600048f0ddfb21c49f073ab2f8c345bd757234",
+     "type": "step-finish",
+     "tokens": {
+      "total": 21569,
+      "input": 19716,
+      "output": 61,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 1792
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bb43963d001FVoUz20MkcXGRr",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb4378b70019XeW4UDAa53yxh"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bb437857001v7e7AkdqrOIp70",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 24709,
+     "input": 2840,
+     "output": 365,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 21504
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789848164893,
+     "completed": 1789848169421
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bb439a1d001FtDqeuJpT0Gg6e",
+    "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5"
+   },
+   "parts": [
+    {
+     "snapshot": "bd600048f0ddfb21c49f073ab2f8c345bd757234",
+     "type": "step-start",
+     "id": "prt_0bb43a0e8001Zx4aaPzKA9v48D",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb439a1d001FtDqeuJpT0Gg6e"
+    },
+    {
+     "type": "reasoning",
+     "text": "Let me start by reading the relevant files to understand the current implementation state. I need to review:\n- api/src/certificate/extrato.ts\n- api/src/app.ts (changes related to GET /extrato)\n- api/src/integrations/m2-port.ts (M2IntegrationPort changes)\n- specs/M4-certificados.md\n- contrato-api.md\n- AGENTS.md (already in context)\n- api/tests/extrato.test.ts\n\nLet me read these in parallel.",
+     "time": {
+      "start": 1789848166643,
+      "end": 1789848166852
+     },
+     "id": "prt_0bb43a0f3001zzSSEwBsEfXcnG",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb439a1d001FtDqeuJpT0Gg6e"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_e1d4572c93724f69acaaf9b8",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\certificate\\extrato.ts"
+      },
+      "output": "[5191 caracteres omitidos]",
+      "title": "api\\src\\certificate\\extrato.ts",
+      "time": {
+       "start": 1789848167139,
+       "end": 1789848167296
+      }
+     },
+     "id": "prt_0bb43a1cb001wBd0UtAYwSQlO9",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb439a1d001FtDqeuJpT0Gg6e"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_78da7530529945c090b30a03",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md"
+      },
+      "output": "[16300 caracteres omitidos]",
+      "title": "specs\\M4-certificados.md",
+      "time": {
+       "start": 1789848167476,
+       "end": 1789848167715
+      }
+     },
+     "id": "prt_0bb43a30b0013t2ogrDx1EEZTl",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb439a1d001FtDqeuJpT0Gg6e"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_a7dbd27e39de46819cf859b4",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\extrato.test.ts"
+      },
+      "output": "[21137 caracteres omitidos]",
+      "title": "api\\tests\\extrato.test.ts",
+      "time": {
+       "start": 1789848167664,
+       "end": 1789848167833
+      }
+     },
+     "id": "prt_0bb43a449001TC3v3t34lL0xqc",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb439a1d001FtDqeuJpT0Gg6e"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_1739691f3db4479d9c3a21c5",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\integrations\\m2-port.ts"
+      },
+      "output": "[3600 caracteres omitidos]",
+      "title": "api\\src\\integrations\\m2-port.ts",
+      "time": {
+       "start": 1789848167754,
+       "end": 1789848167929
+      }
+     },
+     "id": "prt_0bb43a4ff0012Lzg8clkfxjbe1",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb439a1d001FtDqeuJpT0Gg6e"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "bd600048f0ddfb21c49f073ab2f8c345bd757234",
+     "type": "step-finish",
+     "tokens": {
+      "total": 24709,
+      "input": 2840,
+      "output": 365,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 21504
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bb43a888001hxE9LoDszPGFGM",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb439a1d001FtDqeuJpT0Gg6e"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bb437857001v7e7AkdqrOIp70",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 39976,
+     "input": 15194,
+     "output": 206,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 24576
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789848169433,
+     "completed": 1789848173697
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bb43abd9001VxNcQjxBFWQKQh",
+    "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5"
+   },
+   "parts": [
+    {
+     "snapshot": "bd600048f0ddfb21c49f073ab2f8c345bd757234",
+     "type": "step-start",
+     "id": "prt_0bb43b3b2001ts26Ie41x8exSF",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43abd9001VxNcQjxBFWQKQh"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now let me look at the app.ts changes related to GET /extrato, and the horas-complementares.ts to understand the reuse functions. Let me also check the certificate-repository and activity-repository for context.",
+     "time": {
+      "start": 1789848171455,
+      "end": 1789848171764
+     },
+     "id": "prt_0bb43b3bf001HUPKIAVURn9uh4",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43abd9001VxNcQjxBFWQKQh"
+    },
+    {
+     "type": "tool",
+     "tool": "grep",
+     "callID": "call_ac2d31bb65f740bfbe6bc316",
+     "state": {
+      "status": "completed",
+      "input": {
+       "pattern": "extrato|Extrato|ConsultarExtrato",
+       "path": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src"
+      },
+      "output": "[1060 caracteres omitidos]",
+      "title": "extrato|Extrato|ConsultarExtrato",
+      "time": {
+       "start": 1789848171956,
+       "end": 1789848172137
+      }
+     },
+     "id": "prt_0bb43b502001hMYxhVTq56R3j4",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43abd9001VxNcQjxBFWQKQh"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_15917489df4a428789cc4c22",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\certificate\\horas-complementares.ts"
+      },
+      "output": "[1191 caracteres omitidos]",
+      "title": "api\\src\\certificate\\horas-complementares.ts",
+      "time": {
+       "start": 1789848172115,
+       "end": 1789848172210
+      }
+     },
+     "id": "prt_0bb43b5bb0016lMsfE3zFKpSMI",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43abd9001VxNcQjxBFWQKQh"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "bd600048f0ddfb21c49f073ab2f8c345bd757234",
+     "type": "step-finish",
+     "tokens": {
+      "total": 39976,
+      "input": 15194,
+      "output": 206,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 24576
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bb43b97c0016yn777rPStItUp",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43abd9001VxNcQjxBFWQKQh"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bb437857001v7e7AkdqrOIp70",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 41032,
+     "input": 791,
+     "output": 305,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 39936
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789848173708,
+     "completed": 1789848178243
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bb43bc8b001c3aG1K6z10t34Y",
+    "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5"
+   },
+   "parts": [
+    {
+     "snapshot": "bd600048f0ddfb21c49f073ab2f8c345bd757234",
+     "type": "step-start",
+     "id": "prt_0bb43c36a001O5TV5fV9StJr2s",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43bc8b001c3aG1K6z10t34Y"
+    },
+    {
+     "type": "reasoning",
+     "text": "Let me look at the app.ts changes related to GET /extrato, and how other use cases are structured to assess consistency. Let me read the relevant portion of app.ts and look at how the certificate use cases are structured (e.g., certificate.ts), to see whether there is duplication in how a certificate is looked up for an activity+participant.",
+     "time": {
+      "start": 1789848175473,
+      "end": 1789848175794
+     },
+     "id": "prt_0bb43c371001LBnv0qW0ZPU40D",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43bc8b001c3aG1K6z10t34Y"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_1e97fc6aac0346a5a9077adc",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\app.ts",
+       "offset": 80,
+       "limit": 30
+      },
+      "output": "[2267 caracteres omitidos]",
+      "title": "api\\src\\app.ts",
+      "time": {
+       "start": 1789848175981,
+       "end": 1789848176117
+      }
+     },
+     "id": "prt_0bb43c4b6001N47TMU6TuzMyEn",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43bc8b001c3aG1K6z10t34Y"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_2ce218579f074756b53f2940",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\app.ts",
+       "offset": 425,
+       "limit": 20
+      },
+      "output": "[1081 caracteres omitidos]",
+      "title": "api\\src\\app.ts",
+      "time": {
+       "start": 1789848176384,
+       "end": 1789848176489
+      }
+     },
+     "id": "prt_0bb43c591001G95DEuxFnKCawd",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43bc8b001c3aG1K6z10t34Y"
+    },
+    {
+     "type": "tool",
+     "tool": "glob",
+     "callID": "call_9f515d19370545c09d210db9",
+     "state": {
+      "status": "completed",
+      "input": {
+       "pattern": "api/src/certificate/*.ts"
+      },
+      "output": "[510 caracteres omitidos]",
+      "title": "",
+      "time": {
+       "start": 1789848176682,
+       "end": 1789848176799
+      }
+     },
+     "id": "prt_0bb43c706001TBDYvH6rGwXYua",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43bc8b001c3aG1K6z10t34Y"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "bd600048f0ddfb21c49f073ab2f8c345bd757234",
+     "type": "step-finish",
+     "tokens": {
+      "total": 41032,
+      "input": 791,
+      "output": 305,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 39936
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bb43cb98001b3rib3Tj4SkZAK",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43bc8b001c3aG1K6z10t34Y"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bb437857001v7e7AkdqrOIp70",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 42444,
+     "input": 1246,
+     "output": 238,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 40960
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789848178253,
+     "completed": 1789848183129
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bb43ce4d001b0uhTtSUrL5aIC",
+    "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5"
+   },
+   "parts": [
+    {
+     "snapshot": "bd600048f0ddfb21c49f073ab2f8c345bd757234",
+     "type": "step-start",
+     "id": "prt_0bb43d54f001Pmb2pg3Bv4BtvW",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43ce4d001b0uhTtSUrL5aIC"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now let me examine the certificate repository to see the findByAtividadeEParticipante method and check the other certificate use cases (emissao-certificado.ts) to assess reuse patterns and consistency. Let me also check git status and git log for context.",
+     "time": {
+      "start": 1789848180059,
+      "end": 1789848180374
+     },
+     "id": "prt_0bb43d55b001xkJWAdsfS7UXld",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43ce4d001b0uhTtSUrL5aIC"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_ba01a83734484103ab7998f7",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\certificate\\emissao-certificado.ts"
+      },
+      "output": "[2748 caracteres omitidos]",
+      "title": "api\\src\\certificate\\emissao-certificado.ts",
+      "time": {
+       "start": 1789848180414,
+       "end": 1789848180742
+      }
+     },
+     "id": "prt_0bb43d69d001obH7yqWK33U1GE",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43ce4d001b0uhTtSUrL5aIC"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_48256de9c6af495da796848a",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\repositories\\certificate-repository.ts"
+      },
+      "output": "[3978 caracteres omitidos]",
+      "title": "api\\src\\repositories\\certificate-repository.ts",
+      "time": {
+       "start": 1789848180580,
+       "end": 1789848180931
+      }
+     },
+     "id": "prt_0bb43d6c60014g7olGLbrTiX8n",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43ce4d001b0uhTtSUrL5aIC"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_a00625cf3c4e4c429913f631",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git status --short; git log --oneline -8"
+      },
+      "output": "df6e7ec M4-R3-R4-R5-R10-R13-R18: implementa extrato de horas\nfef7b5e M4-R3-R4-R5-R10-R13-R18: adiciona testes RED do extrato\nfca1195 M4: especifica elegibilidade das atividades no extrato\n2205336 M4: registra rodada 2 complementar do extrato\n5acbef8 M4: registra rodada 1 complementar do extrato\nb36f3f4 M4: implementa listagem de certificados do participante\n63bcd36 M4-R8: implementa verificacao publica de certificado\n226d370 M4-R9: implementa idempotencia HTTP da emissao\n",
+      "metadata": {
+       "output": "df6e7ec M4-R3-R4-R5-R10-R13-R18: implementa extrato de horas\nfef7b5e M4-R3-R4-R5-R10-R13-R18: adiciona testes RED do extrato\nfca1195 M4: especifica elegibilidade das atividades no extrato\n2205336 M4: registra rodada 2 complementar do extrato\n5acbef8 M4: registra rodada 1 complementar do extrato\nb36f3f4 M4: implementa listagem de certificados do participante\n63bcd36 M4-R8: implementa verificacao publica de certificado\n226d370 M4-R9: implementa idempotencia HTTP da emissao\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git status --short; git log --oneline -8",
+      "time": {
+       "start": 1789848180649,
+       "end": 1789848181608
+      }
+     },
+     "id": "prt_0bb43d76c0016Q9AqzmEkrdnjZ",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43ce4d001b0uhTtSUrL5aIC"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "bd600048f0ddfb21c49f073ab2f8c345bd757234",
+     "type": "step-finish",
+     "tokens": {
+      "total": 42444,
+      "input": 1246,
+      "output": 238,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 40960
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bb43de9a00118kDWiasaY32Y1",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43ce4d001b0uhTtSUrL5aIC"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bb437857001v7e7AkdqrOIp70",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 44832,
+     "input": 2457,
+     "output": 135,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 42240
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789848183146,
+     "completed": 1789848190272
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bb43e16a0016MMqm3blwJjOIH",
+    "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5"
+   },
+   "parts": [
+    {
+     "snapshot": "bd600048f0ddfb21c49f073ab2f8c345bd757234",
+     "type": "step-start",
+     "id": "prt_0bb43f0d6001HaRqh4Vb2XCOqG",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43e16a0016MMqm3blwJjOIH"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now let me understand the context more. Let me look at the git diff of the extrato commit to see exactly what changed.",
+     "time": {
+      "start": 1789848187102,
+      "end": 1789848187363
+     },
+     "id": "prt_0bb43f0dd001eJ7TPELH6tw1AE",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43e16a0016MMqm3blwJjOIH"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_2bb27c1bf2bc473895f861b5",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git show --stat df6e7ec"
+      },
+      "output": "commit df6e7ec900b2643364460b7ca8d8032829899677\nAuthor: EnzoFenato <enzofenato@gmail.com>\nDate:   Sat Sep 19 17:01:27 2026 -0300\n\n    M4-R3-R4-R5-R10-R13-R18: implementa extrato de horas\n\n api/src/app.ts                  |  7 +++++\n api/src/certificate/extrato.ts  | 60 +++++++++++++++++++++++++++++++++++++++++\n api/src/integrations/m2-port.ts | 26 ++++++++++++++++++\n 3 files changed, 93 insertions(+)\n",
+      "metadata": {
+       "output": "commit df6e7ec900b2643364460b7ca8d8032829899677\nAuthor: EnzoFenato <enzofenato@gmail.com>\nDate:   Sat Sep 19 17:01:27 2026 -0300\n\n    M4-R3-R4-R5-R10-R13-R18: implementa extrato de horas\n\n api/src/app.ts                  |  7 +++++\n api/src/certificate/extrato.ts  | 60 +++++++++++++++++++++++++++++++++++++++++\n api/src/integrations/m2-port.ts | 26 ++++++++++++++++++\n 3 files changed, 93 insertions(+)\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git show --stat df6e7ec",
+      "time": {
+       "start": 1789848187744,
+       "end": 1789848188523
+      }
+     },
+     "id": "prt_0bb43f1eb001bmmYKQl8WzyvWq",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43e16a0016MMqm3blwJjOIH"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_64b0e95a894647fe8e783946",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git show df6e7ec -- api/src/certificate/extrato.ts api/src/integrations/m2-port.ts api/src/app.ts"
+      },
+      "output": "commit df6e7ec900b2643364460b7ca8d8032829899677\nAuthor: EnzoFenato <enzofenato@gmail.com>\nDate:   Sat Sep 19 17:01:27 2026 -0300\n\n    M4-R3-R4-R5-R10-R13-R18: implementa extrato de horas\n\ndiff --git a/api/src/app.ts b/api/src/app.ts\nindex 37df2bb..72b1d53 100644\n--- a/api/src/app.ts\n+++ b/api/src/app.ts\n@@ -34,6 +34,7 @@ import { processExpirationsAndConvocations } from './domain/inscricao-service.js\n import { mapActivityResponse } from './http/activity-response.js';\n import { EmitirCertificado } from './certificate/emissao-certificado.js';\n import { abreviarNome } from './certificate/abreviar-nome.js';\n+import { ConsultarExtrato } from './certificate/extrato.js';\n \n export interface AppOptions {\n   dbPath?: string;\n@@ -89,6 +90,7 @@ const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, in\n   const certificateRepository = new CertificateRepository(db);\n   const m3PresencePort = new SQLiteM3PresenceAdapter(activityRepository, presencaRepository);\n   const emitirCertificado = new EmitirCertificado(clock, m3PresencePort, certificateRepository);\n+  const consultarExtrato = new ConsultarExtrato(m2Port, activityRepository, certificateRepository);\n \n   // Modo de teste routes (when MODO_TESTE=1)\n   if (modoTeste) {\n@@ -429,6 +431,11 @@ const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, in\n     res.json(certificados);\n   });\n \n+  app.get('/extrato', requireUser, requireParticipant, (req: Request, res: Response) => {\n+    const user = (req as any).user;\n+    res.json(consultarExtrato.execute(user.id));\n+  });\n+\n   app.get('/certificados/:codigo', (req: Request, res: Response) => {\n     const certificado = certificateRepository.findByCodigo(req.params.codigo);\n     if (!certificado) {\ndiff --git a/api/src/certificate/extrato.ts b/api/src/certificate/extrato.ts\nnew file mode 100644\nindex 0000000..c8eec0e\n--- /dev/null\n+++ b/api/src/certificate/extrato.ts\n@@ -0,0 +1,60 @@\n+import { M2IntegrationPort } from '../integrations/m2-port.js';\n+import { ActivityRepository } from '../repositories/activity-repository.js';\n+import { CertificateRepository } from '../repositories/certificate-repository.js';\n+import { calcularAproveitadoMinutos, somarCargasBrutas } from './horas-complementares.js';\n+\n+export interface ExtratoItem {\n+  atividadeId: string;\n+  titulo: string;\n+  tipo: 'palestra' | 'minicurso';\n+  cargaHorariaMinutos: number;\n+  codigo: string | null;\n+}\n+\n+export interface Extrato {\n+  itens: ExtratoItem[];\n+  palestrasMinutos: number;\n+  minicursosMinutos: number;\n+  totalMinutos: number;\n+  aproveitadoMinutos: number;\n+}\n+\n+export class ConsultarExtrato {\n+  constructor(\n+    private readonly m2Port: M2IntegrationPort,\n+    private readonly activityRepository: ActivityRepository,\n+    private readonly certificateRepository: CertificateRepository\n+  ) {}\n+\n+  execute(participanteId: string): Extrato {\n+    const inscricoes = this.m2Port.listarInscricoesDoParticipante?.(participanteId) ?? [];\n+    const itens: ExtratoItem[] = [];\n+\n+    for (const inscricao of inscricoes) {\n+      if (inscricao.status !== 'confirmada') {\n+        continue;\n+      }\n+      const atividade = this.activityRepository.findById(inscricao.atividadeId);\n+      if (!atividade || atividade.cancelada === 1) {\n+        continue;\n+      }\n+      const certificado = this.certificateRepository.findByAtividadeEParticipante(atividade.id, participanteId);\n+      itens.push({\n+        atividadeId: atividade.id,\n+        titulo: atividade.titulo,\n+        tipo: atividade.tipo as 'palestra' | 'minicurso',\n+        cargaHorariaMinutos: atividade.cargaHorariaMinutos,\n+        codigo: certificado ? certificado.codigo : null\n+      });\n+    }\n+\n+    const { palestrasMinutos, minicursosMinutos, totalMinutos } = somarCargasBrutas(itens);\n+    return {\n+      itens,\n+      palestrasMinutos,\n+      minicursosMinutos,\n+      totalMinutos,\n+      aproveitadoMinutos: calcularAproveitadoMinutos(palestrasMinutos, minicursosMinutos)\n+    };\n+  }\n+}\n\\ No newline at end of file\ndiff --git a/api/src/integrations/m2-port.ts b/api/src/integrations/m2-port.ts\nindex f08bb8d..b5137ac 100644\n--- a/api/src/integrations/m2-port.ts\n+++ b/api/src/integrations/m2-port.ts\n@@ -3,11 +3,17 @@ import { ActivityRepository } from '../repositories/activity-repository.js';\n import { Clock } from '../clock/clock.js';\n import { processExpirationsAndConvocations } from '../domain/inscricao-service.js';\n \n+export interface InscricaoDoParticipante {\n+  atividadeId: string;\n+  status: 'confirmada' | 'em_espera' | 'convocada' | 'cancelada' | 'expirada';\n+}\n+\n export interface M2IntegrationPort {\n   getOcupadas(atividadeId: string): number;\n   getEmEspera(atividadeId: string): number;\n   convocarEspera(atividadeId: string): void;\n   cancelarInscricoes(atividadeId: string): void;\n+  listarInscricoesDoParticipante?(participanteId: string): InscricaoDoParticipante[];\n }\n \n export class NeutralM2Adapter implements M2IntegrationPort {\n@@ -26,6 +32,10 @@ export class NeutralM2Adapter implements M2IntegrationPort {\n   cancelarInscricoes(_atividadeId: string): void {\n     // no-op\n   }\n+\n+  listarInscricoesDoParticipante(_participanteId: string): InscricaoDoParticipante[] {\n+    return [];\n+  }\n }\n \n export class SQLiteM2Adapter implements M2IntegrationPort {\n@@ -58,4 +68,20 @@ export class SQLiteM2Adapter implements M2IntegrationPort {\n   cancelarInscricoes(atividadeId: string): void {\n     this.inscricaoRepository.cancelActiveInscricoesForActivity(atividadeId);\n   }\n+\n+  listarInscricoesDoParticipante(participanteId: string): InscricaoDoParticipante[] {\n+    if (this.activityRepository && this.clock) {\n+      processExpirationsAndConvocations(this.activityRepository, this.inscricaoRepository, this.clock.now());\n+    }\n+    const inscricoes = this.inscricaoRepository.findByParticipant(participanteId);\n+    const atividadeIds = Array.from(new Set(inscricoes.map((i) => i.atividadeId)));\n+    const resultado: InscricaoDoParticipante[] = [];\n+    for (const atividadeId of atividadeIds) {\n+      const atual = this.inscricaoRepository.findByActivityAndParticipant(atividadeId, participanteId);\n+      if (atual) {\n+        resultado.push({ atividadeId, status: atual.status });\n+      }\n+    }\n+    return resultado;\n+  }\n }\n",
+      "metadata": {
+       "output": "commit df6e7ec900b2643364460b7ca8d8032829899677\nAuthor: EnzoFenato <enzofenato@gmail.com>\nDate:   Sat Sep 19 17:01:27 2026 -0300\n\n    M4-R3-R4-R5-R10-R13-R18: implementa extrato de horas\n\ndiff --git a/api/src/app.ts b/api/src/app.ts\nindex 37df2bb..72b1d53 100644\n--- a/api/src/app.ts\n+++ b/api/src/app.ts\n@@ -34,6 +34,7 @@ import { processExpirationsAndConvocations } from './domain/inscricao-service.js\n import { mapActivityResponse } from './http/activity-response.js';\n import { EmitirCertificado } from './certificate/emissao-certificado.js';\n import { abreviarNome } from './certificate/abreviar-nome.js';\n+import { ConsultarExtrato } from './certificate/extrato.js';\n \n export interface AppOptions {\n   dbPath?: string;\n@@ -89,6 +90,7 @@ const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, in\n   const certificateRepository = new CertificateRepository(db);\n   const m3PresencePort = new SQLiteM3PresenceAdapter(activityRepository, presencaRepository);\n   const emitirCertificado = new EmitirCertificado(clock, m3PresencePort, certificateRepository);\n+  const consultarExtrato = new ConsultarExtrato(m2Port, activityRepository, certificateRepository);\n \n   // Modo de teste routes (when MODO_TESTE=1)\n   if (modoTeste) {\n@@ -429,6 +431,11 @@ const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, in\n     res.json(certificados);\n   });\n \n+  app.get('/extrato', requireUser, requireParticipant, (req: Request, res: Response) => {\n+    const user = (req as any).user;\n+    res.json(consultarExtrato.execute(user.id));\n+  });\n+\n   app.get('/certificados/:codigo', (req: Request, res: Response) => {\n     const certificado = certificateRepository.findByCodigo(req.params.codigo);\n     if (!certificado) {\ndiff --git a/api/src/certificate/extrato.ts b/api/src/certificate/extrato.ts\nnew file mode 100644\nindex 0000000..c8eec0e\n--- /dev/null\n+++ b/api/src/certificate/extrato.ts\n@@ -0,0 +1,60 @@\n+import { M2IntegrationPort } from '../integrations/m2-port.js';\n+import { ActivityRepository } from '../repositories/activity-repository.js';\n+import { CertificateRepository } from '../repositories/certificate-repository.js';\n+import { calcularAproveitadoMinutos, somarCargasBrutas } from './horas-complementares.js';\n+\n+export interface ExtratoItem {\n+  atividadeId: string;\n+  titulo: string;\n+  tipo: 'palestra' | 'minicurso';\n+  cargaHorariaMinutos: number;\n+  codigo: string | null;\n+}\n+\n+export interface Extrato {\n+  itens: ExtratoItem[];\n+  palestrasMinutos: number;\n+  minicursosMinutos: number;\n+  totalMinutos: number;\n+  aproveitadoMinutos: number;\n+}\n+\n+export class ConsultarExtrato {\n+  constructor(\n+    private readonly m2Port: M2IntegrationPort,\n+    private readonly activityRepository: ActivityRepository,\n+    private readonly certificateRepository: CertificateRepository\n+  ) {}\n+\n+  execute(participanteId: string): Extrato {\n+    const inscricoes = this.m2Port.listarInscricoesDoParticipante?.(participanteId) ?? [];\n+    const itens: ExtratoItem[] = [];\n+\n+    for (const inscricao of inscricoes) {\n+      if (inscricao.status !== 'confirmada') {\n+        continue;\n+      }\n+      const atividade = this.activityRepository.findById(inscricao.atividadeId);\n+      if (!atividade || atividade.cancelada === 1) {\n+        continue;\n+      }\n+      const certificado = this.certificateRepository.findByAtividadeEParticipante(atividade.id, participanteId);\n+      itens.push({\n+        atividadeId: atividade.id,\n+        titulo: atividade.titulo,\n+        tipo: atividade.tipo as 'palestra' | 'minicurso',\n+        cargaHorariaMinutos: atividade.cargaHorariaMinutos,\n+        codigo: certificado ? certificado.codigo : null\n+      });\n+    }\n+\n+    const { palestrasMinutos, minicursosMinutos, totalMinutos } = somarCargasBrutas(itens);\n+    return {\n+      itens,\n+      palestrasMinutos,\n+      minicursosMinutos,\n+      totalMinutos,\n+      aproveitadoMinutos: calcularAproveitadoMinutos(palestrasMinutos, minicursosMinutos)\n+    };\n+  }\n+}\n\\ No newline at end of file\ndiff --git a/api/src/integrations/m2-port.ts b/api/src/integrations/m2-port.ts\nindex f08bb8d..b5137ac 100644\n--- a/api/src/integrations/m2-port.ts\n+++ b/api/src/integrations/m2-port.ts\n@@ -3,11 +3,17 @@ import { ActivityRepository } from '../repositories/activity-repository.js';\n import { Clock } from '../clock/clock.js';\n import { processExpirationsAndConvocations } from '../domain/inscricao-service.js';\n \n+export interface InscricaoDoParticipante {\n+  atividadeId: string;\n+  status: 'confirmada' | 'em_espera' | 'convocada' | 'cancelada' | 'expirada';\n+}\n+\n export interface M2IntegrationPort {\n   getOcupadas(atividadeId: string): number;\n   getEmEspera(atividadeId: string): number;\n   convocarEspera(atividadeId: string): void;\n   cancelarInscricoes(atividadeId: string): void;\n+  listarInscricoesDoParticipante?(participanteId: string): InscricaoDoParticipante[];\n }\n \n export class NeutralM2Adapter implements M2IntegrationPort {\n@@ -26,6 +32,10 @@ export class NeutralM2Adapter implements M2IntegrationPort {\n   cancelarInscricoes(_atividadeId: string): void {\n     // no-op\n   }\n+\n+  listarInscricoesDoParticipante(_participanteId: string): InscricaoDoParticipante[] {\n+    return [];\n+  }\n }\n \n export class SQLiteM2Adapter implements M2IntegrationPort {\n@@ -58,4 +68,20 @@ export class SQLiteM2Adapter implements M2IntegrationPort {\n   cancelarInscricoes(atividadeId: string): void {\n     this.inscricaoRepository.cancelActiveInscricoesForActivity(atividadeId);\n   }\n+\n+  listarInscricoesDoParticipante(participanteId: string): InscricaoDoParticipante[] {\n+    if (this.activityRepository && this.clock) {\n+      processExpirationsAndConvocations(this.activityRepository, this.inscricaoRepository, this.clock.now());\n+    }\n+    const inscricoes = this.inscricaoRepository.findByParticipant(participanteId);\n+    const atividadeIds = Array.from(new Set(inscricoes.map((i) => i.atividadeId)));\n+    const resultado: InscricaoDoParticipante[] = [];\n+    for (const atividadeId of atividadeIds) {\n+      const atual = this.inscricaoRepository.findByActivityAndParticipant(atividadeId, participanteId);\n+      if (atual) {\n+        resultado.push({ atividadeId, status: atual.status });\n+      }\n+    }\n+    return resultado;\n+  }\n }\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git show df6e7ec -- api/src/certificate/extrato.ts api/src/integrations/m2-port.ts api/src/app.ts",
+      "time": {
+       "start": 1789848187918,
+       "end": 1789848188692
+      }
+     },
+     "id": "prt_0bb43f3730013BSHI5oOf7ovKM",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43e16a0016MMqm3blwJjOIH"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "bd600048f0ddfb21c49f073ab2f8c345bd757234",
+     "type": "step-finish",
+     "tokens": {
+      "total": 44832,
+      "input": 2457,
+      "output": 135,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 42240
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bb43fa6b001WNVBwK0pyx10sy",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43e16a0016MMqm3blwJjOIH"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bb437857001v7e7AkdqrOIp70",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 47063,
+     "input": 2014,
+     "output": 249,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 44800
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789848190285,
+     "completed": 1789848195231
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bb43fd4d001ge5RVXWThd9fF1",
+    "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5"
+   },
+   "parts": [
+    {
+     "snapshot": "bd600048f0ddfb21c49f073ab2f8c345bd757234",
+     "type": "step-start",
+     "id": "prt_0bb4404fb001Iip9bw1foE6jhZ",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43fd4d001ge5RVXWThd9fF1"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now let me examine the implementation more carefully for potential refactoring opportunities. Let me check a few things:\n\n1. The `extrato.ts` uses `atividade.cancelada === 1` — this checks the ActivityRepository's cancelada field. Let me check what ActivityRepository.findById returns.\n\n2. The `tipo` cast `atividade.tipo as 'palestra' | 'minicurso'` — there might be a type union already defined on Activity; let me check.\n\n3. The MI2 adapter's `listarInscricoesDoParticipante` uses `processExpirationsAndConvocations` with no atividadeId argument (processes all). Let me look at the InscricaoRepository methods.\n\nLet me look at ActivityRepository and the InscricaoRepository to understand types.",
+     "time": {
+      "start": 1789848192258,
+      "end": 1789848193345
+     },
+     "id": "prt_0bb440502001WzbjX61vutbxv2",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43fd4d001ge5RVXWThd9fF1"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_6ca5ead79e2a40ad857831e5",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\repositories\\activity-repository.ts"
+      },
+      "output": "[5262 caracteres omitidos]",
+      "title": "api\\src\\repositories\\activity-repository.ts",
+      "time": {
+       "start": 1789848193557,
+       "end": 1789848193666
+      }
+     },
+     "id": "prt_0bb440945001nbjohzA1kfOPn5",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43fd4d001ge5RVXWThd9fF1"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "bd600048f0ddfb21c49f073ab2f8c345bd757234",
+     "type": "step-finish",
+     "tokens": {
+      "total": 47063,
+      "input": 2014,
+      "output": 249,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 44800
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bb440d6b001dYejQqG91Nbk3B",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb43fd4d001ge5RVXWThd9fF1"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bb437857001v7e7AkdqrOIp70",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 51875,
+     "input": 1885,
+     "output": 3142,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 46848
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789848195245,
+     "completed": 1789848217434
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bb4410ad001kiQCUuc6ee4Wl1",
+    "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5"
+   },
+   "parts": [
+    {
+     "snapshot": "bd600048f0ddfb21c49f073ab2f8c345bd757234",
+     "type": "step-start",
+     "id": "prt_0bb4416e3001XmltXPBAvekxlk",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb4410ad001kiQCUuc6ee4Wl1"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now I understand the structure. Let me evaluate the current implementation for refactoring opportunities against the constraints:\n\n**Current state of `extrato.ts`:**\n- `ConsultarExtrato` class with `execute` method.\n- Uses `m2Port.listarInscricoesDoParticipante?.(participanteId) ?? []` — optional chaining because the method is optional in the port interface.\n- Loops through inscriptions, filters on status confirmada, looks up activity, skips if null or canceled, looks up certificate, pushes item.\n- Then calls `somarCargasBrutas` and `calcularAproveitadoMinutos` — reuses existing functions. Good.\n\n**Potential refactor opportunities:**\n\n1. **The `tipo` cast**: `atividade.tipo as 'palestra' | 'minicurso'`. The `ActivityRow.tipo` is `string`. This cast is pragmatic; a type safety improvement would be to type `somarCargasBrutas` input against the actual data. But `AtividadeExtrato` requires `tipo: 'palestra' | 'minicurso'`. This cast exists because `ActivityRow.tipo` is `string`. There's no domain-level type for activity type defined anywhere else? Let me check if there's a shared type. Actually the cast is here. But also — `AtividadeExtrato` already needs `tipo` and `cargaHorariaMinutos`, and `ExtratoItem` is structurally a superset of `AtividadeExtrato`. Could `somarCargasBrutas` accept `ExtratoItem[]`? Since `ExtratoItem` has `tipo: 'palestra' | 'minicurso'` and `cargaHorariaMinutos: number`, it's structurally compatible with `AtividadeExtrato`. So `somarCargasBrutas(itens)` where itens is `ExtratoItem[]` works because `ExtratoItem` is assignable to `AtividadeExtrato`. Good, already works.\n\n2. **Duplication in the m2-port `SQLiteM2Adapter`**: The pattern `if (this.activityRepository && this.clock) { processExpirationsAndConvocations(...) }` is repeated in `getOcupadas`, `getEmEspera`, `convocarEspera`, and `listarInscricoesDoParticipante`. This is a pre-existing pattern (getOcupadas, getEmEspera, convocarEspera existed before this slice). The new method follows the same pattern. Refactoring this to extract a private `sincronizar()` method would reduce duplication, but this touches existing M2 code beyond the slice. Hmm, but it's within m2-port.ts, which is part of the reviewed files. However, the constraint says \"não fazer refatoração apenas para produzir alteração\" and \"faça somente a alteração mínima\". Extracting a private helper for the repeated conditional would: (a) refactor existing M2 code not belonging to M4, (b) risk of being \"progress\" beyond the slice. The task focuses on M4's slice. But it does say the review includes \"alterações relacionadas ao M2IntegrationPort em api/src/integrations/m2-port.ts\". A small extraction of the repeated `processExpirationsAndConvocations` guard could be justified. But is it really \"justificável\"? It's pre-existing duplication; the new method just follows the established pattern. Changing it might touch other modules' code (M2's responsibility). Given AGENTS.md: \"Antes de modificar um módulo, confira seu responsável e preserve o trabalho dos demais integrantes.\" and the restrictions, I should be conservative.\n\n3. **`listarInscricoesDoParticipante` implementation**: dedicated method is on the SQLite adapter. But note: M4's spec says the port should be extended. Actually, this new method is added to the M2 port adapter implementation. Wait — is the correct architectural place to implement `listarInscricoesDoParticipante` inside `SQLiteM2Adapter`? It uses `inscricaoRepository.findByParticipant` and `findByActivityAndParticipant`, and calls `processExpirationsAndConvocations`. It's the M2 module's own repository and domain service, so implementing it in M2's adapter is proper separation. OK.\n\n   But there's a subtlety: `processExpirationsAndConvocations` with no `atividadeId` processes all activities. The signature: let me check the domain service signature. In `convocarEspera` they pass `atividadeId`; in `listarInscricoesDoParticipante` they don't. Let me check if that's correct—that processing all is fine because the participant's inscriptions could be in any status and expiring needs processing. It's a business rule from M2; fine.\n\n   Potential N+1: for each distinct atividadeId it does `findByActivityAndParticipant`. That's M2's adapter persistence detail; leave it.\n\n4. **The optional method on the port**: `listarInscricoesDoParticipante?` is optional because... the `NeutralM2Adapter` implements it anyway, and SQLiteM2Adapter implements it. Both adapters implement it. Why is it optional? Possibly because other sections of the system construct M2 adapters or mocks in tests, and making it optional avoids breaking existing mocks. But then in `extrato.ts`, `this.m2Port.listarInscricoesDoParticipante?.(participanteId) ?? []` guards for the case where a custom adapter doesn't implement it. Since both production adapters implement it, the optionality + nullish fallback is defensive. This is arguably okay as a soft-integration boundary.\n\nActually wait — is there a concern about R10's dependency? The spec says M4 needs to know in which activities the participant is signed up and whether a certificate was emitted. The port now provides that. Good.\n\n5. **In `extrato.ts`, `atividade.cancelada === 1`**: the Domain logic — activity canceled not eligible (R18). The check \"cancelada\" is encoded as `=== 1` on a raw repository row. This is a domain concept leaking. But there's no existing helper for \"activity is canceled\" in the codebase? Let me search to see whether other modules check `cancelada` the same way. If consistent, then it's fine to keep.\n\nLet me check how cancellation is checked elsewhere.\n\n6. **`itens` loop building with `continue`**: fine.\n\n7. **Consistency with emission use case**: `EmitirCertificado` receives an `ActivitySnapshot` and checks presence. Nothing duplicated with `ConsultarExtrato` aside from repository access. The certification eligibility for the extrato requires inscription status confirmada and activity not canceled; the emission path doesn't check inscription status (authorization handled at HTTP layer? or the m2 port?). Actually let me check how emission confirms the participant is inscribed. In tests, the emission for extrato test: participant inscribed confirmada. Hmm, emission route checks `NAO_INSCRITO`? Let's not go down this path—out of scope.\n\nNow, let me focus on what genuinely could be improved within the slice's reviewed files without changing behavior:\n\n**Candidate A — `somarCargasBrutas` typed parameter.** In `extrato.ts`, `somarCargasBrutas(itens)` is called with `ExtratoItem[]`. `ExtratoItem` has `tipo: 'palestra' | 'minicurso'` and `cargaHorariaMinutos: number`, so it's assignable to `AtividadeExtrato`. It compiles fine. Reuse is good.\n\n**Candidate B — avoid the `as` cast for `tipo`.** The cast `atividade.tipo as 'palestra' | 'minicurso'` is a type assertion. Is there a way to avoid it? The `ActivityRow.tipo` is `string`. Options: validate the tipo. That's a new validation (behavior-ish). Not justified for a refactor-only step. The cast is acceptable.\n\n**Candidate C — the optional-call guard `listarInscricoesDoParticipante?.() ?? []`.** Given both adapters implement it and the port declares it optional, the guard is defensive. This could be considered appropriate as a backward-compatible integration seam. However, one could argue the method should be mandatory now. But making it mandatory would be a behavior change for any test double not implementing it. Tests are HTTP-level (createApp), which uses SQLiteM2Adapter; so no test doubles implement the port directly. Making it mandatory wouldn't break tests. But it's not necessarily an improvement — keeping it optional gives flexibility. Minimal change is the priority; leave it.\n\n**Candidate D — extraction of repeated `processExpirationsAndConvocations` guard in m2-port.** Pre-existing duplication; 3 methods already had it, the new one adds a 4th. Extracting a private helper `atualizarSituacoes(atividadeId?: string)` would reduce duplication and make the adapter cleaner. This is genuinely a small, safe refactor that improves clarity and reduces duplication. Since the review scope explicitly includes m2-port.ts changes, and the new method itself repeats the pattern, a minimal extraction would be:\n\n```ts\nprivate sincronizar(atividadeId?: string): void {\n  if (this.activityRepository && this.clock) {\n    processExpirationsAndConvocations(this.activityRepository, this.inscricaoRepository, this.clock.now(), atividadeId);\n  }\n}\n```\n\nand then each public method calls `this.sincronizar(atividadeId)` / `this.sincronizar()`.\n\nWait, `processExpirationsAndConvocations(activityRepository, inscricaoRepository, agora, atividadeId?)` — the 4th arg is optional. Let me check the signature.\n\nLet me verify the signature of processExpirationsAndConvocations.\n\nAlso should I be careful about behavior? `processExpirationsAndConvocations` is called with `this.clock.now()` in all cases—same. It's a pure refactor with identical behavior.\n\nBut: does this touch \"other people's code\"? m2-port.ts is presumably owned by M2 integrant. However the diff already added the M4 method to this file. The repeated pattern existed before. The question states the review scope includes \"alterações relacionadas ao M2IntegrationPort em api/src/integrations/m2-port.ts\". Refactoring pre-existing duplication across the whole adapter file could be seen as \"refatoração apenas para produzir alteração\" — no, it reduces duplication genuinely. But it does change M2's code beyond the slice additions (getOcupadas etc. belong to M2). AGENTS.md says \"Não modificar o contrato público ou o módulo de outro integrante sem alinhamento\" — a private helper doesn't change the public contract, but it does modify the module. This is a judgment call. The safer course per constraints (\"não fazer refatoração apenas para produzir alteração\", \"faça somente a alteração mínima\", \"preserve o trabalho dos demais integrantes\") is to NOT modify the pre-existing M2 methods.\n\nAlternatively, only the new method could avoid the pattern by... no, that would create inconsistency. Extracting only for the new method would be odd.\n\nHmm. Let me weigh: is there anything in the M4 slice itself that's genuinely duplicated or unclear?\n\nLook at `extrato.ts` again:\n\n```ts\nconst inscricoes = this.m2Port.listarInscricoesDoParticipante?.(participanteId) ?? [];\n```\n\nThe `?.` and `?? []` — given the interface marks it optional, this is a reasonable defensive fallback. OK.\n\nThe loop body is clear. The `codigo: certificado ? certificado.codigo : null` is clear.\n\nReuse of `somarCargasBrutas` and `calcularAproveitadoMinutos` from horas-complementares.ts is good — the slice reuses existing calculation functions as required.\n\nNow, is `somarCargasBrutas`'s parameter `AtividadeExtrato[]` — could we unify `ExtratoItem` and `AtividadeExtrato`? `AtividadeExtrato` is in horas-complementares.ts and only requires `tipo` and `cargaHorariaMinutos`. `ExtratoItem` extends beyond. They serve different purposes (calculation input vs. extrato item). No need to unify. Actually — could `somarCargasBrutas` accept `ExtratoItem[]`? It already does structurally. Fine.\n\nOne thing: in `extrato.ts`, might it be cleaner to not branch with `continue` but filter? e.g.:\n\n```ts\nconst itens = inscricoes\n  .filter((i) => i.status === 'confirmada')\n  .map((i) => this.activityRepository.findById(i.atividadeId))\n  .filter((a): a is NonNullable<typeof a> => a !== null && a.cancelada !== 1)\n  .map((atividade) => ({ ... }));\n```\n\nThat mixes null filters with type guards and is arguably less readable than the loop. The imperative loop is fine and idiomatic given two levels of skip. Not clearly better.\n\nNow type narrowing: `atividade.cancelada === 1` — could use `Boolean(atividade.cancelada)`. Minor; not a real improvement.\n\nLet me check the domain service signature to confirm the extraction would be behavior-identical. Also let me look at how other M4/other slices check `cancelada`, for consistency.\n\nLet me grep for `cancelada` checks.",
+     "time": {
+      "start": 1789848196844,
+      "end": 1789848214832
+     },
+     "id": "prt_0bb4416ec001iWZoeqNwLq1h1S",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb4410ad001kiQCUuc6ee4Wl1"
+    },
+    {
+     "type": "tool",
+     "tool": "grep",
+     "callID": "call_63d66e41b5ac49adb264d772",
+     "state": {
+      "status": "completed",
+      "input": {
+       "pattern": "cancelada === 1|cancelada == 1|cancelada === 0|cancelada: 0|\\.cancelada",
+       "path": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src"
+      },
+      "output": "[1750 caracteres omitidos]",
+      "title": "cancelada === 1|cancelada == 1|cancelada === 0|cancelada: 0|\\.cancelada",
+      "time": {
+       "start": 1789848215147,
+       "end": 1789848215395
+      }
+     },
+     "id": "prt_0bb445d42001HxMGgAUQMVQemQ",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb4410ad001kiQCUuc6ee4Wl1"
+    },
+    {
+     "type": "tool",
+     "tool": "grep",
+     "callID": "call_31f28eb502384cb9b8b668f0",
+     "state": {
+      "status": "completed",
+      "input": {
+       "pattern": "processExpirationsAndConvocations",
+       "path": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src"
+      },
+      "output": "[2461 caracteres omitidos]",
+      "title": "processExpirationsAndConvocations",
+      "time": {
+       "start": 1789848215702,
+       "end": 1789848215853
+      }
+     },
+     "id": "prt_0bb445e76001iNc5TyD9paE9PG",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb4410ad001kiQCUuc6ee4Wl1"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "bd600048f0ddfb21c49f073ab2f8c345bd757234",
+     "type": "step-finish",
+     "tokens": {
+      "total": 51875,
+      "input": 1885,
+      "output": 3142,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 46848
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bb44640c001NqU3Gzlimk1xAm",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb4410ad001kiQCUuc6ee4Wl1"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bb437857001v7e7AkdqrOIp70",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 53357,
+     "input": 2048,
+     "output": 109,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 51200
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789848217449,
+     "completed": 1789848221823
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bb446768001HIcjobkU4THIwa",
+    "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5"
+   },
+   "parts": [
+    {
+     "snapshot": "bd600048f0ddfb21c49f073ab2f8c345bd757234",
+     "type": "step-start",
+     "id": "prt_0bb446fb4001Ab337dxUf2H3Ba",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb446768001HIcjobkU4THIwa"
+    },
+    {
+     "type": "reasoning",
+     "text": "Let me check the `processExpirationsAndConvocations` signature to confirm the 4th arg is optional and behavior is identical.",
+     "time": {
+      "start": 1789848219582,
+      "end": 1789848219804
+     },
+     "id": "prt_0bb446fbd001BqNr2RpA4QP1VB",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb446768001HIcjobkU4THIwa"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_79cd9e49ea494e41939289bf",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\domain\\inscricao-service.ts"
+      },
+      "output": "[2674 caracteres omitidos]",
+      "title": "api\\src\\domain\\inscricao-service.ts",
+      "time": {
+       "start": 1789848220078,
+       "end": 1789848220188
+      }
+     },
+     "id": "prt_0bb4470af001WhlRGDhDRmE7l0",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb446768001HIcjobkU4THIwa"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "bd600048f0ddfb21c49f073ab2f8c345bd757234",
+     "type": "step-finish",
+     "tokens": {
+      "total": 53357,
+      "input": 2048,
+      "output": 109,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 51200
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bb4475aa001RuitsEBRQCTVnJ",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb446768001HIcjobkU4THIwa"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bb437857001v7e7AkdqrOIp70",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 56549,
+     "input": 907,
+     "output": 2394,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 53248
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789848221834,
+     "completed": 1789848237589
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bb44788a001MX9SCqIuk44pAa",
+    "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5"
+   },
+   "parts": [
+    {
+     "snapshot": "bd600048f0ddfb21c49f073ab2f8c345bd757234",
+     "type": "step-start",
+     "id": "prt_0bb447fbf001OWlwqSYTPbLCBh",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb44788a001MX9SCqIuk44pAa"
+    },
+    {
+     "type": "reasoning",
+     "text": "The signature `processExpirationsAndConvocations(activityRepository, inscricaoRepository, agora, targetAtividadeId?)` has an optional 4th arg. So in `m2-port.ts`:\n- `getOcupadas`, `getEmEspera`, `convocarEspera` pass `atividadeId`\n- `listarInscricoesDoParticipante` passes nothing → processes all activities.\n\nThe pattern `if (this.activityRepository && this.clock) { ... }` is repeated 4 times in the adapter. This is pre-existing duplication; the new method follows the established pattern.\n\nNow let me assess the review more carefully against the task's specific lenses:\n\n1. **clareza** — extrato.ts is clear.\n2. **duplicação** — The `processExpirationsAndConvocations` guard is duplicated in m2-port.ts (4x now). This code belongs to M2's adapter. Any extraction affects M2's code. AGENTS.md says \"Não modificar o contrato público ou o módulo de outro integrante sem alinhamento.\" and \"Antes de modificar um módulo, confira seu responsável e preserve o trabalho dos demais integrantes.\" The refactor of pre-existing M2 adapter code goes beyond the M4 slice and touches another integrant's module. The task scope is specifically reviewing the M4 slice's GET /extrato implementation. So I should be conservative.\n\nActually, let me reconsider. The task says the review scope includes \"alterações relacionadas ao M2IntegrationPort em api/src/integrations/m2-port.ts\". The \"alterações relacionadas\" = the changes made for this slice (the added `listarInscricoesDoParticipante`). A private helper extraction that rewrites getOcupadas/getEmEspera/convocarEspera would be modifying M2's pre-existing code, which is \"out of slice\". This is risky and not \"mínima\".\n\nCould I justify a minimal extraction that only affects the new method's behavior? No — the new method's pattern is consistent with existing methods; leaving it as-is is fine consistency-wise.\n\n3. **separação de responsabilidades** — extrato.ts is a use case (application layer) delegating to port + repositories; good. The composition lives in app.ts. Good.\n4. **integração M2 → M4** — via port, good. The port method is optional with nullish fallback in the use-case. Both adapters implement it. This is a reasonable, non-breaking seam.\n5. **reutilização das funções existentes de cálculo** — `somarCargasBrutas` and `calcularAproveitadoMinutos` from horas-complementares.ts are reused. \n6. **aderência à arquitetura** — good.\n\nNow, is the optional `?` on `listarInscricoesDoParticipante` a smell? It was added to the port interface as optional. Since both adapters implement it and the only consumer guards it, there's a mild case that the method should be required rather than optional. But making it required means any other M2IntegrationPort implementation (again, only the two) must implement it — they both do. So no test contract breaks. Actually, is the optionality used anywhere meaningfully? It allows the use case to be resilient to adapters that don't implement it. The spec says \"Se a porta de M2 não fornecer esse dado, documente o bloqueio — não invente persistência\". So the optional fallback to `[]` means: if adapter doesn't provide, extrato returns empty. That's a mild \"documented block\" fallback. It's a design choice, arguably acceptable. I don't think changing it is a clear win.\n\nHmm, but one might argue the `?? []` fallback silently hides an integration gap. But that would require M2 port changes that are beyond the slice.\n\nNow — is there anything genuinely worth changing?\n\nLet me consider the `as 'palestra' | 'minicurso'` cast more carefully. The `AtividadeExtrato` interface requires `tipo: 'palestra' | 'minicurso'`. `ExtratoItem.tipo` is also `'palestra' | 'minicurso'`. Could I type `atividade.tipo` more narrowly? `ActivityRow.tipo` is `string`. There's no shared union type for activity types in the domain? Let me check `domain/activity.ts`.\n\nActually — is this a place where the existing `AtividadeExtrato`/`somarCargasBrutas` could be made more reusable by accepting a broader type? No; that changes hours logic module.\n\nThe cast exists because the DB row type is `string`. It's a pragmatic, localized cast. All the emitted item data flows from M1. Common pattern in this codebase. Leave it.\n\nLet me also verify the emitCertificado path — is there duplicate logic between extrato and emission for eligibility? Emission checks presence and encerramento; extrato only needs inscription status + activity not canceled + certificate existence. Different concerns, no duplication.\n\nNow, one more architectural consideration: The extrato use case builds `ExtratoItem` with `atividade.tipo as ...`. `somarCargasBrutas(itens)` accepts `ExtratoItem[]` since `ExtratoItem` is structurally assignable to `AtividadeExtrato`. Good reuse.\n\nAnother check: the `Extrato` interface and `ExtratoItem` — these are also the contract response shape. The HTTP route returns `consultarExtrato.execute(user.id)` directly; the shape matches contrato (`itens`, `palestrasMinutos`, `minicursosMinutos`, `totalMinutos`, `aproveitadoMinutos`, and itens with `atividadeId, titulo, tipo, cargaHorariaMinutos, codigo`). Good. The route uses `requireUser, requireParticipant`. Contract says the extrato is participant-only. Good.\n\nLet me quickly double check contrato-api.md for GET /extrato to ensure ordering and status codes, but the task says do not modify the contract—just consult. Let me grep it to confirm nothing about it is off (e.g., whether the response should include something else). Actually the contract review is the revisor-de-contrato's job; the task's current scope is refactor. But let me confirm the test baseline is green and run tests.\n\nGiven the extensive analysis, I don't find a genuinely justified, minimal refactor within the M4 slice that improves clarity/duplication/architecture without touching M2's pre-existing code or changing behavior. The implementation:\n- Reuses `somarCargasBrutas` and `calcularAproveitadoMinutos` ✓\n- Follows the adapter/port pattern consistent with the existing M2 adapter ✓\n- Clean use-case separation ✓\n- Route composition in app.ts consistent with siblings ✓\n\nThe only \"duplication\" (the `processExpirationsAndConvocations` guard in m2-port) is pre-existing M2 code and outside the slice; refactoring it would touch another integrant's module, which AGENTS.md warns against without alignment.\n\nSo the conclusion is: REFACTOR: nenhuma alteração necessária.\n\nBut the instructions say to run tests at the end? Let me re-read.\n\n\"If houver refatoração realmente justificável: 1. faça somente a alteração mínima; 2. execute tests/extrato.test.ts; 3. execute a suíte completa; ...\"\n\n\"If a implementação já estiver adequada, NÃO altere nenhum arquivo e informe: 'REFACTOR: nenhuma alteração necessária.'\"\n\nAnd \"Ao final, execute: git status --short\".\n\nSo if no change needed, inform the message and run git status --short. I should still run the tests to confirm the baseline? The instruction says execute full suite only when there's a change. Since no change, I just report and run git status. But to be safe and honest about \"adequacy\", I could run the extrato tests to confirm green. The user already stated 13/13 green and 253/253. Running them again is cheap confirmation but not required. Given \"não alterar nada\", I'll just run git status as instructed. Actually, verifying the suite green before declaring \"adequada\" would strengthen the claim, but the user provided that data already. I'll run tests quickly to confirm? The instruction at the end: execute `git status --short`. I'll do that. Let me run git status.\n\nActually, let me reconsider whether there is truly nothing worth doing. Let me re-read the extrato.ts once more:\n\n```ts\nexecute(participanteId: string): Extrato {\n    const inscricoes = this.m2Port.listarInscricoesDoParticipante?.(participanteId) ?? [];\n```\n\nThe `?.` optional chaining — the interface has the method as optional, so TypeScript would actually complain? No, optional chaining on an optional method is allowed. Fine.\n\nOne thing: `const atividade = this.activityRepository.findById(inscricao.atividadeId);` — uses `atividade.id` instead of `inscricao.atividadeId` for consistency; fine.\n\n`codigo: certificado ? certificado.codigo : null` — clear.\n\nI'm confident: no justified minimal refactor. The implementation is adequate and consistent. I'll report accordingly and run git status --short.\n\nLet me run git status --short.",
+     "time": {
+      "start": 1789848223685,
+      "end": 1789848234526
+     },
+     "id": "prt_0bb447fc4001XU91J40YkGiu9F",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb44788a001MX9SCqIuk44pAa"
+    },
+    {
+     "type": "text",
+     "text": "Analisei a implementação da Fatia 4 (`extrato.ts`, rota em `app.ts`, extensão do `M2IntegrationPort`) contra a spec, o contrato e as funções de cálculo existentes.\n\n- O caso de uso `ConsultarExtrato` segue a separação de camadas (aplicação via portas/repositórios), igual ao padrão dos demais casos de uso.\n- Reutiliza corretamente `somarCargasBrutas` e `calcularAproveitadoMinutos` de `horas-complementares.ts`.\n- A integração M2 → M4 usa a porta com método opcional e fallback defensivo — aderente à regra de não inventar persistência em M4.\n- A única duplicação notada (guard `if (this.activityRepository && this.clock)` repetido em `m2-port.ts`) é padrão pré-existente do adapter de M2, fora do escopo desta fatia; refatorá-lo tocaria código de outro módulo/integrante, o que o `AGENTS.md` proíbe sem alinhamento.\n- O cast `atividade.tipo as 'palestra' | 'minicurso'` é localizado e consistente com o tipo `string` da linha do M1.\n\nNenhuma refatoração mínima se justifica sem alterar comportamento ou código de outro módulo.\n\n**REFACTOR: nenhuma alteração necessária.**",
+     "time": {
+      "start": 1789848234536,
+      "end": 1789848235576
+     },
+     "id": "prt_0bb44aa28001OoK7f8P08Unxw6",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb44788a001MX9SCqIuk44pAa"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_24dfd7836c324f458c33813f",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git status --short"
+      },
+      "output": "(no output)",
+      "metadata": {
+       "output": "(no output)",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git status --short",
+      "time": {
+       "start": 1789848235526,
+       "end": 1789848236113
+      }
+     },
+     "id": "prt_0bb44adc7001KGiEQPP8Py9oAI",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb44788a001MX9SCqIuk44pAa"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "bd600048f0ddfb21c49f073ab2f8c345bd757234",
+     "type": "step-finish",
+     "tokens": {
+      "total": 56549,
+      "input": 907,
+      "output": 2394,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 53248
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bb44b36d001aeOeP07bc1v2Cj",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb44788a001MX9SCqIuk44pAa"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bb437857001v7e7AkdqrOIp70",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 56583,
+     "input": 242,
+     "output": 21,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 56320
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789848237607,
+     "completed": 1789848241306
+    },
+    "finish": "stop",
+    "id": "msg_0bb44b627001xB2thvbj6JuHuq",
+    "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5"
+   },
+   "parts": [
+    {
+     "snapshot": "bd600048f0ddfb21c49f073ab2f8c345bd757234",
+     "type": "step-start",
+     "id": "prt_0bb44bd6a001bDOzd8979lOZiF",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb44b627001xB2thvbj6JuHuq"
+    },
+    {
+     "type": "reasoning",
+     "text": "Working tree clean. Report done.",
+     "time": {
+      "start": 1789848239474,
+      "end": 1789848239526
+     },
+     "id": "prt_0bb44bd710016iZ0HNzpvfV04j",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb44b627001xB2thvbj6JuHuq"
+    },
+    {
+     "type": "text",
+     "text": "Working tree limpo — nenhum arquivo alterado.",
+     "time": {
+      "start": 1789848239534,
+      "end": 1789848239594
+     },
+     "id": "prt_0bb44bdae001w3rcriCbRJKvNk",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb44b627001xB2thvbj6JuHuq"
+    },
+    {
+     "reason": "stop",
+     "snapshot": "bd600048f0ddfb21c49f073ab2f8c345bd757234",
+     "type": "step-finish",
+     "tokens": {
+      "total": 56583,
+      "input": 242,
+      "output": 21,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 56320
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bb44c1fd001PIqKtVCCQZXehg",
+     "sessionID": "ses_f44bc880dffen7iPMHd9fWULR5",
+     "messageID": "msg_0bb44b627001xB2thvbj6JuHuq"
+    }
+   ]
+  }
+ ]
+}

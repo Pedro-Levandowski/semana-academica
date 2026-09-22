@@ -1,0 +1,248 @@
+{
+ "info": {
+  "id": "ses_f554e546effe5iFzAxG6Y2u2tw",
+  "slug": "jolly-squid",
+  "projectID": "08a8850750a50d17a216613ef31c5f0b0d1b31ca",
+  "directory": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+  "path": "",
+  "title": "Revisão parcial M4-certificados",
+  "agent": "build",
+  "model": {
+   "id": "big-pickle",
+   "providerID": "opencode"
+  },
+  "version": "1.18.31",
+  "summary": {
+   "additions": 0,
+   "deletions": 0,
+   "files": 0
+  },
+  "cost": 0,
+  "tokens": {
+   "input": 24263,
+   "output": 1991,
+   "reasoning": 0,
+   "cache": {
+    "read": 22784,
+    "write": 0
+   }
+  },
+  "time": {
+   "created": 1789570165649,
+   "updated": 1789570475465
+  }
+ },
+ "messages": [
+  {
+   "info": {
+    "role": "user",
+    "time": {
+     "created": 1789570165699
+    },
+    "agent": "build",
+    "model": {
+     "providerID": "opencode",
+     "modelID": "big-pickle"
+    },
+    "summary": {
+     "diffs": []
+    },
+    "id": "msg_0aab1abc30019sSl7heYXtUDSe",
+    "sessionID": "ses_f554e546effe5iFzAxG6Y2u2tw"
+   },
+   "parts": [
+    {
+     "type": "text",
+     "text": "Use o agente revisor-de-contrato para revisar o estado atual do M4-certificados.\n\nFaça uma revisão parcial, considerando:\n- contrato-api.md;\n- specs/M4-certificados.md;\n- implementação atual do M4;\n- testes atuais;\n- dependências ainda indisponíveis de M2 e M3.\n\nObjetivo:\nidentificar objetivamente o que já está conforme, o que está parcial, o que está ausente e o que está bloqueado por dependências externas.\n\nImportante:\n1. não corrija código;\n2. não altere testes;\n3. não implemente M2 ou M3;\n4. diferencie AUSÊNCIA de BLOQUEIO POR DEPENDÊNCIA;\n5. verifique endpoints, headers, payloads, status HTTP, erros, precedência e idempotência;\n6. relacione os achados às regras R1-R12;\n7. informe se essa revisão parcial deve ser salva como artefato agora ou se, segundo o processo do projeto, a auditoria/revisão formal deve ser gerada somente após a implementação completa;\n8. não crie arquivo ainda;\n9. não faça commit nem push.\n\nAo final, apresente somente o parecer e a recomendação sobre quando persistir o relatório. ",
+     "id": "prt_0aab1abc6001ZoAnjPeUZVYmhc",
+     "sessionID": "ses_f554e546effe5iFzAxG6Y2u2tw",
+     "messageID": "msg_0aab1abc30019sSl7heYXtUDSe"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0aab1abc30019sSl7heYXtUDSe",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 21930,
+     "input": 19229,
+     "output": 909,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 1792
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789570165729,
+     "completed": 1789570454771
+    },
+    "finish": "tool-calls",
+    "id": "msg_0aab1abe1001PbZm0BdTdD8k2I",
+    "sessionID": "ses_f554e546effe5iFzAxG6Y2u2tw"
+   },
+   "parts": [
+    {
+     "snapshot": "60f66768159717d833e41b336449d2beaeaf85fa",
+     "type": "step-start",
+     "id": "prt_0aab1caf0001HVORGlHZPhtfgd",
+     "sessionID": "ses_f554e546effe5iFzAxG6Y2u2tw",
+     "messageID": "msg_0aab1abe1001PbZm0BdTdD8k2I"
+    },
+    {
+     "type": "reasoning",
+     "text": "The user wants me to run the `revisor-de-contrato` subagent to review the current state of M4-certificados module. Let me first understand what's needed:\n\n1. Review M4-certificados against contrato-api.md and specs/M4-certificados.md\n2. Check current implementation and tests\n3. Identify what's compliant, partial, absent, or blocked by dependencies (M2/M3)\n4. Don't fix code, don't alter tests, don't implement M2/M3\n5. Differentiate absence from dependency blocking\n6. Check endpoints, headers, payloads, HTTP status, errors, precedence, idempotency\n7. Relate findings to rules R1-R12\n\n\n8. I need to clarify whether this partial review should be saved as an artifact and whether the formal audit should be generated after full implementation\n9. No file creation, no commits or pushes\n\nI'll launch the revisor-de-contrato subagent with a detailed prompt to handle this review.",
+     "time": {
+      "start": 1789570173748,
+      "end": 1789570177228
+     },
+     "id": "prt_0aab1cb34001bR8VecmSHWTsKp",
+     "sessionID": "ses_f554e546effe5iFzAxG6Y2u2tw",
+     "messageID": "msg_0aab1abe1001PbZm0BdTdD8k2I"
+    },
+    {
+     "type": "tool",
+     "tool": "task",
+     "callID": "call_f499996d65c04c3780e09b36",
+     "state": {
+      "status": "completed",
+      "input": {
+       "description": "Revisão parcial M4-certificados",
+       "subagent_type": "revisor-de-contrato",
+       "prompt": "\n# Revisão parcial do M4-certificados (certificados)\n\n## Contexto\n\nEste é um projeto da Semana Acadêmica com API Express/TypeScript e interface React. O módulo M4-certificados precisa ser revisado quanto à conformidade com contrato-api.md e sua spec.\n\n## Arquivos relevantes\n\n- `contrato-api.md` — definição de rotas, métodos, campos, formatos e códigos de retorno (somente leitura)\n- `specs/M4-certificados.md` — regras implementáveis do módulo M4\n- Código-fonte do M4: provavelmente em `api/src/modules/certificados/` ou similar (buscar)\n- Testes do M4: provavelmente em `api/src/modules/certificados/` ou `api/test/` (buscar)\n\n## Tarefa\n\nFazer revisão **parcial** do estado atual do M4, considerando:\n\n1. **Contrato API** — endpoints, métodos HTTP, headers, payloads, status codes, erros, precedência e idempotência\n2. **Spec M4** — regras R1 a R12, verificando se cada regra tem origem na entrevista e se está implementada/testada\n3. **Implementação atual** — código existente no módulo\n4. **Testes atuais** — cobertura e conformidade\n5. **Dependências indisponíveis** — M2 (presenças/check-in) e M3 (atividades) podem ter interfaces/pontos que M4 depende\n\n## Regras de resposta\n\n1. NÃO corrija código\n2. NÃO altere testes\n3. NÃO implemente M2 ou M3\n4. Diferencie claramente: **AUSÊNCIA** (regra não implementada sem justificativa de dependência) vs **BLOQUEIO POR DEPENDÊNCIA** (regra não implementada porque depende de M2 ou M3 que ainda não existem)\n5. Verifique: endpoints, headers, payloads, status HTTP, erros, precedência e idempotência\n6. Relacione cada achado às regras R1-R12 da spec\n7. Informe se essa revisão parcial deve ser salva como artefato agora ou se, segundo o processo do projeto, a auditoria/revisão formal deve ser gerada somente após implementação completa\n8. NÃO crie arquivo\n9. NÃO faça commit nem push\n\n## Formato esperado do parecer\n\nAo final, apresente:\n- Tabela ou lista com status de cada regra (R1-R12): CONFORME / PARCIAL / AUSENTE / BLOQUEADO\n- Lista de achados concretos (arquivo:linha, problema encontrado)\n- Recomendação sobre quando persistir o relatório (agora como artefato parcial, ou somente após implementação completa)\n"
+      },
+      "output": "<task id=\"ses_f554dfa7dffePlZ3KopFvpiBnA\" state=\"completed\">\n<task_result>\n# Parecer de revisão parcial — M4-certificados\n\n**Escopo revisado:** `contrato-api.md` (seção M4, linhas 188-229 e 258-291), `specs/M4-certificados.md`, implementação em `api/src/certificate/*`, `api/src/repositories/certificate-repository.ts`, `api/src/integrations/m3-presence-port.ts`, rotas em `api/src/app.ts`, testes em `api/tests/*`.\n\n**Nota de nomenclatura:** o enunciado da tarefa chama M2 de \"presenças/check-in\" e M3 de \"atividades\". Pelo `contrato-api.md`, M2 = inscrições, M3 = presença por QR e M1 = atividades. O M4 depende de M1 (atividades), M2 (inscrições) e M3 (presenças). Uso os nomes do contrato abaixo.\n\n---\n\n## Matriz de endpoints\n\n| Método | Rota | Quem | Status sucesso | Status/erro esperado | Implementado? | Achado |\n|---|---|---|---|---|---|---|\n| POST | `/atividades/:id/certificado` | participante | 201/200 | 401, 403, 404, 422 (`ATIVIDADE_NAO_ENCERRADA`, `PRESENCA_INSUFICIENTE`, `ATIVIDADE_CANCELADA`), 403 `NAO_INSCRITO` | PARCIAL | Rota existe (app.ts:236-268), mas sem idempotência (R9), sem `ATIVIDADE_CANCELADA`, sem `NAO_INSCRITO`; presenças sempre 0 por wiring |\n| GET | `/certificados` | participante | 200 `[Certificado]` | 401, 403 | NÃO | Rota ausente — nenhum registro em `app.ts` |\n| GET | `/certificados/:codigo` | público, sem `X-Usuario` | 200 `Verificacao` | 404 | NÃO | Rota ausente — cairia no catch-all 404 (app.ts:270-272) |\n| GET | `/extrato` | participante | 200 `Extrato` | 401, 403 | NÃO | Rota ausente; só existem funções puras sem camada HTTP |\n\n## Matriz de erros\n\n| Código de erro | Status | Rota | Contrato exige | Implementação retorna | Conforme? |\n|---|---|---|---|---|---|\n| `USUARIO_DESCONHECIDO` | 401 | POST /atividades/:id/certificado | 401 | 401 (app.ts:102-115) | SIM |\n| `SOMENTE_PARTICIPANTE` | 403 | POST /atividades/:id/certificado | 403 | 403 (app.ts:238-241) | SIM |\n| `NAO_ENCONTRADO` | 404 | POST /atividades/:id/certificado | 404 | 404 (app.ts:244-248) | SIM |\n| `ATIVIDADE_NAO_ENCERRADA` | 422 | POST /atividades/:id/certificado | 422 | 422 (emissao-certificado.ts:38-40) | SIM |\n| `PRESENCA_INSUFICIENTE` | 422 | POST /atividades/:id/certificado | 422 | 422 (emissao-certificado.ts:44-46) | SIM |\n| `ATIVIDADE_CANCELADA` | 422 | POST /atividades/:id/certificado | 422 (contrato-api.md:274) | — não verificado (app.ts:244-257 não checa `cancelada`) | NÃO |\n| `NAO_INSCRITO` | 403 | POST /atividades/:id/certificado | 403 (contrato-api.md:285) | — não verificado | NÃO (bloqueado por M2) |\n| 201 na 1ª / 200 depois | — | POST /atividades/:id/certificado | 201/200 (contrato-api.md:192) | sempre 201 (app.ts:267) | NÃO |\n\n## Status das regras R1–R12\n\n| Regra | Status | Evidência |\n|---|---|---|\n| R1 — presença mínima 75% sem arredondamento | PARCIAL | Lógica correta (`presencas * 4 < encontros * 3`, emissao-certificado.ts:44); testes de sucesso falham por dependência M3 |\n| R2 — emissão após encerramento | PARCIAL | Lógica correta (`agora < fimDoUltimoEncontro`, emissao-certificado.ts:38); teste do instante exato falha por dependência M3 |\n| R3 — cargas brutas integrais | PARCIAL | Função implementada e testada (horas-complementares.ts:12-25); endpoint `GET /extrato` ausente |\n| R4 — teto de palestras 240 min | PARCIAL | Função implementada e testada (horas-complementares.ts:27-30); endpoint ausente |\n| R5 — teto total 1200 min | PARCIAL | Função implementada e testada (horas-complementares.ts:29); endpoint ausente |\n| R6 — formato/unicidade do código | PARCIAL | Formato e alfabeto corretos (gerar-codigo.ts:3-9); \"mesmo código nas reemissões\" depende de R9, ausente |\n| R7 — abreviação do nome | PARCIAL | Função implementada e testada (abreviar-nome.ts:4-32); não conectada a nenhum endpoint |\n| R8 — verificação pública sem X-Usuario | AUSENTE | Nenhuma rota `GET /certificados/:codigo` |\n| R9 — idempotência 201/200 | AUSENTE | Rota sempre cria e retorna 201 (app.ts:267); repositório só tem `create` (certificate-repository.ts:16-24) |\n| R10 — composição dos itens do extrato | AUSENTE | Sem `GET /extrato`; depende de M2 (inscrições) |\n| R11 — alfabeto do código | CONFORME | `ALFABETO = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'` exclui I, O, 0, 1 (gerar-codigo.ts:3); 12 testes passam |\n| R12 — precedência de erros | PARCIAL | Ordem correta no código (emissao-certificado.ts:38 antes de :44); teste passa, mas a premissa \"mesmo com presença suficiente\" não é exercitada (presenças são 0) |\n\n## Dependências de módulos externos\n\n- **M4 → M3 (presenças):** `M3PresencePort.countPresencas` (m3-presence-port.ts:1-3) é a única fonte de presenças. As rotas do M3 (`GET /encontros/:id/codigo`, `POST /encontros/:id/presencas`) não existem, então o cenário dos testes não consegue registrar presença e o adapter neutro retorna 0. **Além da ausência do M3, há um defeito no próprio wiring do M4:** `createApp` instancia `new NeutralM3PresenceAdapter()` fixo (app.ts:67) e `AppOptions` não expõe porta de M3 (app.ts:26-31) — diferente de `m2Port`, que é injetável (app.ts:30, 56). Mesmo quando o M3 existir, a emissão continuará contando 0 presenças sem essa injeção.\n- **M4 → M2 (inscrições):** `NAO_INSCRITO` (403) na emissão e R10 (itens do extrato = atividades em que o participante está inscrito) dependem de M2, cujas rotas não existem. Bloqueio legítimo de dependência.\n- **M4 → M1 (atividades):** satisfeita — `ActivityRepository` fornece `id`, `cargaHorariaMinutos`, `encontros` e `cancelada` (activity-repository.ts:22-36).\n\n## Suíte\n\n`npm --prefix api test` → **1 arquivo falhou (certificado.test.ts), 3 testes falharam, 170 passaram** (19 arquivos, 173 testes).\n\nOs 3 testes que falham são exatamente os caminhos de sucesso da emissão (3/4, 4/5 e instante exato do término): todos esperam 201 e recebem 422 `PRESENCA_INSUFICIENTE`, porque o cenário não consegue registrar presenças (rotas M3 inexistentes) e o adapter neutro devolve 0.\n\n## Achados\n\n1. **[AUSÊNCIA — R9] POST /atividades/:id/certificado não é idempotente.** O contrato exige 201 na primeira emissão e 200 com o mesmo certificado/código depois (contrato-api.md:192; spec R9). A rota sempre cria um novo certificado com novo código e retorna 201 (app.ts:267). Não há consulta por `(atividadeId, participanteId)` — o repositório só tem `create` (certificate-repository.ts:16-24). Uma segunda chamada gera segunda linha com código diferente, violando também R6 (\"código permanece o mesmo nas reemissões\").\n2. **[AUSÊNCIA — contrato] `ATIVIDADE_CANCELADA` não é verificada na emissão.** O contrato lista `ATIVIDADE_CANCELADA` (422) para \"certificado\" (contrato-api.md:274). A rota busca a atividade (app.ts:244) mas nunca checa `atividade.cancelada` (campo disponível em activity-repository.ts:24). Emitir certificado de atividade cancelada hoje retorna 201.\n3. **[BLOQUEIO POR DEPENDÊNCIA — contrato] `NAO_INSCRITO` (403) não é verificado.** O contrato lista `NAO_INSCRITO` para \"certificado\" (contrato-api.md:285). Depende de M2 (inscrições), inexistente. Registrar como pendência de integração, não como defeito do M4.\n4. **[DIVERGÊNCIA — wiring] Porta de presenças M3 não é injetável.** `AppOptions` aceita `m2Port` mas não `m3Port` (app.ts:26-31), e `createApp` fixa `new NeutralM3PresenceAdapter()` (app.ts:67). Consequência: mesmo com M3 implementado, `countPresencas` retornará 0 e a emissão nunca atingirá 201. O M4 precisa expor a injeção da porta, como já faz com M2.\n5. **[AUSÊNCIA] GET /certificados, GET /certificados/:codigo e GET /extrato não existem.** Nenhuma rota registrada em `app.ts`; qualquer chamada cai no catch-all 404 (app.ts:270-272). Faltam as fatias 2, 3 e 4 da spec (specs/M4-certificados.md:92-97).\n6. **[ACHADO DE SPEC] A spec não cobre erros obrigatórios do contrato na emissão.** R1–R12 não mencionam `ATIVIDADE_CANCELADA` nem `NAO_INSCRITO`, ambos exigidos pelo contrato para `POST /atividades/:id/certificado` (contrato-api.md:274, 285). A spec precisa de regra(s) cobrindo esses códigos, ou o contrato precisa ser questionado — hoje a spec está incompleta frente ao contrato.\n7. **[TESTE] O cenário de `certificado.test.ts` degrada silenciosamente.** As chamadas de setup a rotas M2/M3 (`/atividades/:id/inscricoes`, `/encontros/:id/codigo`, `/encontros/:id/presencas`) não têm asserção de status (certificado.test.ts:52-68); com as rotas ausentes elas retornam 404 e o cenário segue com 0 presenças. Os 3 testes que passam esperando 422 passam pelo motivo certo, mas os que esperam 201 falham por causa do setup, não da regra. O teste de R12 (\"mesmo com presença suficiente\", certificado.test.ts:144-156) não exercita de fato a premissa de presença suficiente.\n8. **[CONFORME] R1, R2 e R12 na camada de domínio.** A fórmula de 75% sem arredondamento (emissao-certificado.ts:44), o limite de encerramento com instante exato incluso (emissao-certificado.ts:38) e a precedência `ATIVIDADE_NAO_ENCERRADA` antes de `PRESENCA_INSUFICIENTE` (emissao-certificado.ts:38-46) estão corretos e alinhados aos critérios 1-6 e 20 da spec.\n9. **[CONFORME] R11 e formato R6.** Alfabeto sem I/O/0/1 (gerar-codigo.ts:3) e formato `SA26-XXXX-XXXX` (gerar-codigo.ts:8) corretos; unicidade garantida por PK do banco (migrate.ts:42), embora sem retry em colisão (observação de robustez, não divergência).\n10. **[CONFORME] R7.** `abreviar-nome.ts` produz exatamente os critérios 13 e 14 da spec (\"Carla M. S.\", \"Elisa F. da Rocha\", \"Isadora R. dos Santos\"), com partículas preservadas (abreviar-nome.ts:17-20).\n11. **[CONFORME] R3/R4/R5 nas funções puras.** `somarCargasBrutas` e `calcularAproveitadoMinutos` reproduzem os critérios 7-10 (horas-complementares.ts:12-30), com 16 testes passando. Falta apenas a rota HTTP.\n12. **[ORIGEM] Rastreabilidade spec→entrevista completa.** `entrevistas/M4-certificados.md` contém P1–P9 com fontes RN-401/404/407/408/409/410/411/412/413/302, e o Apêndice B da spec mapeia todas as 12 regras. Nenhuma regra sem origem. (Confirmação de origem é atribuição do auditor; registrada aqui a pedido do solicitante.)\n\n## Recomendação sobre persistir o relatório\n\n**Não persistir como artefato formal agora.** A convenção do repositório (ver `auditorias/M1-grade.md`) é gerar a auditoria do módulo somente com a implementação completa e a suíte verde — o M1 só foi auditado com 125/125 testes passando. O M4 está na fatia 1 parcial: 3 dos 4 endpoints ausentes, 3 testes falhando e 3 fatias da spec (2, 3 e 4) não entregues. Persistir agora criaria um artefato que o processo do projeto trata como definitivo, com conteúdo sabidamente incompleto.\n\nRecomendação: manter este parecer como nota de trabalho da sessão (evidências de sessão, sem commit), e gerar `auditorias/M4-certificados.md` somente após: (a) implementação das fatias 2-4, (b) idempotência R9, (c) `ATIVIDADE_CANCELADA`, (d) injeção da porta M3, (e) integração com M2/M3 e (f) suíte 100% verde. Nenhum arquivo foi criado e nenhum commit foi feito, conforme instruído.\n\n## Veredito\n\nM4 não está conforme: apenas a fatia 1 está parcialmente implementada (R1/R2/R12 na lógica, R3-R5/R7/R11 como funções puras), com 3 endpoints ausentes, idempotência R9 ausente, `ATIVIDADE_CANCELADA` ausente, porta M3 não injetável e 3 testes falhando por dependência de M2/M3 — falta concluir as fatias 2-4 e fechar as pendências de contrato antes de qualquer auditoria formal.\n</task_result>\n</task>",
+      "metadata": {
+       "parentSessionId": "ses_f554e546effe5iFzAxG6Y2u2tw",
+       "sessionId": "ses_f554dfa7dffePlZ3KopFvpiBnA",
+       "model": {
+        "modelID": "big-pickle",
+        "providerID": "opencode"
+       },
+       "truncated": false
+      },
+      "title": "Revisão parcial M4-certificados",
+      "time": {
+       "start": 1789570188684,
+       "end": 1789570453973
+      }
+     },
+     "id": "prt_0aab1d8d1001bBCkxn8jWXHC7D",
+     "sessionID": "ses_f554e546effe5iFzAxG6Y2u2tw",
+     "messageID": "msg_0aab1abe1001PbZm0BdTdD8k2I"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "60f66768159717d833e41b336449d2beaeaf85fa",
+     "type": "step-finish",
+     "tokens": {
+      "total": 21930,
+      "input": 19229,
+      "output": 909,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 1792
+      }
+     },
+     "cost": 0,
+     "id": "prt_0aab6135b001V5ZNH7OfjeVYRk",
+     "sessionID": "ses_f554e546effe5iFzAxG6Y2u2tw",
+     "messageID": "msg_0aab1abe1001PbZm0BdTdD8k2I"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0aab1abc30019sSl7heYXtUDSe",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 27108,
+     "input": 5034,
+     "output": 1082,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 20992
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789570454776,
+     "completed": 1789570475455
+    },
+    "finish": "stop",
+    "id": "msg_0aab614f8001r9CX92HE13OMJz",
+    "sessionID": "ses_f554e546effe5iFzAxG6Y2u2tw"
+   },
+   "parts": [
+    {
+     "snapshot": "60f66768159717d833e41b336449d2beaeaf85fa",
+     "type": "step-start",
+     "id": "prt_0aab62801001uQUTDPtNtUd602",
+     "sessionID": "ses_f554e546effe5iFzAxG6Y2u2tw",
+     "messageID": "msg_0aab614f8001r9CX92HE13OMJz"
+    },
+    {
+     "type": "reasoning",
+     "text": "The revisor-de-contrato agent has completed its review. Let me present the findings to the user concisely.",
+     "time": {
+      "start": 1789570459673,
+      "end": 1789570460012
+     },
+     "id": "prt_0aab62819001AY8pQNcQlPAvMC",
+     "sessionID": "ses_f554e546effe5iFzAxG6Y2u2tw",
+     "messageID": "msg_0aab614f8001r9CX92HE13OMJz"
+    },
+    {
+     "type": "text",
+     "text": "## Parecer — Revisão parcial M4-certificados\n\n### Matriz R1–R12\n\n| Regra | Status | Motivo |\n|---|---|---|\n| R1 — 75% sem arredondamento | **PARCIAL** | Lógica correta; testes falham por M3 ausente |\n| R2 — emissão após encerramento | **PARCIAL** | Lógica correta; teste falha por M3 |\n| R3 — cargas brutas integrais | **PARCIAL** | Função pura OK; endpoint `GET /extrato` ausente |\n| R4 — teto palestras 240 min | **PARCIAL** | Função pura OK; endpoint ausente |\n| R5 — teto total 1200 min | **PARCIAL** | Função pura OK; endpoint ausente |\n| R6 — formato/unicidade código | **PARCIAL** | Formato correto; reemissões com mesmo código dependem de R9 ausente |\n| R7 — abreviação do nome | **CONFORME** | Implementada e testada |\n| R8 — verificação pública | **AUSENTE** | Rota `GET /certificados/:codigo` não existe |\n| R9 — idempotência 201/200 | **AUSENTE** | Rota sempre cria e retorna 201 |\n| R10 — composição extrato | **AUSENTE** | Sem `GET /extrato`; bloqueado por M2 |\n| R11 — alfabeto código | **CONFORME** | Sem I/O/0/1, 12 testes passam |\n| R12 — precedência erros | **PARCIAL** | Ordem correta; premissa \"presença suficiente\" não exercitada |\n\n### Achados críticos\n\n1. **[AUSENTE]** `ATIVIDADE_CANCELADA` (422) nunca verificada na emissão (`emissao-certificado.ts` não checa `atividade.cancelada`)\n2. **[DIVERGÊNCIA]** Porta M3 não injetável — `createApp` fixa `NeutralM3PresenceAdapter()` e `AppOptions` não expõe `m3Port`; mesmo com M3 pronto, presenças sempre serão 0\n3. **[AUSENTE]** `GET /certificados`, `GET /certificados/:codigo`, `GET /extrato` — nenhuma registrada\n4. **[AUSENTE]** Idempotência R9 — repositório só tem `create`, sem consulta por `(atividadeId, participanteId)`\n5. **[SPEC INCOMPLETA]** Regras `ATIVIDADE_CANCELADA` e `NAO_INSCRITO` exigidas pelo contrato não constam na spec\n6. **[TESTE]** Setup em `certificado.test.ts` chama rotas M2/M3 sem asserção de status — cenários de sucesso degradam silenciosamente com 0 presenças\n\n### Bloqueio vs ausência\n\n| Item | Classificação |\n|---|---|\n| `NAO_INSCRITO` (403) | **BLOQUEIO** — depende de M2 |\n| `GET /extrato` (itens) | **BLOQUEIO** — depende de M2 |\n| R9 idempotência | **AUSÊNCIA** — não depende de outro módulo |\n| `ATIVIDADE_CANCELADA` | **AUSÊNCIA** — campo `cancelada` já disponível em M1 |\n| `GET /certificados` | **AUSÊNCIA** — depende apenas de dados já persistidos |\n| `GET /certificados/:codigo` | **AUSÊNCIA** — sem dependência externa |\n| Injeção porta M3 | **DIVERGÊNCIA** — bug de wiring no próprio M4 |\n\n### Recomendação\n\n**Não persistir relatório agora.** A convenção do repositório (`auditorias/M1-grade.md`) gera auditoria somente com implementação completa e suíte verde. M4 está na fatia 1 de 4, com 3 testes falhando e 3 endpoints ausentes. Criar `auditorias/M4-certificados.md` produziria artefato definitivo com conteúdo sabidamente incompleto.\n\n**Gerar formalmente** após: (a) fatias 2–4, (b) R9 idempotência, (c) `ATIVIDADE_CANCELADA`, (d) injeção porta M3, (e) integração M2/M3, (f) suíte 100% verde.",
+     "time": {
+      "start": 1789570460015,
+      "end": 1789570474636
+     },
+     "id": "prt_0aab6296f001Ww0p5V7kyCWtTk",
+     "sessionID": "ses_f554e546effe5iFzAxG6Y2u2tw",
+     "messageID": "msg_0aab614f8001r9CX92HE13OMJz"
+    },
+    {
+     "reason": "stop",
+     "snapshot": "60f66768159717d833e41b336449d2beaeaf85fa",
+     "type": "step-finish",
+     "tokens": {
+      "total": 27108,
+      "input": 5034,
+      "output": 1082,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 20992
+      }
+     },
+     "cost": 0,
+     "id": "prt_0aab66408001r0n9fEWynXgPQk",
+     "sessionID": "ses_f554e546effe5iFzAxG6Y2u2tw",
+     "messageID": "msg_0aab614f8001r9CX92HE13OMJz"
+    }
+   ]
+  }
+ ]
+}
