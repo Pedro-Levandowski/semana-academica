@@ -9,7 +9,7 @@ A fonte de verdade é `specs/M4-certificados.md`. Não invente regras de negóci
 Não altere a spec. Não acesse documentos externos de requisitos.
 
 O ciclo é o mesmo do `tdd` geral — teste que falha, código mínimo, refactor — mas
-ancorado nas 4 fatias e 12 regras de M4. Uma regra ou grupo coeso por ciclo TDD.
+ancorado nas 4 fatias e 18 regras de M4. Uma regra ou grupo coeso por ciclo TDD.
 
 ## Onde o teste mora
 
@@ -42,6 +42,7 @@ Ordem sugerida dentro da fatia:
 2. R2 — teste encerramento, implemente, refactor.
 3. R12 — teste precedência quando ambos falham, implemente, refactor.
 4. R9 — teste idempotência 201→200, implemente, refactor.
+5. Validação adicional do contrato — teste `ATIVIDADE_CANCELADA` na emissão e sua precedência sobre as demais regras, implemente, refactor.
 
 ### Fatia 2 — código e listagem
 
@@ -74,10 +75,18 @@ Ordem sugerida dentro da fatia:
 | R4 | Teto de palestras: `min(240, palestrasMinutos)` | 7, 8, 9 |
 | R5 | Teto total: `aproveitadoMinutos = min(1200, min(240, palestrasMinutos) + minicursosMinutos)` | 7, 8 |
 | R10 | Itens do extrato: `codigo` preenchido ou `null` conforme emissão | 18 |
+| R13 | Inscrição `confirmada` é elegível para o extrato | 21 |
+| R14 | Inscrição `em_espera` não é elegível para o extrato | 22 |
+| R15 | Inscrição `convocada` não é elegível para o extrato | 23 |
+| R16 | Inscrição `cancelada` não é elegível para o extrato | 24 |
+| R17 | Inscrição `expirada` não é elegível para o extrato | 25 |
+| R18 | Atividade cancelada não é elegível para o extrato | 26 |
 
 Ordem sugerida dentro da fatia:
 1. R3+R4+R5 — teste cálculos de extrato (juntos, são uma unidade coesa), implemente, refactor.
-2. R10 — teste composição dos itens com código/null, implemente, refactor.
+2. R10+R13 — teste composição dos itens com código/null e a elegibilidade da inscrição confirmada, implemente, refactor.
+3. R14, R15, R16, R17 — teste não elegibilidade das inscrições `em_espera`, `convocada`, `cancelada` e `expirada`, implemente, refactor.
+4. R18 — teste exclusão de atividade cancelada, implemente, refactor.
 
 ## O ciclo TDD, passo a passo
 
@@ -150,7 +159,7 @@ use as interfaces e portas de integração que já existem.
 
 ## Validações adicionais do contrato
 
-Além das regras R1–R12, o `contrato-api.md` lista códigos de erro que o M4
+Além das regras R1–R18, o `contrato-api.md` lista códigos de erro que o M4
 deve retornar. Teste-os quando implementar a rota correspondente:
 
 | Código | HTTP | Quando |
