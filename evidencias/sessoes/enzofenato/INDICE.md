@@ -67,4 +67,5 @@ Requisições são chamadas ao modelo: cada passo do agente é uma. Skills conta
 | 22/09 09:08 | [Salvando parecer em M4-2026-09-22.md](ses_f36fb0cf3ffekDvVkgxNccl5Jg.md) | 35 | — | — | 0 / 0 | 0 | 0 | 0 | — |
 | 22/09 09:34 | [Conferência final Issue #4](ses_f36e3eb54ffe2jxejZiVllW8h7.md) | 30 | — | — | 0 / 2 | 0 | 0 | 0 | — |
 | 22/09 10:16 | [Presença offline M3 no cálculo M4](ses_f36bd7c0bffevKuATLz1E6yVZb.md) | 16 | tdd-m4 | — | 0 / 2 | 0 | 1 | 0 | — |
-| | **Total: 55 sessões** | 1.064 | grilling (3), to-spec (2), tdd (5), tdd-m4 (35) | explore (4), general, revisor-de-contrato (4), auditor (2) | 54 / 86 | 6 | 13 | 2 | — |
+| 22/09 10:26 | [Teste de estabilidade do código após reinício](ses_f36b47aeaffeYEiiOSkONGLMB4.md) | 22 | tdd-m4 | — | 1 / 2 | 0 | 1 | 0 | — |
+| | **Total: 56 sessões** | 1.086 | grilling (3), to-spec (2), tdd (5), tdd-m4 (36) | explore (4), general, revisor-de-contrato (4), auditor (2) | 55 / 88 | 6 | 14 | 2 | — |
