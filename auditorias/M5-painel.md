@@ -26,18 +26,18 @@
 
 ## Verificações executadas
 
-- `npm --prefix api test` — 30 arquivos e 196 testes aprovados.
-- `npm --prefix app test -- --run` — 7 arquivos e 91 testes aprovados.
+- `npm --prefix api test` — 30 arquivos e 197 testes aprovados após a integração com a `main` atualizada.
+- `npm --prefix app test -- --run` — 12 arquivos e 131 testes aprovados após a integração com as interfaces de M2 e M3.
 - Testes específicos da interface M5 — 5 arquivos e 25 testes aprovados.
-- `npm --prefix app run typecheck` — aprovado sem erros.
-- `npm --prefix app run build` — build de produção aprovado.
+- `npm --prefix app run typecheck` — o M5 foi aprovado sem erros antes da integração; a `main` atualizada acrescentou um erro preexistente em `app/src/hooks/useCodigoEncontro.ts`, pertencente ao M3 (`Cannot find namespace 'NodeJS'`). O arquivo não foi alterado pelo M5.
+- `npm --prefix app run build` — build de produção do M5 aprovado antes da integração com a `main` atualizada; o build conjunto passa a ser interrompido pelo mesmo erro de tipagem herdado do M3.
 - `npm --prefix api run typecheck` — mantém somente 7 erros de tipagem preexistentes em testes de M1, todos relativos a `app.close`; nenhum erro pertence ao M5 e toda a suíte de execução da API está verde.
 
 ## Achados
 
 Nenhum achado funcional pendente no M5. As 21 regras da especificação possuem origem rastreada e cobertura automatizada na API ou na interface.
 
-A única ressalva do repositório é a dívida de tipagem preexistente em sete usos de `app.close` nos testes `cancel-activity-effects.test.ts`, `cancel-activity.test.ts` e `update-activity.test.ts`. Esses arquivos pertencem ao M1, não foram alterados pelo M5 e seus testes de execução passam.
+As únicas ressalvas do repositório são dívidas de tipagem preexistentes fora do M5: sete usos de `app.close` nos testes `cancel-activity-effects.test.ts`, `cancel-activity.test.ts` e `update-activity.test.ts`, pertencentes ao M1; e o uso de `NodeJS.Timeout` em `app/src/hooks/useCodigoEncontro.ts`, incorporado à `main` pelo M3. Esses arquivos não foram alterados pelo M5 e todas as suítes de execução passam.
 
 ## Veredito
 

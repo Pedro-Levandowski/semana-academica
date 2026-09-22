@@ -1,5 +1,5 @@
 import React from 'react';
-import { useInRouterContext, MemoryRouter, Routes, Route, Link } from 'react-router-dom';
+import { useInRouterContext, MemoryRouter, Routes, Route, Link, useParams } from 'react-router-dom';
 import { useSelectedUser } from './hooks/useSelectedUser';
 import { UserSelector } from './components/UserSelector';
 import { useProgramacao, DIAS_SEMANA } from './hooks/useProgramacao';
@@ -10,7 +10,70 @@ import { EditarAtividade } from './components/EditarAtividade';
 import { PainelOrganizacao } from './components/PainelOrganizacao';
 import { SemChanceRelatorio } from './components/SemChanceRelatorio';
 import { BloqueiosPainel } from './components/BloqueiosPainel';
+import { CodigoEncontro } from './components/CodigoEncontro';
+import { RegistrarPresenca } from './components/RegistrarPresenca';
+import { RegistrarPresencaManual } from './components/RegistrarPresencaManual';
 import { api } from './api/client';
+
+function CodigoEncontroRoute({
+  selectedUserId,
+  userPapel,
+  apiClient,
+}: {
+  selectedUserId: string | null;
+  userPapel?: string;
+  apiClient: typeof api;
+}) {
+  const { encontroId } = useParams<{ encontroId: string }>();
+  return (
+    <CodigoEncontro
+      encontroId={encontroId}
+      selectedUserId={selectedUserId}
+      userPapel={userPapel}
+      apiClient={apiClient}
+    />
+  );
+}
+
+function RegistrarPresencaRoute({
+  selectedUserId,
+  userPapel,
+  apiClient,
+}: {
+  selectedUserId: string | null;
+  userPapel?: string;
+  apiClient: typeof api;
+}) {
+  const { encontroId } = useParams<{ encontroId: string }>();
+  return (
+    <RegistrarPresenca
+      encontroId={encontroId}
+      selectedUserId={selectedUserId}
+      userPapel={userPapel}
+      apiClient={apiClient}
+    />
+  );
+}
+
+function RegistrarPresencaManualRoute({
+  selectedUserId,
+  userPapel,
+  apiClient,
+}: {
+  selectedUserId: string | null;
+  userPapel?: string;
+  apiClient: typeof api;
+}) {
+  const { encontroId } = useParams<{ encontroId: string }>();
+  return (
+    <RegistrarPresencaManual
+      encontroId={encontroId}
+      selectedUserId={selectedUserId}
+      userPapel={userPapel}
+      apiClient={apiClient}
+    />
+  );
+}
 
 interface AppProps {
   apiClient?: typeof api;
@@ -150,6 +213,17 @@ export function App({ apiClient = api, initialEntries }: AppProps) {
                 />
 
                 <Route
+                  path="/encontros/:encontroId/codigo"
+                  element={
+                    <CodigoEncontroRoute
+                      selectedUserId={selectedUser.id}
+                      userPapel={selectedUser.papel}
+                      apiClient={apiClient}
+                    />
+                  }
+                />
+
+                <Route
                   path="/painel/atividades/:id/sem-chance"
                   element={
                     selectedUser.papel === 'organizacao' ? (
@@ -164,6 +238,17 @@ export function App({ apiClient = api, initialEntries }: AppProps) {
                 />
 
                 <Route
+                  path="/encontros/:encontroId/presenca"
+                  element={
+                    <RegistrarPresencaRoute
+                      selectedUserId={selectedUser.id}
+                      userPapel={selectedUser.papel}
+                      apiClient={apiClient}
+                    />
+                  }
+                />
+
+                <Route
                   path="/painel/bloqueios"
                   element={
                     selectedUser.papel === 'organizacao' ? (
@@ -174,6 +259,17 @@ export function App({ apiClient = api, initialEntries }: AppProps) {
                     ) : (
                       <div role="alert">Acesso restrito</div>
                     )
+                  }
+                />
+
+                <Route
+                  path="/encontros/:encontroId/presenca-manual"
+                  element={
+                    <RegistrarPresencaManualRoute
+                      selectedUserId={selectedUser.id}
+                      userPapel={selectedUser.papel}
+                      apiClient={apiClient}
+                    />
                   }
                 />
               </Routes>
@@ -223,6 +319,39 @@ export function App({ apiClient = api, initialEntries }: AppProps) {
                   element={
                     <AtividadeDetalhe
                       selectedUserId={null}
+                      apiClient={apiClient}
+                    />
+                  }
+                />
+
+                <Route
+                  path="/encontros/:encontroId/codigo"
+                  element={
+                    <CodigoEncontroRoute
+                      selectedUserId={null}
+                      userPapel={undefined}
+                      apiClient={apiClient}
+                    />
+                  }
+                />
+
+                <Route
+                  path="/encontros/:encontroId/presenca"
+                  element={
+                    <RegistrarPresencaRoute
+                      selectedUserId={null}
+                      userPapel={undefined}
+                      apiClient={apiClient}
+                    />
+                  }
+                />
+
+                <Route
+                  path="/encontros/:encontroId/presenca-manual"
+                  element={
+                    <RegistrarPresencaManualRoute
+                      selectedUserId={null}
+                      userPapel={undefined}
                       apiClient={apiClient}
                     />
                   }

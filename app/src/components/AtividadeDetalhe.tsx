@@ -297,6 +297,33 @@ export function AtividadeDetalhe({
                         Início: {formatarDataHoraBrasilia(encontro.inicio)} | Fim:{' '}
                         {formatarDataHoraBrasilia(encontro.fim)}
                       </p>
+
+                      <div className="encounter-actions" style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        {userPapel === 'organizacao' && (
+                          <>
+                            <Link
+                              to={`/encontros/${encontro.id}/codigo`}
+                              className="button button--secondary button--small"
+                            >
+                              Ver código de presença
+                            </Link>
+                            <Link
+                              to={`/encontros/${encontro.id}/presenca-manual`}
+                              className="button button--secondary button--small"
+                            >
+                              Registrar presença manual
+                            </Link>
+                          </>
+                        )}
+                        {userPapel === 'participante' && (
+                          <Link
+                            to={`/encontros/${encontro.id}/presenca`}
+                            className="button button--primary button--small"
+                          >
+                            Registrar minha presença
+                          </Link>
+                        )}
+                      </div>
                     </div>
                   </li>
                 ))}
@@ -306,7 +333,13 @@ export function AtividadeDetalhe({
             )}
           </section>
 
-          <M2ExtensionPoint />
+          <M2ExtensionPoint
+            atividade={atividade}
+            selectedUserId={selectedUserId}
+            userPapel={userPapel}
+            apiClient={apiClient}
+            onInscricaoUpdated={reload}
+          />
         </article>
       )}
     </section>

@@ -1565,4 +1565,93 @@ describe('App Shell', () => {
     const matches = await screen.findAllByText('19:00');
     expect(matches.length).toBe(2);
   });
+
+  it('organização vê links para código de presença e presença manual e navega para as telas do M3', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividade: vi.fn().mockResolvedValue({
+        id: 'atv_1',
+        titulo: 'Atividade M3 Org',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 40,
+        encontros: [{ id: 'enc_1', inicio: '2026-10-19T10:00:00-03:00', fim: '2026-10-19T11:00:00-03:00' }],
+        cargaHorariaMinutos: 60,
+        situacao: 'prevista',
+        ocupadas: 0,
+        vagasRestantes: 40,
+        emEspera: 0,
+      }),
+      getCodigoEncontro: vi.fn().mockResolvedValue({
+        encontroId: 'enc_1',
+        codigo: 'CODE99',
+        trocaEm: new Date(Date.now() + 5000).toISOString(),
+        validoAte: new Date(Date.now() + 10000).toISOString(),
+      }),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/atv_1']} />);
+
+    const linkCodigo = await screen.findByText('Ver código de presença');
+    expect(linkCodigo).toBeInTheDocument();
+    expect(screen.getByText('Registrar presença manual')).toBeInTheDocument();
+
+    fireEvent.click(linkCodigo);
+    expect(await screen.findByTestId('codigo-encontro-container')).toBeInTheDocument();
+  });
+
+  it('participante vê link para registrar presença e navega para a tela do participante', async () => {
+    localStorage.setItem('selectedUserId', 'p-carla');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividade: vi.fn().mockResolvedValue({
+        id: 'atv_1',
+        titulo: 'Atividade M3 Part',
+        tipo: 'palestra',
+        salaId: 'sala-101',
+        vagas: 40,
+        encontros: [{ id: 'enc_1', inicio: '2026-10-19T10:00:00-03:00', fim: '2026-10-19T11:00:00-03:00' }],
+        cargaHorariaMinutos: 60,
+        situacao: 'prevista',
+        ocupadas: 0,
+        vagasRestantes: 40,
+        emEspera: 0,
+      }),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/atividades/atv_1']} />);
+
+    const linkPresenca = await screen.findByText('Registrar minha presença');
+    expect(linkPresenca).toBeInTheDocument();
+
+    fireEvent.click(linkPresenca);
+    expect(await screen.findByTestId('registrar-presenca-container')).toBeInTheDocument();
+  });
+
+  it('participante tentando acessar rota de organização recebe acesso restrito', async () => {
+    localStorage.setItem('selectedUserId', 'p-carla');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/encontros/enc_1/codigo']} />);
+
+    expect(await screen.findByText('Área exclusiva da organização')).toBeInTheDocument();
+  });
+
+  it('organização tentando acessar rota de participante recebe acesso restrito', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/encontros/enc_1/presenca']} />);
+
+    expect(await screen.findByText('Área exclusiva de participantes')).toBeInTheDocument();
+  });
 });
