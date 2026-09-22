@@ -68,6 +68,10 @@ export function runMigrations(db: Database.Database): void {
       emitido_em TEXT NOT NULL,
       FOREIGN KEY (atividade_id) REFERENCES atividades(id),
       FOREIGN KEY (participante_id) REFERENCES usuarios(id)
+  );
+    CREATE TABLE IF NOT EXISTS m5_desbloqueios (
+      participanteId TEXT PRIMARY KEY,
+      desbloqueadoEm TEXT NOT NULL
     );
   `);
 

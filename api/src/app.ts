@@ -35,6 +35,16 @@ import { mapActivityResponse } from './http/activity-response.js';
 import { EmitirCertificado } from './certificate/emissao-certificado.js';
 import { abreviarNome } from './certificate/abreviar-nome.js';
 import { ConsultarExtrato } from './certificate/extrato.js';
+import { PainelQueryPort, SQLitePainelQueryAdapter } from './integrations/painel-query-port.js';
+import { SQLiteM1PainelSourceAdapter } from './integrations/m1-painel-source-port.js';
+import { SQLiteM2PainelSourceAdapter } from './integrations/m2-painel-source-port.js';
+import { SQLiteM3PainelSourceAdapter } from './integrations/m3-painel-source-port.js';
+import { ListPainelAtividadesUseCase } from './application/list-painel-atividades.js';
+import { ListSemChanceUseCase } from './application/list-sem-chance.js';
+import { ExportFrequenciaCsvUseCase } from './application/export-frequencia-csv.js';
+import { ListBloqueiosUseCase } from './application/list-bloqueios.js';
+import { DesbloqueioRepository } from './repositories/desbloqueio-repository.js';
+import { RemoveBloqueioUseCase } from './application/remove-bloqueio.js';
 
 export interface AppOptions {
   dbPath?: string;
@@ -42,6 +52,7 @@ export interface AppOptions {
   modoTeste?: boolean;
   m2Port?: M2IntegrationPort;
   m5Port?: M5IntegrationPort;
+  painelQueryPort?: PainelQueryPort;
 }
 
 export function createApp(options?: AppOptions | string) {
@@ -71,15 +82,29 @@ export function createApp(options?: AppOptions | string) {
   const userRepository = new UserRepository(db);
   const roomRepository = new RoomRepository(db);
   const activityRepository = new ActivityRepository(db);
+  const presencaRepository = new PresencaRepository(db);
   const m2Port = opts.m2Port || new SQLiteM2Adapter(inscricaoRepository, activityRepository, clock);
-  const m5Port = opts.m5Port || new SQLiteM5Adapter(inscricaoRepository);
+  const m1PainelSourcePort = new SQLiteM1PainelSourceAdapter(activityRepository);
+  const m2PainelSourcePort = new SQLiteM2PainelSourceAdapter(inscricaoRepository, userRepository);
+  const m3PainelSourcePort = new SQLiteM3PainelSourceAdapter(presencaRepository);
+  const painelQueryPort = opts.painelQueryPort || new SQLitePainelQueryAdapter(
+    m1PainelSourcePort,
+    m2PainelSourcePort,
+    m3PainelSourcePort
+  );
+  const desbloqueioRepository = new DesbloqueioRepository(db);
+  const listPainelAtividadesUseCase = new ListPainelAtividadesUseCase(painelQueryPort, clock);
+  const listSemChanceUseCase = new ListSemChanceUseCase(painelQueryPort, clock);
+  const exportFrequenciaCsvUseCase = new ExportFrequenciaCsvUseCase(painelQueryPort, clock);
+  const listBloqueiosUseCase = new ListBloqueiosUseCase(painelQueryPort, clock, desbloqueioRepository);
+  const m5Port = opts.m5Port || new SQLiteM5Adapter(listBloqueiosUseCase);
+  const removeBloqueioUseCase = new RemoveBloqueioUseCase(listBloqueiosUseCase, desbloqueioRepository, clock);
   const createActivityUseCase = new CreateActivityUseCase(activityRepository, roomRepository);
   const getActivityUseCase = new GetActivityUseCase(activityRepository);
   const listActivitiesUseCase = new ListActivitiesUseCase(activityRepository);
   const updateActivityUseCase = new UpdateActivityUseCase(activityRepository, roomRepository, m2Port);
   const cancelActivityUseCase = new CancelActivityUseCase(activityRepository, m2Port, clock);
   const getCodigoDoEncontroUseCase = new GetCodigoDoEncontroUseCase(activityRepository, clock);
-  const presencaRepository = new PresencaRepository(db);
   const registerPresencaUseCase = new RegisterPresencaUseCase(activityRepository, inscricaoRepository, presencaRepository, clock);
 const registerPresencaManualUseCase = new RegisterPresencaManualUseCase(activityRepository, inscricaoRepository, presencaRepository, clock);
 const listPresencasUseCase = new ListPresencasUseCase(activityRepository, presencaRepository);
@@ -457,6 +482,48 @@ const cancelInscricaoUseCase = new CancelInscricaoUseCase(activityRepository, in
       cargaHorariaMinutos: certificado.cargaHorariaMinutos,
       emitidoEm: certificado.emitidoEm
     });
+  });
+  app.get('/painel/atividades', requireUser, requireOrg, (_req: Request, res: Response) => {
+    const result = listPainelAtividadesUseCase.execute();
+    res.json(result);
+  });
+
+  app.get('/painel/atividades/:id/sem-chance', requireUser, requireOrg, (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = listSemChanceUseCase.execute(req.params.id);
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  app.get('/painel/atividades/:id/frequencia.csv', requireUser, requireOrg, (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const buffer = exportFrequenciaCsvUseCase.execute(req.params.id);
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', 'attachment; filename="frequencia.csv"');
+      res.status(200).send(buffer);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  app.get('/painel/bloqueios', requireUser, requireOrg, (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = listBloqueiosUseCase.execute();
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  app.delete('/painel/bloqueios/:participanteId', requireUser, requireOrg, (req: Request, res: Response, next: NextFunction) => {
+    try {
+      removeBloqueioUseCase.execute(req.params.participanteId);
+      res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
   });
 
   app.use((_req: Request, res: Response) => {
