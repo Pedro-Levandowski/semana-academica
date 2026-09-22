@@ -30,6 +30,9 @@ import { DomainError, ConflictError } from './domain/activity.js';
 import { processExpirationsAndConvocations } from './domain/inscricao-service.js';
 import { mapActivityResponse } from './http/activity-response.js';
 import { PainelQueryPort, SQLitePainelQueryAdapter } from './integrations/painel-query-port.js';
+import { SQLiteM1PainelSourceAdapter } from './integrations/m1-painel-source-port.js';
+import { SQLiteM2PainelSourceAdapter } from './integrations/m2-painel-source-port.js';
+import { SQLiteM3PainelSourceAdapter } from './integrations/m3-painel-source-port.js';
 import { ListPainelAtividadesUseCase } from './application/list-painel-atividades.js';
 import { ListSemChanceUseCase } from './application/list-sem-chance.js';
 import { ExportFrequenciaCsvUseCase } from './application/export-frequencia-csv.js';
@@ -75,7 +78,14 @@ export function createApp(options?: AppOptions | string) {
   const activityRepository = new ActivityRepository(db);
   const presencaRepository = new PresencaRepository(db);
   const m2Port = opts.m2Port || new SQLiteM2Adapter(inscricaoRepository, activityRepository, clock);
-  const painelQueryPort = opts.painelQueryPort || new SQLitePainelQueryAdapter(activityRepository, inscricaoRepository, presencaRepository, userRepository);
+  const m1PainelSourcePort = new SQLiteM1PainelSourceAdapter(activityRepository);
+  const m2PainelSourcePort = new SQLiteM2PainelSourceAdapter(inscricaoRepository, userRepository);
+  const m3PainelSourcePort = new SQLiteM3PainelSourceAdapter(presencaRepository);
+  const painelQueryPort = opts.painelQueryPort || new SQLitePainelQueryAdapter(
+    m1PainelSourcePort,
+    m2PainelSourcePort,
+    m3PainelSourcePort
+  );
   const desbloqueioRepository = new DesbloqueioRepository(db);
   const listPainelAtividadesUseCase = new ListPainelAtividadesUseCase(painelQueryPort, clock);
   const listSemChanceUseCase = new ListSemChanceUseCase(painelQueryPort, clock);

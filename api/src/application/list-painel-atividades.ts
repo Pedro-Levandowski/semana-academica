@@ -15,19 +15,12 @@ export interface PainelAtividadeItemOutput {
 export class ListPainelAtividadesUseCase {
   constructor(private painelQueryPort: PainelQueryPort, private clock: Clock) {}
 
-  private getEarliestStartMillis(encontros: Array<{ inicio: string }>): number {
+  private getFirstStartMillis(encontros: Array<{ inicio: string }>): number {
     if (!encontros || encontros.length === 0) {
       return Number.MAX_SAFE_INTEGER;
     }
-    let minMillis = Number.MAX_SAFE_INTEGER;
-    for (const enc of encontros) {
-      const dt = DateTime.fromISO(enc.inicio, { setZone: true });
-      const millis = dt.toMillis();
-      if (!isNaN(millis) && millis < minMillis) {
-        minMillis = millis;
-      }
-    }
-    return minMillis === Number.MAX_SAFE_INTEGER ? 0 : minMillis;
+    const millis = DateTime.fromISO(encontros[0].inicio, { setZone: true }).toMillis();
+    return Number.isNaN(millis) ? Number.MAX_SAFE_INTEGER : millis;
   }
 
   execute(): PainelAtividadeItemOutput[] {
@@ -37,8 +30,8 @@ export class ListPainelAtividadesUseCase {
     const naoCanceladas = atividades.filter(a => !a.cancelada);
 
     naoCanceladas.sort((a, b) => {
-      const timeA = this.getEarliestStartMillis(a.encontros);
-      const timeB = this.getEarliestStartMillis(b.encontros);
+      const timeA = this.getFirstStartMillis(a.encontros);
+      const timeB = this.getFirstStartMillis(b.encontros);
       if (timeA !== timeB) {
         return timeA - timeB;
       }

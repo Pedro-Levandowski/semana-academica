@@ -47,6 +47,30 @@ describe('M5 - Sem chance de certificado (Fatia 7)', () => {
     );
   });
 
+  it('exibe carregamento enquanto o relatório sem chance está pendente', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    let resolver: (value: unknown[]) => void = () => undefined;
+    const pendente = new Promise<unknown[]>((resolve) => {
+      resolver = resolve;
+    });
+    const fakeClient = criarClienteFake({
+      getSemChance: vi.fn().mockReturnValue(pendente),
+    });
+
+    render(
+      <App
+        apiClient={fakeClient}
+        initialEntries={['/painel/atividades/atv-critica/sem-chance']}
+      />
+    );
+
+    expect(screen.getByRole('status')).toHaveTextContent('Carregando relatório...');
+    resolver([]);
+    expect(
+      await screen.findByText('Nenhum participante sem chance de certificado.')
+    ).toBeInTheDocument();
+  });
+
   it('exibe os participantes e valores retornados pela API sem recalcular faltas', async () => {
     localStorage.setItem('selectedUserId', 'org-ana');
 

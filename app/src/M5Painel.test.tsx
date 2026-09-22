@@ -261,4 +261,63 @@ describe('M5 - Painel (Fatia 6)', () => {
     expect(await screen.findByText('75,0%')).toBeInTheDocument();
     expect(screen.queryByText('Não disponível')).not.toBeInTheDocument();
   });
+
+  it('reflete o avanço do relógio central após nova busca sem consultar o relógio do navegador', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const user = userEvent.setup();
+    const browserAgora = Date.UTC(2099, 0, 1);
+    vi.spyOn(Date, 'now').mockReturnValue(browserAgora);
+    let agoraCentral = '2026-10-20T08:59:59-03:00';
+
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      const url = String(input);
+      const method = init?.method || 'GET';
+
+      if (url.endsWith('/_teste/relogio') && method === 'PUT') {
+        agoraCentral = JSON.parse(String(init?.body)).agora;
+        return new Response(null, { status: 204 });
+      }
+      if (url.endsWith('/salas')) {
+        return Response.json([]);
+      }
+      if (url.includes('/atividades') && !url.includes('/painel/')) {
+        return Response.json([]);
+      }
+      if (url.endsWith('/painel/atividades')) {
+        return Response.json([
+          {
+            atividadeId: 'atv-relogio-central',
+            titulo: 'Atividade guiada pelo relógio central',
+            vagas: 10,
+            ocupadas: 5,
+            emEspera: 0,
+            ocupacaoPercentual: 50,
+            frequenciaPercentual: agoraCentral === '2026-10-20T09:00:00-03:00' ? 75 : null,
+          },
+        ]);
+      }
+      throw new Error(`Requisição inesperada no teste: ${method} ${url}`);
+    });
+
+    render(<App apiClient={api} initialEntries={['/painel']} />);
+
+    expect(await screen.findByText('Não disponível')).toBeInTheDocument();
+
+    const respostaRelogio = await fetch('http://localhost:3000/_teste/relogio', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ agora: '2026-10-20T09:00:00-03:00' }),
+    });
+    expect(respostaRelogio.status).toBe(204);
+
+    await user.click(screen.getByRole('button', { name: 'Atualizar painel' }));
+
+    expect(await screen.findByText('75,0%')).toBeInTheDocument();
+    expect(screen.queryByText('Não disponível')).not.toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/_teste/relogio'),
+      expect.objectContaining({ method: 'PUT' })
+    );
+    expect(Date.now()).toBe(browserAgora);
+  });
 });

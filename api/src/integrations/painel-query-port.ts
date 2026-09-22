@@ -1,10 +1,10 @@
-import { ActivityRepository } from '../repositories/activity-repository.js';
-import { InscricaoRepository } from '../repositories/inscricao-repository.js';
-import { PresencaRepository } from '../repositories/presenca-repository.js';
-import { UserRepository } from '../repositories/user-repository.js';
+import type { M1PainelSourcePort } from './m1-painel-source-port.js';
+import type { M2PainelSourcePort } from './m2-painel-source-port.js';
+import type { M3PainelOrigemPresenca, M3PainelSourcePort } from './m3-painel-source-port.js';
 
 export interface PainelPresencaPortrait {
   participanteId: string;
+  origem: M3PainelOrigemPresenca;
 }
 
 export interface PainelEncontroPortrait {
@@ -35,15 +35,14 @@ export interface PainelQueryPort {
 
 export class SQLitePainelQueryAdapter implements PainelQueryPort {
   constructor(
-    private activityRepository: ActivityRepository,
-    private inscricaoRepository: InscricaoRepository,
-    private presencaRepository: PresencaRepository,
-    private userRepository: UserRepository
+    private m1PainelSourcePort: M1PainelSourcePort,
+    private m2PainelSourcePort: M2PainelSourcePort,
+    private m3PainelSourcePort: M3PainelSourcePort
   ) {}
 
   listarAtividades(): PainelAtividadePortrait[] {
-    const activities = this.activityRepository.findAll();
-    const allInscricoes = this.inscricaoRepository.findAll();
+    const activities = this.m1PainelSourcePort.listarAtividadesParaPainel();
+    const allInscricoes = this.m2PainelSourcePort.listarInscricoesParaPainel();
 
     const inscricoesByActivity = new Map<string, PainelInscricaoPortrait[]>();
     for (const ins of allInscricoes) {
@@ -52,10 +51,9 @@ export class SQLitePainelQueryAdapter implements PainelQueryPort {
         list = [];
         inscricoesByActivity.set(ins.atividadeId, list);
       }
-      const user = this.userRepository.findById(ins.participanteId);
       list.push({
         participanteId: ins.participanteId,
-        nome: user?.nome || '',
+        nome: ins.nome,
         status: ins.status
       });
     }
@@ -64,12 +62,10 @@ export class SQLitePainelQueryAdapter implements PainelQueryPort {
       id: act.id,
       titulo: act.titulo,
       vagas: act.vagas,
-      cancelada: act.cancelada === 1,
+      cancelada: act.cancelada,
       encontros: act.encontros.map(e => {
-        const presencasRows = this.presencaRepository.findByEncontro(e.id);
-        const presencasPortraits: PainelPresencaPortrait[] = presencasRows.map(p => ({
-          participanteId: p.participanteId
-        }));
+        const presencasPortraits: PainelPresencaPortrait[] =
+          this.m3PainelSourcePort.listarPresencasDoEncontroParaPainel(e.id);
         return {
           id: e.id,
           inicio: e.inicio,

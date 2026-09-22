@@ -117,21 +117,21 @@ describe('M5 - Painel - Fatia 2 (Listagem de Atividades e Métricas)', () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual([
       {
-        atividadeId: 'act-andamento',
-        titulo: 'Atividade Em Andamento',
-        vagas: 3,
-        ocupadas: 2,
-        emEspera: 1,
-        ocupacaoPercentual: 66.7,
-        frequenciaPercentual: null
-      },
-      {
         atividadeId: 'act-encerrada',
         titulo: 'Atividade Encerrada',
         vagas: 10,
         ocupadas: 1,
         emEspera: 0,
         ocupacaoPercentual: 10,
+        frequenciaPercentual: null
+      },
+      {
+        atividadeId: 'act-andamento',
+        titulo: 'Atividade Em Andamento',
+        vagas: 3,
+        ocupadas: 2,
+        emEspera: 1,
+        ocupacaoPercentual: 66.7,
         frequenciaPercentual: null
       },
       {
@@ -179,6 +179,24 @@ describe('M5 - Painel - Fatia 2 (Listagem de Atividades e Métricas)', () => {
         ocupacaoPercentual: 0,
         frequenciaPercentual: null
       }
+    ]);
+  });
+
+  it('ignora filtros e paginação por query string e mantém a listagem completa', async () => {
+    const res = await request(app)
+      .get('/painel/atividades?dia=2026-10-23&tipo=minicurso&pagina=99')
+      .set('X-Usuario', 'org-ana');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(7);
+    expect(res.body.map((atividade: any) => atividade.atividadeId)).toEqual([
+      'act-encerrada',
+      'act-andamento',
+      'act-vagas-8',
+      'act-vagas-6',
+      'act-alfa-1',
+      'act-alfa-3',
+      'act-beta'
     ]);
   });
 });

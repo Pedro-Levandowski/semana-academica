@@ -50,9 +50,9 @@ describe('M5 - Painel - Fatia 4 (Exportação CSV de Frequência)', () => {
               inicio: '2026-10-19T06:00:00-03:00',
               fim: '2026-10-19T07:00:00-03:00',
               presencas: [
-                { participanteId: 'p-ana-1' },
-                { participanteId: 'p-ana-2' },
-                { participanteId: 'p-carla-csv' }
+                { participanteId: 'p-ana-1', origem: 'qr' },
+                { participanteId: 'p-ana-2', origem: 'qr_offline' },
+                { participanteId: 'p-carla-csv', origem: 'manual' }
               ]
             }
           ],
@@ -80,6 +80,46 @@ describe('M5 - Painel - Fatia 4 (Exportação CSV de Frequência)', () => {
           inscricoes: [
             { participanteId: 'p-ana-elig', nome: 'Ana Elegível', status: 'confirmada' },
             { participanteId: 'p-bruno-inex', nome: 'Bruno Inelegível', status: 'confirmada' }
+          ]
+        },
+        {
+          id: 'act-csv-origens',
+          titulo: 'Atividade Origens',
+          vagas: 3,
+          cancelada: false,
+          encontros: [
+            {
+              id: 'enc-origens',
+              inicio: '2026-10-19T08:00:00-03:00',
+              fim: '2026-10-19T09:00:00-03:00',
+              presencas: [
+                { participanteId: 'p-manual', origem: 'manual' },
+                { participanteId: 'p-qr', origem: 'qr' },
+                { participanteId: 'p-offline', origem: 'qr_offline' }
+              ]
+            }
+          ],
+          inscricoes: [
+            { participanteId: 'p-manual', nome: 'Manual', status: 'confirmada' },
+            { participanteId: 'p-offline', nome: 'Offline', status: 'confirmada' },
+            { participanteId: 'p-qr', nome: 'QR', status: 'confirmada' }
+          ]
+        },
+        {
+          id: 'act-csv-limiar-arredondado',
+          titulo: 'Atividade Limiar Arredondado',
+          vagas: 1,
+          cancelada: false,
+          encontros: Array.from({ length: 2000 }, (_, index) => ({
+            id: `enc-limiar-${String(index).padStart(4, '0')}`,
+            inicio: '2026-10-19T08:00:00-03:00',
+            fim: '2026-10-19T09:00:00-03:00',
+            presencas: index < 1499
+              ? [{ participanteId: 'p-limiar', origem: 'qr' }]
+              : []
+          })),
+          inscricoes: [
+            { participanteId: 'p-limiar', nome: 'Participante Limiar', status: 'confirmada' }
           ]
         },
         {
@@ -151,6 +191,41 @@ describe('M5 - Painel - Fatia 4 (Exportação CSV de Frequência)', () => {
     const text = (res.body as Buffer).toString('utf8');
     const expected = '\uFEFFnome;E1;E2;E3;E4;frequencia;certificado\nAna Elegível;P;P;P;F;75,0;sim\nBruno Inelegível;P;P;F;F;50,0;nao\n';
     expect(text).toBe(expected);
+  });
+
+  it('considera qr, qr_offline e manual igualmente como presença P (R11)', async () => {
+    const res = await request(app)
+      .get('/painel/atividades/act-csv-origens/frequencia.csv')
+      .set('X-Usuario', 'org-ana')
+      .parse((response: any, callback: any) => {
+        const data: any[] = [];
+        response.on('data', (chunk: any) => data.push(chunk));
+        response.on('end', () => callback(null, Buffer.concat(data)));
+      });
+
+    expect(res.status).toBe(200);
+    expect((res.body as Buffer).toString('utf8')).toBe(
+      '\uFEFFnome;E1;frequencia;certificado\nManual;P;100,0;sim\nOffline;P;100,0;sim\nQR;P;100,0;sim\n'
+    );
+  });
+
+  it('não concede certificado quando a frequência bruta é inferior a 75%, mesmo exibindo 75,0 após formatação (R12)', async () => {
+    const res = await request(app)
+      .get('/painel/atividades/act-csv-limiar-arredondado/frequencia.csv')
+      .set('X-Usuario', 'org-ana')
+      .parse((response: any, callback: any) => {
+        const data: any[] = [];
+        response.on('data', (chunk: any) => data.push(chunk));
+        response.on('end', () => callback(null, Buffer.concat(data)));
+      });
+
+    expect(res.status).toBe(200);
+    const linhaParticipante = (res.body as Buffer)
+      .toString('utf8')
+      .split('\n')
+      .find((linha: string) => linha.startsWith('Participante Limiar;'));
+
+    expect(linhaParticipante).toMatch(/;75,0;nao$/);
   });
 
   it('retorna CSV com apenas cabeçalho para atividade cancelada e 404 para atividade inexistente (R13)', async () => {
