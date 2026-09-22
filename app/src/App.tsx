@@ -10,6 +10,9 @@ import { EditarAtividade } from './components/EditarAtividade';
 import { CodigoEncontro } from './components/CodigoEncontro';
 import { RegistrarPresenca } from './components/RegistrarPresenca';
 import { RegistrarPresencaManual } from './components/RegistrarPresencaManual';
+import { MeusCertificados } from './components/MeusCertificados';
+import { ExtratoHoras } from './components/ExtratoHoras';
+import { VerificarCertificado } from './components/VerificarCertificado';
 import { api } from './api/client';
 
 function CodigoEncontroRoute({
@@ -216,6 +219,33 @@ export function App({ apiClient = api, initialEntries }: AppProps) {
                     />
                   }
                 />
+
+                <Route
+                  path="/certificados"
+                  element={
+                    <MeusCertificados
+                      selectedUserId={selectedUser.id}
+                      userPapel={selectedUser.papel}
+                      apiClient={apiClient}
+                    />
+                  }
+                />
+
+                <Route
+                  path="/extrato"
+                  element={
+                    <ExtratoHoras
+                      selectedUserId={selectedUser.id}
+                      userPapel={selectedUser.papel}
+                      apiClient={apiClient}
+                    />
+                  }
+                />
+
+                <Route
+                  path="/verificar"
+                  element={<VerificarCertificado apiClient={apiClient} />}
+                />
               </Routes>
             </>
           ) : (
@@ -299,6 +329,11 @@ export function App({ apiClient = api, initialEntries }: AppProps) {
                       apiClient={apiClient}
                     />
                   }
+                />
+
+                <Route
+                  path="/verificar"
+                  element={<VerificarCertificado apiClient={apiClient} />}
                 />
 
                 <Route path="*" element={null} />
