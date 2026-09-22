@@ -137,4 +137,232 @@ describe('MeusCertificados Component', () => {
     ).toBeInTheDocument();
     expect(getCertificadosMock).not.toHaveBeenCalled();
   });
+    it('deve exibir a ação "Emitir certificado" para atividade elegível do extrato e chamar emitirCertificado com o ID correto', async () => {
+    const getExtratoMock = vi.fn().mockResolvedValue({
+      itens: [
+        {
+          atividadeId: 'atv_9x8y7z6w',
+          titulo: 'Inteligência Artificial na prática',
+          tipo: 'minicurso',
+          cargaHorariaMinutos: 240,
+          codigo: null,
+        },
+      ],
+      palestrasMinutos: 0,
+      minicursosMinutos: 240,
+      totalMinutos: 240,
+    });
+
+    const emitirCertificadoMock = vi.fn().mockResolvedValue({
+      codigo: 'SA26-4M5N-6P7Q',
+      atividadeId: 'atv_9x8y7z6w',
+      participanteId: 'p-carla',
+      cargaHorariaMinutos: 240,
+      presencas: 2,
+      encontros: 2,
+      emitidoEm: '2026-10-20T22:00:00-03:00',
+    });
+
+    const getCertificadosMock = vi.fn().mockResolvedValue([]);
+
+    const fakeClient = {
+      ...api,
+      getExtrato: getExtratoMock,
+      emitirCertificado: emitirCertificadoMock,
+      getCertificados: getCertificadosMock,
+    };
+
+    render(
+      <MeusCertificados
+        selectedUserId="p-carla"
+        userPapel="participante"
+        apiClient={fakeClient}
+      />
+    );
+
+    const botao = await screen.findByRole('button', {
+      name: 'Emitir certificado',
+    });
+
+    await act(async () => {
+      botao.click();
+    });
+
+    expect(emitirCertificadoMock).toHaveBeenCalledWith('atv_9x8y7z6w');
+  });
+
+  it('deve apresentar feedback de sucesso e atualizar a listagem ao emitir com sucesso', async () => {
+    const certificadoEmitidoDaAtividade = {
+      codigo: 'SA26-4M5N-6P7Q',
+      atividadeId: 'atv_9x8y7z6w',
+      participanteId: 'p-carla',
+      cargaHorariaMinutos: 240,
+      presencas: 2,
+      encontros: 2,
+      emitidoEm: '2026-10-20T22:00:00-03:00',
+    };
+
+    const getExtratoMock = vi.fn().mockResolvedValue({
+      itens: [
+        {
+          atividadeId: 'atv_9x8y7z6w',
+          titulo: 'Inteligência Artificial na prática',
+          tipo: 'minicurso',
+          cargaHorariaMinutos: 240,
+          codigo: null,
+        },
+      ],
+      palestrasMinutos: 0,
+      minicursosMinutos: 240,
+      totalMinutos: 240,
+    });
+
+    const emitirCertificadoMock = vi
+      .fn()
+      .mockResolvedValue(certificadoEmitidoDaAtividade);
+
+    const getCertificadosMock = vi
+      .fn()
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([certificadoEmitidoDaAtividade]);
+
+    const fakeClient = {
+      ...api,
+      getExtrato: getExtratoMock,
+      emitirCertificado: emitirCertificadoMock,
+      getCertificados: getCertificadosMock,
+    };
+
+    render(
+      <MeusCertificados
+        selectedUserId="p-carla"
+        userPapel="participante"
+        apiClient={fakeClient}
+      />
+    );
+
+    const botao = await screen.findByRole('button', {
+      name: 'Emitir certificado',
+    });
+
+    await act(async () => {
+      botao.click();
+    });
+
+    expect(
+      await screen.findByText(/emitido com sucesso/i)
+    ).toBeInTheDocument();
+
+    expect(
+      await screen.findByText(
+        `Código: ${certificadoEmitidoDaAtividade.codigo}`
+      )
+).toBeInTheDocument();
+  });
+
+  it('deve apresentar feedback compreensível quando a emissão falha com PRESENCA_INSUFICIENTE', async () => {
+    const getExtratoMock = vi.fn().mockResolvedValue({
+      itens: [
+        {
+          atividadeId: 'atv_9x8y7z6w',
+          titulo: 'Inteligência Artificial na prática',
+          tipo: 'minicurso',
+          cargaHorariaMinutos: 240,
+          codigo: null,
+        },
+      ],
+      palestrasMinutos: 0,
+      minicursosMinutos: 240,
+      totalMinutos: 240,
+    });
+
+    const emitirCertificadoMock = vi.fn().mockRejectedValue({
+      erro: 'PRESENCA_INSUFICIENTE',
+      mensagem: 'Presença mínima de 75% não atingida',
+    });
+
+    const getCertificadosMock = vi.fn().mockResolvedValue([]);
+
+    const fakeClient = {
+      ...api,
+      getExtrato: getExtratoMock,
+      emitirCertificado: emitirCertificadoMock,
+      getCertificados: getCertificadosMock,
+    };
+
+    render(
+      <MeusCertificados
+        selectedUserId="p-carla"
+        userPapel="participante"
+        apiClient={fakeClient}
+      />
+    );
+
+    const botao = await screen.findByRole('button', {
+      name: 'Emitir certificado',
+    });
+
+    await act(async () => {
+      botao.click();
+    });
+
+    const alert = await screen.findByRole('alert');
+
+    expect(alert).toHaveTextContent(
+      /PRESENCA_INSUFICIENTE|presença mínima|não atingiu/i
+    );
+  });
+
+  it('deve apresentar feedback compreensível quando a emissão falha com ATIVIDADE_NAO_ENCERRADA', async () => {
+    const getExtratoMock = vi.fn().mockResolvedValue({
+      itens: [
+        {
+          atividadeId: 'atv_9x8y7z6w',
+          titulo: 'Inteligência Artificial na prática',
+          tipo: 'minicurso',
+          cargaHorariaMinutos: 240,
+          codigo: null,
+        },
+      ],
+      palestrasMinutos: 0,
+      minicursosMinutos: 240,
+      totalMinutos: 240,
+    });
+
+    const emitirCertificadoMock = vi.fn().mockRejectedValue({
+      erro: 'ATIVIDADE_NAO_ENCERRADA',
+      mensagem: 'A atividade ainda não foi encerrada',
+    });
+
+    const getCertificadosMock = vi.fn().mockResolvedValue([]);
+
+    const fakeClient = {
+      ...api,
+      getExtrato: getExtratoMock,
+      emitirCertificado: emitirCertificadoMock,
+      getCertificados: getCertificadosMock,
+    };
+
+    render(
+      <MeusCertificados
+        selectedUserId="p-carla"
+        userPapel="participante"
+        apiClient={fakeClient}
+      />
+    );
+
+    const botao = await screen.findByRole('button', {
+      name: 'Emitir certificado',
+    });
+
+    await act(async () => {
+      botao.click();
+    });
+
+    const alert = await screen.findByRole('alert');
+
+    expect(alert).toHaveTextContent(
+      /ATIVIDADE_NAO_ENCERRADA|não foi encerrada/i
+    );
+  });
 });

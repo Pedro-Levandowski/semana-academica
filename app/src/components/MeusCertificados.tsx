@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useCertificados } from '../hooks/useCertificados';
 import { api } from '../api/client';
 import { formatarDataHoraBrasilia } from '../utils/date';
@@ -23,7 +24,74 @@ export function MeusCertificados({
     );
   }
 
-  const { certificados, loading, error } = useCertificados(apiClient);
+  return <MeusCertificadosParticipante apiClient={apiClient} />;
+}
+
+function MeusCertificadosParticipante({
+  apiClient,
+}: {
+  apiClient: typeof api;
+}) {
+  const { certificados, loading, error, recarregar } =
+    useCertificados(apiClient);
+
+  const [atividadesPendentes, setAtividadesPendentes] = useState<any[]>([]);
+  const [feedback, setFeedback] = useState<{
+    tipo: 'sucesso' | 'erro';
+    mensagem: string;
+  } | null>(null);
+
+  useEffect(() => {
+
+    let ativo = true;
+
+    apiClient
+      .getExtrato()
+      .then((extrato) => {
+        if (ativo) {
+          setAtividadesPendentes(
+            extrato.itens.filter((item) => item.codigo === null)
+          );
+        }
+      })
+      .catch(() => {
+        if (ativo) {
+          setAtividadesPendentes([]);
+        }
+      });
+
+    return () => {
+      ativo = false;
+    };
+  }, [apiClient]);
+
+  async function emitir(atividadeId: string) {
+    setFeedback(null);
+
+    try {
+      await apiClient.emitirCertificado(atividadeId);
+
+      setFeedback({
+        tipo: 'sucesso',
+        mensagem: 'Certificado emitido com sucesso.',
+      });
+
+      setAtividadesPendentes((atuais) =>
+        atuais.filter((atividade) => atividade.atividadeId !== atividadeId)
+      );
+
+      await recarregar();
+    } catch (err: any) {
+      const codigo = err?.erro || 'ERRO_DESCONHECIDO';
+      const mensagem =
+        err?.mensagem || err?.message || 'Não foi possível emitir o certificado.';
+
+      setFeedback({
+        tipo: 'erro',
+        mensagem: `${codigo}: ${mensagem}`,
+      });
+    }
+  }
 
   return (
     <section>
@@ -34,6 +102,39 @@ export function MeusCertificados({
           <p>Certificados já emitidos para a sua participação.</p>
         </div>
       </div>
+
+      {feedback && (
+        <div
+          className={
+            feedback.tipo === 'erro' ? 'error-message' : 'success-message'
+          }
+          role={feedback.tipo === 'erro' ? 'alert' : 'status'}
+          aria-live="polite"
+        >
+          {feedback.mensagem}
+        </div>
+      )}
+
+      {atividadesPendentes.length > 0 && (
+        <section>
+          <h3>Certificados disponíveis para emissão</h3>
+
+          <ul>
+            {atividadesPendentes.map((atividade) => (
+              <li key={atividade.atividadeId}>
+                <span>{atividade.titulo}</span>
+
+                <button
+                  type="button"
+                  onClick={() => emitir(atividade.atividadeId)}
+                >
+                  Emitir certificado
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {loading && (
         <div

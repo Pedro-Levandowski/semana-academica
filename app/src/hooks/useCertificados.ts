@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Certificado } from '../api/types';
 import { api } from '../api/client';
 
@@ -7,37 +7,31 @@ export function useCertificados(apiClient = api) {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<{ erro: string; mensagem: string } | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
+  const carregarCertificados = useCallback(async () => {
     setLoading(true);
     setError(null);
 
-    apiClient
-      .getCertificados()
-      .then((res) => {
-        if (isMounted) {
-          setCertificados(res);
-          setLoading(false);
-        }
-      })
-      .catch((err: any) => {
-        if (isMounted) {
-          setError({
-            erro: err.erro || 'ERRO_DESCONHECIDO',
-            mensagem: err.mensagem || err.message || 'Erro ao carregar certificados',
-          });
-          setLoading(false);
-        }
+    try {
+      const res = await apiClient.getCertificados();
+      setCertificados(res);
+    } catch (err: any) {
+      setError({
+        erro: err.erro || 'ERRO_DESCONHECIDO',
+        mensagem: err.mensagem || err.message || 'Erro ao carregar certificados',
       });
-
-    return () => {
-      isMounted = false;
-    };
+    } finally {
+      setLoading(false);
+    }
   }, [apiClient]);
+
+  useEffect(() => {
+    carregarCertificados();
+  }, [carregarCertificados]);
 
   return {
     certificados,
     loading,
     error,
+    recarregar: carregarCertificados,
   };
 }
