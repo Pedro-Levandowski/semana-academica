@@ -12,7 +12,7 @@ Requisições são chamadas ao modelo: cada passo do agente é uma. Skills conta
 
 | Aluno | Sessões | Requisições | Skills | Subagentes | Vermelhas / verdes | Ciclos | Nasceu verde | Juntos | Alertas |
 |---|---|---|---|---|---|---|---|---|---|
-| [enzofenato](sessoes/enzofenato/INDICE.md) | 14 | 232 | grilling (2), to-spec (2), tdd (5) | explore (3), general | 24 / 9 | 3 | 2 | 1 | — |
+| [enzofenato](sessoes/enzofenato/INDICE.md) | 54 | 1.048 | grilling (3), to-spec (2), tdd (5), tdd-m4 (34) | explore (4), general, revisor-de-contrato (4), auditor (2) | 54 / 84 | 6 | 12 | 2 | — |
 | [fernando](sessoes/fernando/INDICE.md) | 17 | 499 | grilling, to-spec, tdd | auditor | 37 / 39 | 7 | 9 | 7 | — |
 | [lucas-jose-gomes-oliveira](sessoes/lucas-jose-gomes-oliveira/INDICE.md) | 14 | 428 | grilling (2), to-spec, tdd (5) | auditor (2) | 30 / 56 | 11 | 28 | 2 | — |
 | [pedro-alpino-levandowski](sessoes/pedro-alpino-levandowski/INDICE.md) | 18 | 782 | grilling, tdd (2) | — | 47 / 112 | 12 | 18 | 21 | — |
