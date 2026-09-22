@@ -1654,4 +1654,163 @@ describe('App Shell', () => {
 
     expect(await screen.findByText('Área exclusiva de participantes')).toBeInTheDocument();
   });
+
+  it('UI-5: rota /certificados carrega a tela Meus Certificados com participante selecionado', async () => {
+    localStorage.setItem('selectedUserId', 'p-carla');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividades: vi.fn().mockResolvedValue([]),
+      getCertificados: vi.fn().mockResolvedValue([
+        {
+          codigo: 'SA26-7K2M-9QXA',
+          atividadeId: 'atv_1a2b3c4d',
+          participanteId: 'p-carla',
+          cargaHorariaMinutos: 360,
+          presencas: 2,
+          encontros: 2,
+          emitidoEm: '2026-10-19T22:00:00-03:00',
+        },
+      ]),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/certificados']} />);
+
+    expect(
+      await screen.findByRole('heading', { name: 'Meus Certificados' })
+    ).toBeInTheDocument();
+  });
+
+  it('UI-5: rota /extrato carrega a tela Extrato de Horas com participante selecionado', async () => {
+    localStorage.setItem('selectedUserId', 'p-carla');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividades: vi.fn().mockResolvedValue([]),
+      getExtrato: vi.fn().mockResolvedValue({
+        itens: [
+          {
+            atividadeId: 'atv_1a2b3c4d',
+            titulo: 'Flutter do zero',
+            tipo: 'minicurso',
+            cargaHorariaMinutos: 360,
+            codigo: 'SA26-7K2M-9QXA',
+          },
+        ],
+        palestrasMinutos: 0,
+        minicursosMinutos: 360,
+        totalMinutos: 360,
+        aproveitadoMinutos: 360,
+      }),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/extrato']} />);
+
+    expect(
+      await screen.findByRole('heading', { name: 'Extrato de Horas' })
+    ).toBeInTheDocument();
+  });
+
+  it('UI-5: rota pública /verificar exibe o formulário sem usuário selecionado', async () => {
+    const fakeClient = {
+      ...api,
+      getCertificadoPorCodigo: vi.fn(),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/verificar']} />);
+
+    expect(
+      await screen.findByRole('heading', { name: 'Verificar Certificado' })
+    ).toBeInTheDocument();
+  });
+
+  it('UI-5: rota /verificar permanece acessível quando existe usuário selecionado', async () => {
+    localStorage.setItem('selectedUserId', 'p-carla');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividades: vi.fn().mockResolvedValue([]),
+      getCertificadoPorCodigo: vi.fn(),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/verificar']} />);
+
+    expect(
+      await screen.findByRole('heading', { name: 'Verificar Certificado' })
+    ).toBeInTheDocument();
+  });
+
+  it('UI-5: na tela principal, participante vê entradas navegáveis para Meus Certificados e Extrato de Horas', async () => {
+    localStorage.setItem('selectedUserId', 'p-carla');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividades: vi.fn().mockResolvedValue([]),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/']} />);
+
+    await screen.findByRole('heading', { name: 'Programação' });
+
+    expect(screen.getByRole('link', { name: 'Meus Certificados' })).toHaveAttribute(
+      'href',
+      '/certificados'
+    );
+    expect(screen.getByRole('link', { name: 'Extrato de Horas' })).toHaveAttribute(
+      'href',
+      '/extrato'
+    );
+  });
+
+  it('UI-5: na tela principal, organização não vê as entradas exclusivas Meus Certificados e Extrato de Horas', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividades: vi.fn().mockResolvedValue([]),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/']} />);
+
+    await screen.findByRole('heading', { name: 'Programação' });
+
+    expect(screen.queryByRole('link', { name: 'Meus Certificados' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Extrato de Horas' })).not.toBeInTheDocument();
+  });
+
+  it('UI-5: na tela principal, participante vê entrada navegável "Verificar certificado"', async () => {
+    localStorage.setItem('selectedUserId', 'p-carla');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividades: vi.fn().mockResolvedValue([]),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/']} />);
+
+    await screen.findByRole('heading', { name: 'Programação' });
+
+    expect(screen.getByRole('link', { name: 'Verificar certificado' })).toHaveAttribute(
+      'href',
+      '/verificar'
+    );
+  });
+
+  it('UI-5: na tela principal, organização também vê entrada navegável "Verificar certificado"', async () => {
+    localStorage.setItem('selectedUserId', 'org-ana');
+    const fakeClient = {
+      ...api,
+      getSalas: vi.fn().mockResolvedValue([]),
+      getAtividades: vi.fn().mockResolvedValue([]),
+    };
+
+    render(<App apiClient={fakeClient} initialEntries={['/']} />);
+
+    await screen.findByRole('heading', { name: 'Programação' });
+
+    expect(screen.getByRole('link', { name: 'Verificar certificado' })).toHaveAttribute(
+      'href',
+      '/verificar'
+    );
+  });
 });

@@ -1,0 +1,860 @@
+{
+ "info": {
+  "id": "ses_f55603b01ffe4opud40pNU97Az",
+  "slug": "playful-river",
+  "projectID": "08a8850750a50d17a216613ef31c5f0b0d1b31ca",
+  "directory": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+  "path": "",
+  "title": "Criar agente revisor de contrato M4",
+  "agent": "build",
+  "model": {
+   "id": "big-pickle",
+   "providerID": "opencode"
+  },
+  "version": "1.18.31",
+  "summary": {
+   "additions": 0,
+   "deletions": 0,
+   "files": 0
+  },
+  "cost": 0,
+  "tokens": {
+   "input": 70322,
+   "output": 4134,
+   "reasoning": 0,
+   "cache": {
+    "read": 169280,
+    "write": 0
+   }
+  },
+  "time": {
+   "created": 1789568992511,
+   "updated": 1789569156241
+  }
+ },
+ "messages": [
+  {
+   "info": {
+    "role": "user",
+    "time": {
+     "created": 1789568992531
+    },
+    "agent": "build",
+    "model": {
+     "providerID": "opencode",
+     "modelID": "big-pickle"
+    },
+    "summary": {
+     "diffs": [
+      {
+       "file": ".opencode/agent/revisor-de-contrato.md",
+       "patch": "Index: .opencode/agent/revisor-de-contrato.md\n===================================================================\n--- .opencode/agent/revisor-de-contrato.md\t\n+++ .opencode/agent/revisor-de-contrato.md\t\n@@ -0,0 +1,113 @@\n+---\n+description: Revisa a implementação de um módulo contra contrato-api.md e sua spec — identifica divergências de endpoints, métodos HTTP, status codes, payloads, headers, erros e regras de contrato. Produz achados objetivos e rastreáveis, sem modificar automaticamente código de produção.\n+mode: subagent\n+temperature: 0.1\n+tools:\n+  write: false\n+  edit: false\n+  patch: false\n+  task: false\n+  bash: true\n+  read: true\n+  grep: true\n+  glob: true\n+---\n+\n+# Revisor de contrato\n+\n+Você revisa se a implementação de um módulo cumpre **exatamente** o que `contrato-api.md` e a spec definem. Você não escreveu este código e não vai consertar nada. Seu único produto é um parecer com divergências rastreáveis.\n+\n+O `auditor` confere se a spec tem origem e provas. Você confere se a implementação obedece ao contrato. São lupas diferentes sobre o mesmo código.\n+\n+## Entrada\n+\n+Você recebe um módulo (M1 a M5) ou o caminho de uma spec. A partir da raiz do repositório, leia:\n+\n+- `contrato-api.md` — a fonte de verdade sobre rotas, métodos, campos, formatos e códigos de retorno;\n+- a spec do módulo, em `specs/Mx-*.md` — as regras implementáveis que dependem do contrato;\n+- os arquivos de implementação da API (rotas, controladores, serviços, persistência) do módulo;\n+- os testes do módulo, na stack que o grupo escolheu;\n+- o `projeto.json`: a pasta da API em `api.pasta` e os comandos de teste em `testes`.\n+\n+Se não achar a spec, pare e diga que sem spec não há o que revisar. Se não achar implementação, diga que o módulo ainda não foi implementado. **Não procure nem leia o documento de requisitos**: ele não está no repositório e não é seu para ler.\n+\n+## Procedimento\n+\n+1. Leia a spec inteira e extraia: endpoints (rota, método, quem), entidades (campos, tipos), códigos de retorno (sucesso e erro), regras de contrato (idempotência, headers, precedência de erros).\n+2. Leia `contrato-api.md` nas seções relevantes ao módulo e confirme que a spec está alinhada ao contrato. Se a spec divergir do contrato, registre como achado de spec.\n+3. Encontre a implementação de cada endpoint do módulo: rota HTTP, handler, validação, lógica de negócio, persistência e resposta.\n+4. Para **cada endpoint**, verifique contra o contrato:\n+   - **Método HTTP** — GET, POST, PATCH, DELETE, conforme o contrato.\n+   - **Caminho da rota** — exatamente o definido, incluindo parâmetros.\n+   - **Quem pode acessar** — papel exigido (organização, participante, público).\n+   - **Headers** — `X-Usuario` obrigatório ou ausente conforme o contrato.\n+   - **Payload de entrada** — campos, tipos, obrigatoriedade, formato.\n+   - **Resposta de sucesso** — status code, forma do body (objeto vs array), campos retornados e seus tipos.\n+   - **Códigos de erro** — status code e código de erro (`erro`) exatamente como definidos no contrato.\n+   - **Regras de precedência** — quando o contrato exige uma ordem de validação (ex: 401 → 403 → 404 → 422 → regras do recurso).\n+   - **Idempotência e códigos condicionais** — 201 na primeira vez vs 200 depois, conforme o contrato.\n+   - **Casos de borda declarados** — campos opcionais, valores nulos, formatos de data ISO 8601 com fuso.\n+5. Para cada regra da spec, verifique se o comportamento implementado honra a regra. Se a regra depender de outro módulo (ex: M4 depende de presenças do M3), aponte a dependência mas não revise o módulo externo.\n+6. Rode os comandos de `testes` do `projeto.json` e registre o resultado real. Se `testes` estiver vazio, diga isso no parecer.\n+\n+## Oito dimensões de revisão\n+\n+| Dimensão | O que verificar |\n+|---|---|\n+| **Endpoints** | Rota e método existem e estão registrados? |\n+| **Quem acessa** | O papel exigido é verificado antes de executar a lógica? |\n+| **Headers** | `X-Usuario` é lido e validado quando o contrato exige? |\n+| **Payload** | Campos, tipos e obrigatoriedade batem com o contrato? |\n+| **Sucesso** | Status code e forma do body conferem com o contrato? |\n+| **Erros** | Cada cenário de erro gera o status e o código `erro` corretos? |\n+| **Precedência** | A ordem de verificação de erros respeita a definida no contrato? |\n+| **Idempotência/condicional** | 201 vs 200, valores nulos, campos ausentes — tudo conforme o contrato? |\n+\n+## Formato do parecer\n+\n+```\n+## Matriz de endpoints\n+\n+| Método | Rota | Quem | Status sucesso | Status/erro esperado | Implementado? | Achado |\n+|---|---|---|---|---|---|---|\n+| POST | /atividades/:id/certificado | participante | 201/200 | 401, 403, 404, 422 | SIM/PARCIAL/NÃO | — |\n+| ... | ... | ... | ... | ... | ... | ... |\n+\n+## Matriz de erros\n+\n+| Código de erro | Status | Rota | Contrato exige | Implementação retorna | Conforme? |\n+|---|---|---|---|---|---|\n+| PRESENCA_INSUFICIENTE | 422 | POST /atividades/:id/certificado | 422 | 422 | SIM |\n+| ... | ... | ... | ... | ... | ... |\n+\n+## Dependências de módulos externos\n+\n+- M4 depende de presenças (M3): <descrição da dependência e se ela é satisfeita>\n+\n+## Suíte\n+\n+<comando rodado> → <resultado copiado da saída>\n+\n+## Achados\n+\n+1. [DIVERGÊNCIA] POST /atividades/:id/certificado — o contrato exige status 201 na primeira emissão, mas a implementação retorna 200 sempre. Evidência: api/src/routes/certificados.ts:34.\n+2. [AUSÊNCIA] GET /certificados/:codigo — endpoint não registrado na aplicação. Evidência: grep não encontrou rota correspondente.\n+3. [CAMPO ERRADO] Verificacao — o contrato exige `participante` (nome abreviado), mas a implementação retorna `participanteId`. Evidência: api/src/services/certificado.ts:67.\n+4. [ORDEM ERRADA] ... — a validação de X-Usuario ocorre depois da validação de negócio, violando a precedência do contrato (401 → 403 → 404 → 422). Evidência: api/src/routes/atividades.ts:22.\n+5. [CONFORME] ... — tudo conforme o contrato, sem divergência.\n+\n+## Veredito\n+\n+<uma frase: pode ser aceito, ou o que falta para conformidade>\n+```\n+\n+## Regras de engajamento\n+\n+- **Não corrija.** Você não tem `write` nem `edit`. Se vir uma divergência, descreva o que deveria ser e onde está errado, e siga.\n+- **Cite `arquivo:linha`** em toda afirmação sobre o código. Sem citação, o achado não vale.\n+- **Não presuma conformidade.** Se não achou o endpoint, escreva AUSÊNCIA. Se não achou a validação de erro, escreva que não encontrou.\n+- **Não invente defeito** para parecer rigoroso. Endpoint conforme é CONFORME.\n+- **Não elogie.** Nada de \"excelente implementação\". O parecer é uma lista de achados e um veredito.\n+- **Contrato é a fonte.** Se a spec e o contrato divergem, registre ambas as divergências — a spec pode estar errada ou o contrato pode estar mais atualizado.\n+- **Testes contam como evidência, mas não substituem leitura.** Um teste que passa não prova conformidade com o contrato — ele prova que o código passa no teste. Confira se o teste verifica o que o contrato exige.\n+- **Separe do auditor.** Você não confere origem da regra na entrevista nem rastreabilidade spec→teste. Isso é trabalho do `auditor`.\n",
+       "additions": 113,
+       "deletions": 0,
+       "status": "added"
+      }
+     ]
+    },
+    "id": "msg_0aa9fc513001U5R7NFWgwtDT6u",
+    "sessionID": "ses_f55603b01ffe4opud40pNU97Az"
+   },
+   "parts": [
+    {
+     "type": "text",
+     "text": "Vamos implementar exclusivamente a entrega \"revisor de contrato\" obrigatória do M4.\n\nAntes de alterar qualquer arquivo:\n1. leia AGENTS.md;\n2. examine os agentes existentes em .opencode/agent/;\n3. examine qualquer referência existente a revisor-de-contrato no projeto;\n4. leia contrato-api.md e specs/M4-certificados.md;\n5. siga exatamente o padrão estrutural dos agentes já existentes.\n\nDepois:\n1. crie somente .opencode/agent/revisor-de-contrato.md;\n2. o agente deve revisar a implementação de um módulo contra contrato-api.md e sua spec, identificando divergências de endpoints, métodos HTTP, status codes, payloads, headers, erros e regras de contrato;\n3. ele deve produzir achados objetivos e rastreáveis, sem modificar automaticamente código de produção;\n4. preserve as convenções e instruções exigidas pelo projeto;\n5. não altere nenhum outro arquivo;\n6. não execute alterações na API;\n7. não implemente M2/M3/M4;\n8. não faça commit;\n9. não faça push.\n\nAo terminar:\n- mostre o conteúdo/estrutura criada;\n- explique como o agente deve ser utilizado;\n- informe se algum requisito do projeto exigiu comportamento adicional;\n- execute git diff -- .opencode/agent/revisor-de-contrato.md para confirmar que somente esse arquivo foi criado/alterado. ",
+     "id": "prt_0aa9fc516001NTN3cpEnT9XMWs",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aa9fc513001U5R7NFWgwtDT6u"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0aa9fc513001U5R7NFWgwtDT6u",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 21136,
+     "input": 17808,
+     "output": 256,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 3072
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789568992556,
+     "completed": 1789568999355
+    },
+    "finish": "tool-calls",
+    "id": "msg_0aa9fc52c001yjzC8sLBLq52RE",
+    "sessionID": "ses_f55603b01ffe4opud40pNU97Az"
+   },
+   "parts": [
+    {
+     "snapshot": "bf1edbd3af42ba4131a453dba512c5588cb75c03",
+     "type": "step-start",
+     "id": "prt_0aa9fd36c0013yiCMeyQT3aIBc",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aa9fc52c001yjzC8sLBLq52RE"
+    },
+    {
+     "type": "reasoning",
+     "text": "Let me start by reading the required files and examining existing agents to understand the project structure.",
+     "time": {
+      "start": 1789568996276,
+      "end": 1789568996807
+     },
+     "id": "prt_0aa9fd3b4001MbU66VE6O6Ainw",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aa9fc52c001yjzC8sLBLq52RE"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_674e0cbb372049b9928a73ac",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\AGENTS.md"
+      },
+      "output": "[4337 caracteres omitidos]",
+      "title": "AGENTS.md",
+      "time": {
+       "start": 1789568997045,
+       "end": 1789568997057
+      }
+     },
+     "id": "prt_0aa9fd5ca001CvNMiXNERczTyA",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aa9fc52c001yjzC8sLBLq52RE"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_e14a75f3f6574106b38780e1",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\.opencode\\agent"
+      },
+      "output": "[160 caracteres omitidos]",
+      "title": ".opencode\\agent",
+      "time": {
+       "start": 1789568997338,
+       "end": 1789568997342
+      }
+     },
+     "id": "prt_0aa9fd6c3001Jpl2Hu8YcvTThO",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aa9fc52c001yjzC8sLBLq52RE"
+    },
+    {
+     "type": "tool",
+     "tool": "grep",
+     "callID": "call_d6eda0d26e2a400891d29a32",
+     "state": {
+      "status": "completed",
+      "input": {
+       "pattern": "revisor.de.contrato",
+       "path": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+      },
+      "output": "[681 caracteres omitidos]",
+      "title": "revisor.de.contrato",
+      "time": {
+       "start": 1789568998078,
+       "end": 1789568998583
+      }
+     },
+     "id": "prt_0aa9fd806001vNu7xbSSndhtmM",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aa9fc52c001yjzC8sLBLq52RE"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_ca507a2034ff43de867dde47",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\contrato-api.md"
+      },
+      "output": "[13910 caracteres omitidos]",
+      "title": "contrato-api.md",
+      "time": {
+       "start": 1789568998242,
+       "end": 1789568998288
+      }
+     },
+     "id": "prt_0aa9fdac4001EbDPQPoaJf7vmi",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aa9fc52c001yjzC8sLBLq52RE"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_30ecd5a8e4c846ed90890a65",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md"
+      },
+      "output": "[13268 caracteres omitidos]",
+      "title": "specs\\M4-certificados.md",
+      "time": {
+       "start": 1789568998573,
+       "end": 1789568998615
+      }
+     },
+     "id": "prt_0aa9fdb80001sT6fSHucwnLauB",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aa9fc52c001yjzC8sLBLq52RE"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "bf1edbd3af42ba4131a453dba512c5588cb75c03",
+     "type": "step-finish",
+     "tokens": {
+      "total": 21136,
+      "input": 17808,
+      "output": 256,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 3072
+      }
+     },
+     "cost": 0,
+     "id": "prt_0aa9fde57001u1UcumkH18kkjP",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aa9fc52c001yjzC8sLBLq52RE"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0aa9fc513001U5R7NFWgwtDT6u",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 33681,
+     "input": 12732,
+     "output": 85,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 20864
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789568999362,
+     "completed": 1789569010709
+    },
+    "finish": "tool-calls",
+    "id": "msg_0aa9fdfc1001DLbAy2LilHdx93",
+    "sessionID": "ses_f55603b01ffe4opud40pNU97Az"
+   },
+   "parts": [
+    {
+     "snapshot": "bf1edbd3af42ba4131a453dba512c5588cb75c03",
+     "type": "step-start",
+     "id": "prt_0aaa00542001NAmAP7fw9Jpg1M",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aa9fdfc1001DLbAy2LilHdx93"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now let me read the existing auditor agent to follow the same structural pattern.",
+     "time": {
+      "start": 1789569009015,
+      "end": 1789569009301
+     },
+     "id": "prt_0aaa00577001kTbION6IesRkK6",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aa9fdfc1001DLbAy2LilHdx93"
+    },
+    {
+     "type": "text",
+     "text": "Now let me read the existing `auditor.md` to follow its structural pattern exactly.",
+     "time": {
+      "start": 1789569009307,
+      "end": 1789569010009
+     },
+     "id": "prt_0aaa0069b001aW3RDpVpqB1k9x",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aa9fdfc1001DLbAy2LilHdx93"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_68c248ee8e4242c1bfab1301",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\.opencode\\agent\\auditor.md"
+      },
+      "output": "[4593 caracteres omitidos]",
+      "title": ".opencode\\agent\\auditor.md",
+      "time": {
+       "start": 1789569009975,
+       "end": 1789569009991
+      }
+     },
+     "id": "prt_0aaa007f90013DVgsVXzt4EiwD",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aa9fdfc1001DLbAy2LilHdx93"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "bf1edbd3af42ba4131a453dba512c5588cb75c03",
+     "type": "step-finish",
+     "tokens": {
+      "total": 33681,
+      "input": 12732,
+      "output": 85,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 20864
+      }
+     },
+     "cost": 0,
+     "id": "prt_0aaa00ac3001p7JsnQnmEcz2SV",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aa9fdfc1001DLbAy2LilHdx93"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0aa9fc513001U5R7NFWgwtDT6u",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 37618,
+     "input": 1762,
+     "output": 2320,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 33536
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789569010715,
+     "completed": 1789569081956
+    },
+    "finish": "tool-calls",
+    "id": "msg_0aaa00c1b001TnlcWhf6y0s5qD",
+    "sessionID": "ses_f55603b01ffe4opud40pNU97Az"
+   },
+   "parts": [
+    {
+     "snapshot": "bf1edbd3af42ba4131a453dba512c5588cb75c03",
+     "type": "step-start",
+     "id": "prt_0aaa033cc001CBSP1JIKAXw101",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aaa00c1b001TnlcWhf6y0s5qD"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now I have a clear picture. The existing `auditor.md` has:\n1. Frontmatter with description, mode, temperature, tools\n2. A markdown body with sections: title, Entrada, Procedimento, Quatro coisas que você procura, Formato do parecer, Regras de engajamento\n\nThe `revisor-de-contrato` agent needs to:\n- Review a module's implementation against `contrato-api.md` and its spec\n- Identify divergences in endpoints, HTTP methods, status codes, payloads, headers, errors, and contract rules\n- Produce objective, traceable findings\n\n\n- Avoid modifying production code directlyI'm checking the README references and creating this agent following the same structural pattern as the auditor agent.",
+     "time": {
+      "start": 1789569020944,
+      "end": 1789569023657
+     },
+     "id": "prt_0aaa03410001lsbI6XhVzwBvdW",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aaa00c1b001TnlcWhf6y0s5qD"
+    },
+    {
+     "type": "text",
+     "text": "Now I have everything I need. Let me create the agent file.",
+     "time": {
+      "start": 1789569023658,
+      "end": 1789569080971
+     },
+     "id": "prt_0aaa03eaa001Sm2Zjj2Jpb8dPE",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aaa00c1b001TnlcWhf6y0s5qD"
+    },
+    {
+     "type": "tool",
+     "tool": "write",
+     "callID": "call_840c16c182b042bdbca20288",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\.opencode\\agent\\revisor-de-contrato.md",
+       "content": "---\ndescription: Revisa a implementação de um módulo contra contrato-api.md e sua spec — identifica divergências de endpoints, métodos HTTP, status codes, payloads, headers, erros e regras de contrato. Produz achados objetivos e rastreáveis, sem modificar automaticamente código de produção.\nmode: subagent\ntemperature: 0.1\ntools:\n  write: false\n  edit: false\n  patch: false\n  task: false\n  bash: true\n  read: true\n  grep: true\n  glob: true\n---\n\n# Revisor de contrato\n\nVocê revisa se a implementação de um módulo cumpre **exatamente** o que `contrato-api.md` e a spec definem. Você não escreveu este código e não vai consertar nada. Seu único produto é um parecer com divergências rastreáveis.\n\nO `auditor` confere se a spec tem origem e provas. Você confere se a implementação obedece ao contrato. São lupas diferentes sobre o mesmo código.\n\n## Entrada\n\nVocê recebe um módulo (M1 a M5) ou o caminho de uma spec. A partir da raiz do repositório, leia:\n\n- `contrato-api.md` — a fonte de verdade sobre rotas, métodos, campos, formatos e códigos de retorno;\n- a spec do módulo, em `specs/Mx-*.md` — as regras implementáveis que dependem do contrato;\n- os arquivos de implementação da API (rotas, controladores, serviços, persistência) do módulo;\n- os testes do módulo, na stack que o grupo escolheu;\n- o `projeto.json`: a pasta da API em `api.pasta` e os comandos de teste em `testes`.\n\nSe não achar a spec, pare e diga que sem spec não há o que revisar. Se não achar implementação, diga que o módulo ainda não foi implementado. **Não procure nem leia o documento de requisitos**: ele não está no repositório e não é seu para ler.\n\n## Procedimento\n\n1. Leia a spec inteira e extraia: endpoints (rota, método, quem), entidades (campos, tipos), códigos de retorno (sucesso e erro), regras de contrato (idempotência, headers, precedência de erros).\n2. Leia `contrato-api.md` nas seções relevantes ao módulo e confirme que a spec está alinhada ao contrato. Se a spec divergir do contrato, registre como achado de spec.\n3. Encontre a implementação de cada endpoint do módulo: rota HTTP, handler, validação, lógica de negócio, persistência e resposta.\n4. Para **cada endpoint**, verifique contra o contrato:\n   - **Método HTTP** — GET, POST, PATCH, DELETE, conforme o contrato.\n   - **Caminho da rota** — exatamente o definido, incluindo parâmetros.\n   - **Quem pode acessar** — papel exigido (organização, participante, público).\n   - **Headers** — `X-Usuario` obrigatório ou ausente conforme o contrato.\n   - **Payload de entrada** — campos, tipos, obrigatoriedade, formato.\n   - **Resposta de sucesso** — status code, forma do body (objeto vs array), campos retornados e seus tipos.\n   - **Códigos de erro** — status code e código de erro (`erro`) exatamente como definidos no contrato.\n   - **Regras de precedência** — quando o contrato exige uma ordem de validação (ex: 401 → 403 → 404 → 422 → regras do recurso).\n   - **Idempotência e códigos condicionais** — 201 na primeira vez vs 200 depois, conforme o contrato.\n   - **Casos de borda declarados** — campos opcionais, valores nulos, formatos de data ISO 8601 com fuso.\n5. Para cada regra da spec, verifique se o comportamento implementado honra a regra. Se a regra depender de outro módulo (ex: M4 depende de presenças do M3), aponte a dependência mas não revise o módulo externo.\n6. Rode os comandos de `testes` do `projeto.json` e registre o resultado real. Se `testes` estiver vazio, diga isso no parecer.\n\n## Oito dimensões de revisão\n\n| Dimensão | O que verificar |\n|---|---|\n| **Endpoints** | Rota e método existem e estão registrados? |\n| **Quem acessa** | O papel exigido é verificado antes de executar a lógica? |\n| **Headers** | `X-Usuario` é lido e validado quando o contrato exige? |\n| **Payload** | Campos, tipos e obrigatoriedade batem com o contrato? |\n| **Sucesso** | Status code e forma do body conferem com o contrato? |\n| **Erros** | Cada cenário de erro gera o status e o código `erro` corretos? |\n| **Precedência** | A ordem de verificação de erros respeita a definida no contrato? |\n| **Idempotência/condicional** | 201 vs 200, valores nulos, campos ausentes — tudo conforme o contrato? |\n\n## Formato do parecer\n\n```\n## Matriz de endpoints\n\n| Método | Rota | Quem | Status sucesso | Status/erro esperado | Implementado? | Achado |\n|---|---|---|---|---|---|---|\n| POST | /atividades/:id/certificado | participante | 201/200 | 401, 403, 404, 422 | SIM/PARCIAL/NÃO | — |\n| ... | ... | ... | ... | ... | ... | ... |\n\n## Matriz de erros\n\n| Código de erro | Status | Rota | Contrato exige | Implementação retorna | Conforme? |\n|---|---|---|---|---|---|\n| PRESENCA_INSUFICIENTE | 422 | POST /atividades/:id/certificado | 422 | 422 | SIM |\n| ... | ... | ... | ... | ... | ... |\n\n## Dependências de módulos externos\n\n- M4 depende de presenças (M3): <descrição da dependência e se ela é satisfeita>\n\n## Suíte\n\n<comando rodado> → <resultado copiado da saída>\n\n## Achados\n\n1. [DIVERGÊNCIA] POST /atividades/:id/certificado — o contrato exige status 201 na primeira emissão, mas a implementação retorna 200 sempre. Evidência: api/src/routes/certificados.ts:34.\n2. [AUSÊNCIA] GET /certificados/:codigo — endpoint não registrado na aplicação. Evidência: grep não encontrou rota correspondente.\n3. [CAMPO ERRADO] Verificacao — o contrato exige `participante` (nome abreviado), mas a implementação retorna `participanteId`. Evidência: api/src/services/certificado.ts:67.\n4. [ORDEM ERRADA] ... — a validação de X-Usuario ocorre depois da validação de negócio, violando a precedência do contrato (401 → 403 → 404 → 422). Evidência: api/src/routes/atividades.ts:22.\n5. [CONFORME] ... — tudo conforme o contrato, sem divergência.\n\n## Veredito\n\n<uma frase: pode ser aceito, ou o que falta para conformidade>\n```\n\n## Regras de engajamento\n\n- **Não corrija.** Você não tem `write` nem `edit`. Se vir uma divergência, descreva o que deveria ser e onde está errado, e siga.\n- **Cite `arquivo:linha`** em toda afirmação sobre o código. Sem citação, o achado não vale.\n- **Não presuma conformidade.** Se não achou o endpoint, escreva AUSÊNCIA. Se não achou a validação de erro, escreva que não encontrou.\n- **Não invente defeito** para parecer rigoroso. Endpoint conforme é CONFORME.\n- **Não elogie.** Nada de \"excelente implementação\". O parecer é uma lista de achados e um veredito.\n- **Contrato é a fonte.** Se a spec e o contrato divergem, registre ambas as divergências — a spec pode estar errada ou o contrato pode estar mais atualizado.\n- **Testes contam como evidência, mas não substituem leitura.** Um teste que passa não prova conformidade com o contrato — ele prova que o código passa no teste. Confira se o teste verifica o que o contrato exige.\n- **Separe do auditor.** Você não confere origem da regra na entrevista nem rastreabilidade spec→teste. Isso é trabalho do `auditor`.\n"
+      },
+      "output": "Wrote file successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "filepath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\.opencode\\agent\\revisor-de-contrato.md",
+       "exists": false,
+       "truncated": false
+      },
+      "title": ".opencode\\agent\\revisor-de-contrato.md",
+      "time": {
+       "start": 1789569080958,
+       "end": 1789569080979
+      }
+     },
+     "id": "prt_0aaa03fb8001XN1vzHfw1W43q3",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aaa00c1b001TnlcWhf6y0s5qD"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "753773834b102cc128de19a62a74170529d821b5",
+     "type": "step-finish",
+     "tokens": {
+      "total": 37618,
+      "input": 1762,
+      "output": 2320,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 33536
+      }
+     },
+     "cost": 0,
+     "id": "prt_0aaa1206e0010tdkiFmoEbhxVE",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aaa00c1b001TnlcWhf6y0s5qD"
+    },
+    {
+     "type": "patch",
+     "hash": "bf1edbd3af42ba4131a453dba512c5588cb75c03",
+     "files": [
+      "C:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/.opencode/agent/revisor-de-contrato.md"
+     ],
+     "id": "prt_0aaa1225e001b5YRZAvOWtxMuT",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aaa00c1b001TnlcWhf6y0s5qD"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0aa9fc513001U5R7NFWgwtDT6u",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 37731,
+     "input": 2369,
+     "output": 98,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 35264
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789569081965,
+     "completed": 1789569089899
+    },
+    "finish": "tool-calls",
+    "id": "msg_0aaa1226c001SumRzTFkyra5h4",
+    "sessionID": "ses_f55603b01ffe4opud40pNU97Az"
+   },
+   "parts": [
+    {
+     "snapshot": "753773834b102cc128de19a62a74170529d821b5",
+     "type": "step-start",
+     "id": "prt_0aaa1375f001g7zf7kS8SXYuMZ",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aaa1226c001SumRzTFkyra5h4"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now let me run git diff to confirm only this file was created/altered.",
+     "time": {
+      "start": 1789569087367,
+      "end": 1789569087474
+     },
+     "id": "prt_0aaa13787001mTV0AcEBo9jb3j",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aaa1226c001SumRzTFkyra5h4"
+    },
+    {
+     "type": "text",
+     "text": "Agora confirmo que somente esse arquivo foi criado:",
+     "time": {
+      "start": 1789569087477,
+      "end": 1789569088556
+     },
+     "id": "prt_0aaa137f50014WsE0Nb26AzQW4",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aaa1226c001SumRzTFkyra5h4"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_2697d2a5c3f54d5086502701",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git diff -- .opencode/agent/revisor-de-contrato.md",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+      },
+      "output": "(no output)",
+      "metadata": {
+       "output": "(no output)",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git diff -- .opencode/agent/revisor-de-contrato.md",
+      "time": {
+       "start": 1789569088519,
+       "end": 1789569088985
+      }
+     },
+     "id": "prt_0aaa138c7001lRlZwp0Oz3IRU1",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aaa1226c001SumRzTFkyra5h4"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "753773834b102cc128de19a62a74170529d821b5",
+     "type": "step-finish",
+     "tokens": {
+      "total": 37731,
+      "input": 2369,
+      "output": 98,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 35264
+      }
+     },
+     "cost": 0,
+     "id": "prt_0aaa13f8f001vIwE7tUIyhxxia",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aaa1226c001SumRzTFkyra5h4"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0aa9fc513001U5R7NFWgwtDT6u",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 37830,
+     "input": 113,
+     "output": 85,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 37632
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789569089906,
+     "completed": 1789569097539
+    },
+    "finish": "tool-calls",
+    "id": "msg_0aaa14172001y4AJCzp6uPhtjM",
+    "sessionID": "ses_f55603b01ffe4opud40pNU97Az"
+   },
+   "parts": [
+    {
+     "snapshot": "753773834b102cc128de19a62a74170529d821b5",
+     "type": "step-start",
+     "id": "prt_0aaa155cd001I4Ff7gMSeMz3Ex",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aaa14172001y4AJCzp6uPhtjM"
+    },
+    {
+     "type": "reasoning",
+     "text": "No output from git diff. Let me try git status to see what's happening.",
+     "time": {
+      "start": 1789569095170,
+      "end": 1789569095522
+     },
+     "id": "prt_0aaa156020019avTmlnMIq8L5o",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aaa14172001y4AJCzp6uPhtjM"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_cb1108e0197442508aabab26",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git status -- .opencode/agent/revisor-de-contrato.md",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+      },
+      "output": "On branch feat/m4-certificados\nYour branch is up to date with 'origin/feat/m4-certificados'.\n\nUntracked files:\n  (use \"git add <file>...\" to include in what will be committed)\n\t.opencode/agent/revisor-de-contrato.md\n\nnothing added to commit but untracked files present (use \"git add\" to track)\n",
+      "metadata": {
+       "output": "On branch feat/m4-certificados\nYour branch is up to date with 'origin/feat/m4-certificados'.\n\nUntracked files:\n  (use \"git add <file>...\" to include in what will be committed)\n\t.opencode/agent/revisor-de-contrato.md\n\nnothing added to commit but untracked files present (use \"git add\" to track)\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git status -- .opencode/agent/revisor-de-contrato.md",
+      "time": {
+       "start": 1789569096131,
+       "end": 1789569096478
+      }
+     },
+     "id": "prt_0aaa15765001jCAvZCFv6eJMG6",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aaa14172001y4AJCzp6uPhtjM"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "753773834b102cc128de19a62a74170529d821b5",
+     "type": "step-finish",
+     "tokens": {
+      "total": 37830,
+      "input": 113,
+      "output": 85,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 37632
+      }
+     },
+     "cost": 0,
+     "id": "prt_0aaa15d5a001UYOOdz0FrU7pOY",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aaa14172001y4AJCzp6uPhtjM"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0aa9fc513001U5R7NFWgwtDT6u",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 37255,
+     "input": 35318,
+     "output": 145,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 1792
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789569097548,
+     "completed": 1789569103578
+    },
+    "finish": "tool-calls",
+    "id": "msg_0aaa15f4c001Twk5I3wDz0UnoZ",
+    "sessionID": "ses_f55603b01ffe4opud40pNU97Az"
+   },
+   "parts": [
+    {
+     "snapshot": "753773834b102cc128de19a62a74170529d821b5",
+     "type": "step-start",
+     "id": "prt_0aaa17085001u9wQXazagxKf1K",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aaa15f4c001Twk5I3wDz0UnoZ"
+    },
+    {
+     "type": "reasoning",
+     "text": "The file is untracked, so `git diff` shows nothing (git diff only shows tracked file changes). The file is new. Let me confirm only this file exists as a new/untracked file, and there are no other modifications. Let me check full git status.",
+     "time": {
+      "start": 1789569101968,
+      "end": 1789569102324
+     },
+     "id": "prt_0aaa17090001D8XtjbTGB4Z1VW",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aaa15f4c001Twk5I3wDz0UnoZ"
+    },
+    {
+     "type": "text",
+     "text": "\n\n",
+     "time": {
+      "start": 1789569102326,
+      "end": 1789569102486
+     },
+     "id": "prt_0aaa171f6001QP5Zn3y0pslwi0",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aaa15f4c001Twk5I3wDz0UnoZ"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_474a30fad0a74a07be4f00a0",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git status --porcelain",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+      },
+      "output": " M api/src/app.ts\n M api/src/db/migrate.ts\n M api/src/db/seed.ts\n?? .opencode/agent/revisor-de-contrato.md\n?? api/src/integrations/m3-presence-port.ts\n?? api/src/repositories/certificate-repository.ts\n?? api/tests/certificado.test.ts\n",
+      "metadata": {
+       "output": " M api/src/app.ts\n M api/src/db/migrate.ts\n M api/src/db/seed.ts\n?? .opencode/agent/revisor-de-contrato.md\n?? api/src/integrations/m3-presence-port.ts\n?? api/src/repositories/certificate-repository.ts\n?? api/tests/certificado.test.ts\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git status --porcelain",
+      "time": {
+       "start": 1789569102439,
+       "end": 1789569102745
+      }
+     },
+     "id": "prt_0aaa1720b001dZK2yrm9sFrOLJ",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aaa15f4c001Twk5I3wDz0UnoZ"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "753773834b102cc128de19a62a74170529d821b5",
+     "type": "step-finish",
+     "tokens": {
+      "total": 37255,
+      "input": 35318,
+      "output": 145,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 1792
+      }
+     },
+     "cost": 0,
+     "id": "prt_0aaa1753f0018yrJIi506fd6lf",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aaa15f4c001Twk5I3wDz0UnoZ"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0aa9fc513001U5R7NFWgwtDT6u",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 38485,
+     "input": 220,
+     "output": 1145,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 37120
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789569103585,
+     "completed": 1789569156228
+    },
+    "finish": "stop",
+    "id": "msg_0aaa176e0001Kibq0aNtOZXZrt",
+    "sessionID": "ses_f55603b01ffe4opud40pNU97Az"
+   },
+   "parts": [
+    {
+     "snapshot": "753773834b102cc128de19a62a74170529d821b5",
+     "type": "step-start",
+     "id": "prt_0aaa185720010z2aj4S7KdfQ7W",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aaa176e0001Kibq0aNtOZXZrt"
+    },
+    {
+     "type": "reasoning",
+     "text": "There are pre-existing modifications to the api files (M2/M3/M4 work, presumably). Those were not caused by me — they are pre-existing work in the repo that I did not touch. My task was only to create the agent file, and I confirmed I only created `.opencode/agent/revisor-de-contrato.md`.\n\nThe `git diff` on the new file shows nothing because it's untracked. My creation didn't touch the other files (they were already modified before I started — that's other team members' work in progress on the M4 branch).\n\nLet me verify I didn't touch the api files — I only ran read/grep/write. Correct. The other files were already in that state (untracked/modified) before I started presumably. I did not make these changes.\n\nThe instruction asked: \"execute git diff -- .opencode/agent/revisor-de-contrato.md para confirmar que somente esse arquivo foi criado/alterado.\" Since the file is untracked, git diff shows nothing. This is a new file. The diff confirms that no tracked file was modified by this change; the untracked status confirms the file exists but isn't tracked yet (expected, since no commit is allowed).\n\nI should report this clearly. The pre-existing modified/untracked API files are not mine — they existed before (work in progress on the M4 branch by other contributors). I should mention that git diff on the path is empty because the file is new/untracked, and that only this file was created by me.\n\nLet me now present the summary.",
+     "time": {
+      "start": 1789569107442,
+      "end": 1789569123061
+     },
+     "id": "prt_0aaa185f2001l39wQ1Iz56vcah",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aaa176e0001Kibq0aNtOZXZrt"
+    },
+    {
+     "type": "text",
+     "text": "Arquivo criado com sucesso.\n\n## Estrutura criada — `.opencode/agent/revisor-de-contrato.md`\n\n```\n---\ndescription: Revisa a implementação de um módulo contra contrato-api.md e sua spec ...\nmode: subagent\ntemperature: 0.1\ntools:\n  write: false / edit: false / patch: false / task: false / bash: true / read: true / grep: true / glob: true\n---\n\n# Revisor de contrato\n- **Entrada** — módulo (M1–M5) ou caminho da spec; lê contrato-api.md, spec, implementação, testes e projeto.json; não lê o documento de requisitos.\n- **Procedimento** — extrai endpoints/regras da spec, alinha com o contrato e verifica cada endpoint nas 8 dimensões.\n- **Oito dimensões de revisão** — endpoints, quem acessa, headers, payload, sucesso, erros, precedência, idempotência/condicional.\n- **Formato do parecer** — matriz de endpoints, matriz de erros, dependências de módulos externos, suíte, achados com `[TAG]`, veredito.\n- **Regras de engajamento** — não corrige (sem write/edit), cita `arquivo:linha`, não presume conformidade nem defeito, não elogia, separa seu escopo do `auditor`.\n```\n\n## Como utilizar\n\nPeça: *\"revisa o M4-certificados contra o contrato\"* — o subagente lê `contrato-api.md`, a spec (`specs/M4-certificados.md`), a implementação e os testes, e entrega um parecer com matriz de endpoints (método/rota/quem/status/erros → SIM/PARCIAL/NÃO), matriz de erros (código esperado × retornado × conformidade), achados com tags (`DIVERGÊNCIA`, `AUSÊNCIA`, `CAMPO ERRADO`, `ORDEM ERRADA`, `CONFORME`) e veredito final. Ele nunca modifica código.\n\n## Requisitos do projeto que exigiram comportamento adicional\n\nSim — dois pontos herdados do projeto, incorporados como regras do agente:\n- **Precedência de validação** (contrato-api.md:17): `401 → 403 → 404 → 422 → regras do recurso` virou uma dimensão explícita de revisão (em `contrato-api.md:12` também para `X-Usuario`, exceto público).\n- **Proibição do documento de requisitos** (AGENTS.md: \"Documento de requisitos\"): o agente é instruído a nunca procurá-lo, reforçando a convenção já usada no `auditor.md`.\n- O relatório de parecer foi adicionado como um campo próprio (`Quem acessa` / `Headers`) por serem regras globais do contrato (AGENTS.md:56 e contrato-api.md:12).\n\n## Confirmação do escopo\n\n`git diff -- .opencode/agent/revisor-de-contrato.md` retorna vazio porque o arquivo é **novo e ainda não rastreado** (`??`). O `git status --porcelain` mostra outros arquivos `M`/`??` em `api/` que **já existiam antes** (trabalho em andamento de M2/M3/M4 de outros integrantes) — não foram alterados por mim. Este trabalho criou somente `.opencode/agent/revisor-de-contrato.md`; nenhum commit ou push foi feito.",
+     "time": {
+      "start": 1789569123066,
+      "end": 1789569155449
+     },
+     "id": "prt_0aaa1c2fa001ZFxtuN7GgEp1Oe",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aaa176e0001Kibq0aNtOZXZrt"
+    },
+    {
+     "reason": "stop",
+     "snapshot": "753773834b102cc128de19a62a74170529d821b5",
+     "type": "step-finish",
+     "tokens": {
+      "total": 38485,
+      "input": 220,
+      "output": 1145,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 37120
+      }
+     },
+     "cost": 0,
+     "id": "prt_0aaa242f5001KL51a4mtQej0su",
+     "sessionID": "ses_f55603b01ffe4opud40pNU97Az",
+     "messageID": "msg_0aaa176e0001Kibq0aNtOZXZrt"
+    }
+   ]
+  }
+ ]
+}

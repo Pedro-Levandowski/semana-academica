@@ -1,0 +1,834 @@
+{
+ "info": {
+  "id": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+  "slug": "kind-sailor",
+  "projectID": "08a8850750a50d17a216613ef31c5f0b0d1b31ca",
+  "directory": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+  "path": "",
+  "title": "Revisão de contrato do módulo M4",
+  "agent": "build",
+  "model": {
+   "id": "big-pickle",
+   "providerID": "opencode"
+  },
+  "version": "1.18.32",
+  "summary": {
+   "additions": 0,
+   "deletions": 0,
+   "files": 0
+  },
+  "cost": 0,
+  "tokens": {
+   "input": 29169,
+   "output": 10784,
+   "reasoning": 294,
+   "cache": {
+    "read": 182080,
+    "write": 0
+   }
+  },
+  "time": {
+   "created": 1790084325004,
+   "updated": 1790085095298
+  }
+ },
+ "messages": [
+  {
+   "info": {
+    "role": "user",
+    "time": {
+     "created": 1790084325066
+    },
+    "agent": "build",
+    "model": {
+     "providerID": "opencode",
+     "modelID": "big-pickle"
+    },
+    "summary": {
+     "diffs": []
+    },
+    "id": "msg_0c9571eca0014iqSLN52o2hxAO",
+    "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX"
+   },
+   "parts": [
+    {
+     "type": "text",
+     "text": "Use o agente revisor-de-contrato para revisar o módulo M4.\n\nRevise a implementação atual do M4 contra:\n- contrato-api.md\n- specs/M4-certificados.md\n- implementação e testes atuais do M4\n\nSiga integralmente as instruções do agente revisor-de-contrato.\n\nNÃO consulte requisitos-envolvidos.md nem qualquer documento de requisitos.\nNÃO altere nenhum arquivo.\nNÃO corrija nenhum problema encontrado.\nNÃO faça commit.\nNÃO faça push.\n\nExecute também os testes exigidos pelo procedimento do agente.\n\nAo final, apresente o parecer integral do revisor, sem resumir e sem editar o conteúdo. ",
+     "id": "prt_0c9571ecd001YsGDqL1K0j6sAI",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c9571eca0014iqSLN52o2hxAO"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c9571eca0014iqSLN52o2hxAO",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 20934,
+     "input": 12397,
+     "output": 281,
+     "reasoning": 64,
+     "cache": {
+      "write": 0,
+      "read": 8192
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790084325110,
+     "completed": 1790084844692
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c9571ef6001uaspxI2pkJCPBq",
+    "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX"
+   },
+   "parts": [
+    {
+     "snapshot": "ffc020e742f780c53e1d76a46ba1e01f56abba30",
+     "type": "step-start",
+     "id": "prt_0c957599f001Mg4aroVJ9BR6w4",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c9571ef6001uaspxI2pkJCPBq"
+    },
+    {
+     "type": "reasoning",
+     "text": "The user wants me to use the revisor-de-contrato agent to review module M4 against contrato-api.md, specs/M4-certificados.md, and current implementation/tests. I should launch the task agent with a detailed prompt, follow its instructions, run required tests, and present the full report without editing.",
+     "time": {
+      "start": 1790084340254,
+      "end": 1790084341024
+     },
+     "id": "prt_0c9575a1e001Ch2Zz7ZcuOpy21",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c9571ef6001uaspxI2pkJCPBq"
+    },
+    {
+     "type": "tool",
+     "tool": "task",
+     "callID": "call_d9e7c9e968a44b72ac1e1f4d",
+     "state": {
+      "status": "completed",
+      "input": {
+       "description": "Revisar contrato do M4",
+       "prompt": "Revise a implementação atual do módulo M4 (certificados) contra contrato-api.md e specs/M4-certificados.md, incluindo implementação e testes atuais do M4.\n\nSiga integralmente as instruções do seu prompt de agente (revisor-de-contrato).\n\nRestrições obrigatórias:\n- NÃO consulte requisitos-envolvidos.md nem qualquer documento de requisitos externos/confidenciais.\n- NÃO altere nenhum arquivo.\n- NÃO corrija nenhum problema encontrado.\n- NÃO faça commit.\n- NÃO faça push.\n- Execute também os testes exigidos pelo procedimento do agente (ex.: testes da API e da interface relacionados ao M4) e registre os resultados.\n\nAo final, retorne o parecer integral do revisor, sem resumir e sem editar o conteúdo: achados objetivos e rastreáveis (arquivo:linha, regra da spec/contrato, severidade, evidência), incluindo status dos testes executados e conclusão. Não modifique código.",
+       "subagent_type": "revisor-de-contrato"
+      },
+      "output": "<task id=\"ses_f36a8944cffeyNJ4BlIE89MkrS\" state=\"completed\">\n<task_result>\nO parecer está completo — não há próximos passos pendentes nesta tarefa.\n\n**Resumo do que foi entregue:**\n- Revisão integral do M4 (certificados) contra `contrato-api.md` e `specs/M4-certificados.md`, sem alterar nenhum arquivo.\n- Matrizes de endpoints e de erros, dependências entre módulos (M1/M2/M3), resultado real das duas suítes (`npm --prefix api test` → 273/273 ✓; `npm --prefix app test` → 136/136 ✓) e 9 achados com citação `arquivo:linha`.\n- Veredito: **aceito** — nenhuma divergência confirmada de contrato ou spec; 4 observações de baixa severidade/informativas (achados 4–7).\n\nSe quiser continuar, posso:\n1. **Revisar outro módulo** (M1, M2, M3 ou M5) com o mesmo procedimento — é só me dizer qual.\n2. **Executar o papel de `auditor`** para o M4 (conferir origem das regras na entrevista e rastreabilidade spec→teste), que é uma lupa diferente sobre o mesmo material.\n3. **Parar por aqui** — o parecer já está completo e pronto para uso.\n\nComo prefere seguir?\n</task_result>\n</task>",
+      "metadata": {
+       "parentSessionId": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+       "sessionId": "ses_f36a8944cffeyNJ4BlIE89MkrS",
+       "model": {
+        "modelID": "big-pickle",
+        "providerID": "opencode"
+       },
+       "truncated": false
+      },
+      "title": "Revisar contrato do M4",
+      "time": {
+       "start": 1790084344783,
+       "end": 1790084843734
+      }
+     },
+     "id": "prt_0c9575d3c001UdiHBO21Tmfito",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c9571ef6001uaspxI2pkJCPBq"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "ffc020e742f780c53e1d76a46ba1e01f56abba30",
+     "type": "step-finish",
+     "tokens": {
+      "total": 20934,
+      "input": 12397,
+      "output": 281,
+      "reasoning": 64,
+      "cache": {
+       "write": 0,
+       "read": 8192
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c95f0ab3001BovSicK0H8VS1P",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c9571ef6001uaspxI2pkJCPBq"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c9571eca0014iqSLN52o2hxAO",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 21520,
+     "input": 744,
+     "output": 179,
+     "reasoning": 53,
+     "cache": {
+      "write": 0,
+      "read": 20544
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790084844697,
+     "completed": 1790084903224
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c95f0c9900109NHa68OEmFtUT",
+    "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX"
+   },
+   "parts": [
+    {
+     "snapshot": "ffc020e742f780c53e1d76a46ba1e01f56abba30",
+     "type": "step-start",
+     "id": "prt_0c95f17ee001Z7Bs3t7eJTzEcc",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c95f0c9900109NHa68OEmFtUT"
+    },
+    {
+     "type": "reasoning",
+     "text": "The subagent returned a summary rather than the full integral report. The user asked for the full report without summarizing. I need to get the full content from the agent — I should resume the task and ask it to return the full parecer verbatim.",
+     "time": {
+      "start": 1790084847917,
+      "end": 1790084848524
+     },
+     "id": "prt_0c95f192d001glz1LXUC5tMTsM",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c95f0c9900109NHa68OEmFtUT"
+    },
+    {
+     "type": "tool",
+     "tool": "task",
+     "callID": "call_b71ca32a3b8c4aa6ab74d7ac",
+     "state": {
+      "status": "completed",
+      "input": {
+       "description": "Retornar parecer integral",
+       "prompt": "Retorne agora, na sua mensagem final e sem resumir, sem editar e sem cortar nada, o parecer integral completo do revisor-de-contrato do M4 que você produziu: todas as seções, matrizes de endpoints e de erros, dependências, resultado dos testes executados, os 9 achados com arquivo:linha e severidade, e o veredito final. Não ofereça próximos passos. Apenas o conteúdo integral do parecer.",
+       "subagent_type": "revisor-de-contrato",
+       "task_id": "ses_f36a8944cffeyNJ4BlIE89MkrS"
+      },
+      "output": "<task id=\"ses_f36a8944cffeyNJ4BlIE89MkrS\" state=\"completed\">\n<task_result>\n# Parecer do revisor de contrato — M4 (certificados)\n\nFontes lidas: `contrato-api.md` (inteiro), `specs/M4-certificados.md` (inteiro), implementação em `api/src/app.ts`, `api/src/certificate/*`, `api/src/repositories/certificate-repository.ts`, portas `api/src/integrations/m2-port.ts` e `m3-presence-port.ts`, migração `api/src/db/migrate.ts`, 16 arquivos de teste da API, e os arquivos da interface (`app/src/api/client.ts`, hooks e componentes M4 com testes). Nenhum documento de requisitos externo foi consultado. Nenhum arquivo foi alterado.\n\n**Alinhamento spec ↔ contrato (procedimento passo 2):** os endpoints, métodos, papéis, campos e status da spec §3–§4 batem exatamente com a seção M4 do `contrato-api.md` (rotas, 201/200 condicional, público sem `X-Usuario`, corpo `Certificado`/`Verificacao`/`Extrato`). Os códigos `PRESENCA_INSUFICIENTE` (422), `ATIVIDADE_NAO_ENCERRADA` (422), `NAO_INSCRITO` (403), `ATIVIDADE_CANCELADA` (422) e `NAO_ENCONTRADO` (404) da spec existem na seção 6 do contrato. **Nenhuma divergência spec↔contrato encontrada.**\n\n---\n\n## Matriz de endpoints\n\n| Método | Rota | Quem | Status sucesso | Status/erro esperado | Implementado? | Achado |\n|---|---|---|---|---|---|---|\n| POST | `/atividades/:id/certificado` | participante | 201 na 1ª vez; 200 depois | 401, 403 (`SOMENTE_PARTICIPANTE`, `NAO_INSCRITO`), 404, 422 (`ATIVIDADE_CANCELADA`, `ATIVIDADE_NAO_ENCERRADA`, `PRESENCA_INSUFICIENTE`) | SIM | — (ver achado 4, observação de corpo) |\n| GET | `/certificados` | participante | 200 `[Certificado]` (só os emitidos do próprio) | 401, 403 | SIM | — |\n| GET | `/certificados/:codigo` | público, sem `X-Usuario` | 200 `Verificacao` | 404 `NAO_ENCONTRADO` | SIM | — |\n| GET | `/extrato` | participante | 200 `Extrato` | 401, 403 | SIM | — |\n\nEvidências: rota de emissão em `api/src/app.ts:394`; listagem em `api/src/app.ts:432`; extrato em `api/src/app.ts:438`; verificação pública (sem `requireUser`) em `api/src/app.ts:443`. Registro 201/200 em `api/src/app.ts:429`. Projeção pública exata (`codigo`, `participante`, `atividade`, `cargaHorariaMinutos`, `emitidoEm`) em `api/src/app.ts:453-459`.\n\n## Matriz de erros\n\n| Código de erro | Status | Rota | Contrato exige | Implementação retorna | Conforme? |\n|---|---|---|---|---|---|\n| `USUARIO_DESCONHECIDO` | 401 | POST `/atividades/:id/certificado`, GET `/certificados`, GET `/extrato` | 401 | 401 (`api/src/app.ts:128-141` aplicado em `:394`, `:432`, `:438`) | SIM |\n| `USUARIO_DESCONHECIDO` | — | GET `/certificados/:codigo` | rota isenta de `X-Usuario` (contrato §1) | rota não aplica `requireUser` (`api/src/app.ts:443`) — isento corretamente | SIM |\n| `SOMENTE_PARTICIPANTE` | 403 | as 3 rotas de participante | 403 | 403 (`api/src/app.ts:396-399` e `requireParticipant` `api/src/app.ts:152-159` em `:432`, `:438`) | SIM |\n| `NAO_ENCONTRADO` | 404 | POST certificado (atividade inexistente) | 404 | 404 (`api/src/app.ts:402-406`) | SIM |\n| `NAO_ENCONTRADO` | 404 | GET `/certificados/:codigo` (código inexistente) | 404 | 404 (`api/src/app.ts:446`) | SIM |\n| `NAO_INSCRITO` | 403 | POST certificado | 403 | 403 (`api/src/certificate/emissao-certificado.ts:49-51` → `api/src/app.ts:425`) | SIM |\n| `ATIVIDADE_CANCELADA` | 422 | POST certificado | 422 | 422 (`api/src/certificate/emissao-certificado.ts:43-44` → `api/src/app.ts:425`) | SIM |\n| `ATIVIDADE_NAO_ENCERRADA` | 422 | POST certificado | 422 | 422 (`api/src/certificate/emissao-certificado.ts:56-58` → `api/src/app.ts:425`) | SIM |\n| `PRESENCA_INSUFICIENTE` | 422 | POST certificado | 422 | 422 (`api/src/certificate/emissao-certificado.ts:62-63` → `api/src/app.ts:425`) | SIM |\n| `DADOS_INVALIDOS` | 422 | POST certificado com corpo mal formado | 422 pela convenção genérica do contrato §1 | não aplicado — a rota não instala parser de corpo (`api/src/app.ts:394`) e ignora o corpo | OBSERVAÇÃO (achado 4) |\n\nPrecedência (contrato §1: 401 → 403 `SOMENTE_…` → 404 → 422 corpo → regras do recurso): em `api/src/app.ts:394-415` a ordem é `requireUser` (401) → papel (403) → existência (404) → regras de recurso dentro de `EmitirCertificado`. R12 da spec (encerrada antes de presença) implementada em `api/src/certificate/emissao-certificado.ts:53-64` (checagem de término nas linhas 53-58 antes da contagem de presenças nas linhas 60-63). A ordem entre `ATIVIDADE_CANCELADA`/`NAO_INSCRITO` e as demais regras de recurso é regra de negócio (contrato §1) e a spec não a fixa — colocação aceitável. `NAO_INSCRITO` (403, regra de recurso) ocorre após o 404, conforme o rótulo do contrato (\"perfil (403 `SOMENTE_…`)\") — CONFORME.\n\nRegras da spec verificadas na implementação:\n- **R1** (fração exata 75% sem arredondamento): `presencas * 4 < encontros * 3` em `api/src/certificate/emissao-certificado.ts:62` — 3/4 emite, 2/4 e 3/5 recusam. CONFORME.\n- **R2** (emissão após término; instante exato permite): `agora < fimDoUltimoEncontro` recusa em `api/src/certificate/emissao-certificado.ts:56` — instante exato não é menor, logo emite. Usa `clock.now()` (`:53`), não `Date` do sistema. CONFORME.\n- **R3/R4/R5** (brutas sem teto, teto 240 palestras, teto total 1200): `api/src/certificate/horas-complementares.ts:12-29` (`Math.min(240, …)` e `Math.min(1200, …)`). CONFORME.\n- **R6** (formato `SA26-XXXX-XXXX`, unicidade): `api/src/certificate/gerar-codigo.ts:8`; PK em `codigo` (`api/src/db/migrate.ts:62`); retry de colisão em `api/src/certificate/emissao-certificado.ts:76-94`. CONFORME.\n- **R7** (abreviação): `api/src/certificate/abreviar-nome.ts:4-32`; exemplos da spec cobertos em `api/tests/abreviar-nome.test.ts:6-16` e no HTTP `api/tests/certificado-r8.test.ts:104`. CONFORME (com observação informativa no achado 6).\n- **R8** (público sem `X-Usuario`, só campos públicos): `api/src/app.ts:443-459`; testes critérios 15 e 16 em `api/tests/certificado-r8.test.ts:82-128`. CONFORME.\n- **R9** (idempotência 201/200, mesmo código/`emitidoEm`): `api/src/certificate/emissao-certificado.ts:66-69` + `api/src/app.ts:429`; testes em `api/tests/certificado.test.ts:175-193` e `api/tests/certificado-r9.test.ts`. CONFORME.\n- **R10** (itens com código preenchido ou `null`, recalculado): `api/src/certificate/extrato.ts:41-47`. CONFORME.\n- **R11** (alfabeto sem `I`, `O`, `0`, `1`, mesmo da presença): `api/src/certificate/gerar-codigo.ts:3` (`ABCDEFGHJKLMNPQRSTUVWXYZ23456789`) = mesmo conjunto de `api/src/application/get-codigo-do-encontro.ts:8` e `register-presenca.ts:10` (ordem distinta, conjunto idêntico). CONFORME.\n- **R12**: ver acima. CONFORME.\n- **R13–R17** (só inscrição `confirmada` elegível): filtro em `api/src/certificate/extrato.ts:34-36`, via porta M2 `api/src/integrations/m2-port.ts:72-86` (status atual por atividade, deduplicado; `findByActivityAndParticipant` prioriza status ativos em `api/src/repositories/inscricao-repository.ts:25-35`, cobrindo re-inscrição). CONFORME.\n- **R18** (atividade cancelada fora do extrato): `api/src/certificate/extrato.ts:38`. CONFORME.\n\n## Dependências de módulos externos\n\n- **M4 ↔ M3 (presenças):** contagem por `SQLiteM3PresenceAdapter.countPresencas` (`api/src/integrations/m3-presence-port.ts:14-28`), que conta encontros da atividade com presença do participante (não linhas brutas). Dependência satisfeita e exercitada nos testes via rotas do M3 (`api/tests/certificado-g3-presenca-offline.test.ts`, `api/tests/certificado-g3-presenca-manual.test.ts`, cenários QR em `api/tests/certificado.test.ts:56-68`).\n- **M4 ↔ M2 (inscrições):** `M2IntegrationPort.listarInscricoesDoParticipante` (`api/src/integrations/m2-port.ts:72-86`) para exigir `confirmada` na emissão (`emissao-certificado.ts:47-51`) e filtrar o extrato. Satisfeita; exercitada via rotas do M2 nos testes.\n- **M4 ↔ M1 (atividades/encontros/carga):** snapshot de encontros, `cargaHorariaMinutos` e `cancelada` via `ActivityRepository` (`api/src/repositories/activity-repository.ts:22-59`), montado na rota `api/src/app.ts:401-415`. Satisfeita.\n- O módulo não escreve em tabelas de outros módulos: só lê `atividades`/`encontros`/`presencas`/`inscricoes` por repositórios/portas e grava em `certificados` (`api/src/db/migrate.ts:61-71`).\n\n## Suíte\n\nComandos exigidos por `projeto.json` (`projeto.json:8-11`):\n\n- `npm --prefix api test` → **40 arquivos de teste, 273 testes, todos passaram** (duração 14,78s). Dos quais, arquivos do M4: `certificado.test.ts` (7), `certificado-atividade-cancelada.test.ts` (2), `certificado-contrato-http.test.ts` (6), `certificado-colisao.test.ts` (1), `certificado-g3-presenca-manual.test.ts` (1), `certificado-g3-presenca-offline.test.ts` (1), `certificado-listagem.test.ts` (5), `certificado-nao-inscrito.test.ts` (5), `certificado-r8.test.ts` (3), `certificado-r12.test.ts` (1), `certificado-r9.test.ts` (1), `certificado-restart.test.ts` (1), `extrato.test.ts` (14), `horas-complementares.test.ts` (16), `gerar-codigo.test.ts` (12), `abreviar-nome.test.ts` (14) — **90 testes do M4, todos verdes**.\n- `npm --prefix app test` → **10 arquivos de teste, 136 testes, todos passaram** (duração 12,10s). M4 na interface: `ExtratoHoras.test.tsx` (6), `MeusCertificados.test.tsx` (5), `VerificarCertificado.test.tsx` (6) e o bloco M4 de `api/client.test.ts` — todos verdes. Aparecem avisos `stderr` de `act(...)` em `App.test.tsx`, sem falhas e sem relação com M4.\n\nOs testes confirmam: status/código de erro, efeito persistido (1 linha por par em `certificado-r9.test.ts:96-99`), campos exatos das respostas e precedência. A interface usa os caminhos exatos do contrato (`app/src/api/client.ts:175-191`) e apresenta `{erro, mensagem}`.\n\n## Achados\n\n1. [CONFORME] Endpoints — os quatro endpoints do M4 existem, com método, caminho, papel e status de sucesso exatos do contrato: `POST /atividades/:id/certificado` (`api/src/app.ts:394`, 201/200 em `:429`), `GET /certificados` (`:432`), `GET /certificados/:codigo` (`:443`), `GET /extrato` (`:438`).\n2. [CONFORME] Quem acessa e Headers — `X-Usuario` validado com 401 e 403 `SOMENTE_PARTICIPANTE` nas rotas identificadas; a verificação pública é a única rota M4 sem exigência de cabeçalho, como manda o contrato §1 (`api/src/app.ts:443` vs `:394`, `:432`, `:438`).\n3. [CONFORME] Sucesso e erros — corpos `Certificado`, `[Certificado]`, `Verificacao` e `Extrato` com os campos exatos do contrato (`emissao-certificado.ts:19-27`, `certificate-repository.ts:81-89`, `app.ts:453-459`, `extrato.ts:14-20`); todos os status/códigos da matriz de erros conferem; precedência 401→403→404→regras respeitada (`app.ts:394-415`); R12 em `emissao-certificado.ts:53-64`; idempotência 201/200 conforme (`app.ts:429`, `emissao-certificado.ts:66-69`).\n4. [OBSERVAÇÃO — BAIXA] `DADOS_INVALIDOS` não coberto na emissão — o contrato §1 exige `422 DADOS_INVALIDOS` para \"corpo que não é JSON\", mas `POST /atividades/:id/certificado` não instala `express.json()` nem validação de corpo (`api/src/app.ts:394`); um corpo malformado seria ignorado e a emissão prosseguiria. Como o contrato/spec não definem corpo de entrada para esta rota (spec §4), o risco prático é baixo e nenhum teste cobre o caso.\n5. [OBSERVAÇÃO — BAIXA] \"Último encontro\" da R2 — a rota ordena por `inicio` (`api/src/app.ts:408-410`) e o domínio usa o `fim` do último por início (`api/src/certificate/emissao-certificado.ts:54-55`), não o maior `fim`. Havendo encontro sobreposto com término posterior ao último por início, a janela de encerramento ficaria errada; cenário não previsto nem coberto pela spec (R2 fala em \"término do último encontro da atividade\").\n6. [OBSERVAÇÃO — INFORMATIVA] Exceção de abreviação não descrita em R7 — `abreviar-nome.ts:24-26` mantém por extenso o termo após partícula somente quando não está em `i === 2`; assim \"Maria da Silva\" → \"Maria da S.\" (`api/tests/abreviar-nome.test.ts:63`), enquanto \"Elisa Fernandes da Rocha\" → \"Elisa F. da Rocha\". Os três exemplos da spec (critérios 13–14) são atendidos; o caso \"partícula logo após o primeiro nome + sobrenome final\" não é coberto pela spec.\n7. [OBSERVAÇÃO — BAIXA] Idempotência do par sem restrição estrutural — a tabela `certificados` tem PK só em `codigo`, sem `UNIQUE (atividade_id, participante_id)` (`api/src/db/migrate.ts:61-71`); a R9 é garantida apenas na aplicação (`api/src/certificate/emissao-certificado.ts:66-69`). Com better-sqlite3 síncrono single-thread o risco prático de duplicação é nulo na execução sequencial, mas a garantia não é estrutural no banco.\n8. [CONFORME] Casos de borda declarados — `emitidoEm` ISO 8601 com fuso via `clock.now().toISO()` (`emissao-certificado.ts:71`); campos `codigo: null` no extrato (`extrato.ts:47`); array vazio em `GET /certificados` e `itens: []` no extrato (testes `certificado-listagem.test.ts:108-115`, `extrato.test.ts:539-551`); reemissão após reinício preserva código/`emitidoEm` (`certificado-restart.test.ts`); unicidade com recuperação de colisão (`certificado-colisao.test.ts`).\n9. [CONFORME] Testes como evidência — os 90 testes de API do M4 e os 17+ da interface cobrem todos os critérios de aceite 1–26 da spec (R1 em `certificado.test.ts`, R2 e R12, R3–R5 em `extrato.test.ts`/`horas-complementares.test.ts`, R6/R11 em `gerar-codigo.test.ts`/`certificado-colisao.test.ts`, R7/R8 em `abreviar-nome.test.ts`/`certificado-r8.test.ts`, R9 em `certificado.test.ts`/`certificado-r9.test.ts`, R10 e R13–R18 em `extrato.test.ts`) e verificam status HTTP, código `erro` e efeito persistido.\n\n## Veredito\n\nO M4 pode ser aceito: os quatro endpoints, campos, status, códigos de erro, precedência, idempotência 201/200 e as 18 regras da spec estão implementados conforme `contrato-api.md` e `specs/M4-certificados.md`, com as duas suítes de teste verdes (API 273/273, interface 136/136); restam apenas quatro observações de severidade baixa/informativa (achados 4–7), nenhuma das quais uma divergência confirmada de contrato ou spec.\n</task_result>\n</task>",
+      "metadata": {
+       "parentSessionId": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+       "sessionId": "ses_f36a8944cffeyNJ4BlIE89MkrS",
+       "model": {
+        "modelID": "big-pickle",
+        "providerID": "opencode"
+       },
+       "truncated": false
+      },
+      "title": "Retornar parecer integral",
+      "time": {
+       "start": 1790084850939,
+       "end": 1790084902339
+      }
+     },
+     "id": "prt_0c95f1b8f001zynwYTPZaGplCc",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c95f0c9900109NHa68OEmFtUT"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "ffc020e742f780c53e1d76a46ba1e01f56abba30",
+     "type": "step-finish",
+     "tokens": {
+      "total": 21520,
+      "input": 744,
+      "output": 179,
+      "reasoning": 53,
+      "cache": {
+       "write": 0,
+       "read": 20544
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c95fef79001XP0Hm2GiuaKOsa",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c95f0c9900109NHa68OEmFtUT"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c9571eca0014iqSLN52o2hxAO",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 31604,
+     "input": 5327,
+     "output": 5010,
+     "reasoning": 19,
+     "cache": {
+      "write": 0,
+      "read": 21248
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790084903230,
+     "completed": 1790084941225
+    },
+    "finish": "stop",
+    "id": "msg_0c95ff13e0010bkA1ADp2PQYEL",
+    "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX"
+   },
+   "parts": [
+    {
+     "snapshot": "ffc020e742f780c53e1d76a46ba1e01f56abba30",
+     "type": "step-start",
+     "id": "prt_0c95ffcc4001T1qNAM5m5zjYa0",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c95ff13e0010bkA1ADp2PQYEL"
+    },
+    {
+     "type": "reasoning",
+     "text": "The user wants the full parecer presented verbatim. I should output it as-is.",
+     "time": {
+      "start": 1790084906206,
+      "end": 1790084906453
+     },
+     "id": "prt_0c95ffcde001tP5cccdfA3Qqda",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c95ff13e0010bkA1ADp2PQYEL"
+    },
+    {
+     "type": "text",
+     "text": "# Parecer do revisor de contrato — M4 (certificados)\n\nFontes lidas: `contrato-api.md` (inteiro), `specs/M4-certificados.md` (inteiro), implementação em `api/src/app.ts`, `api/src/certificate/*`, `api/src/repositories/certificate-repository.ts`, portas `api/src/integrations/m2-port.ts` e `m3-presence-port.ts`, migração `api/src/db/migrate.ts`, 16 arquivos de teste da API, e os arquivos da interface (`app/src/api/client.ts`, hooks e componentes M4 com testes). Nenhum documento de requisitos externo foi consultado. Nenhum arquivo foi alterado.\n\n**Alinhamento spec ↔ contrato (procedimento passo 2):** os endpoints, métodos, papéis, campos e status da spec §3–§4 batem exatamente com a seção M4 do `contrato-api.md` (rotas, 201/200 condicional, público sem `X-Usuario`, corpo `Certificado`/`Verificacao`/`Extrato`). Os códigos `PRESENCA_INSUFICIENTE` (422), `ATIVIDADE_NAO_ENCERRADA` (422), `NAO_INSCRITO` (403), `ATIVIDADE_CANCELADA` (422) e `NAO_ENCONTRADO` (404) da spec existem na seção 6 do contrato. **Nenhuma divergência spec↔contrato encontrada.**\n\n---\n\n## Matriz de endpoints\n\n| Método | Rota | Quem | Status sucesso | Status/erro esperado | Implementado? | Achado |\n|---|---|---|---|---|---|---|\n| POST | `/atividades/:id/certificado` | participante | 201 na 1ª vez; 200 depois | 401, 403 (`SOMENTE_PARTICIPANTE`, `NAO_INSCRITO`), 404, 422 (`ATIVIDADE_CANCELADA`, `ATIVIDADE_NAO_ENCERRADA`, `PRESENCA_INSUFICIENTE`) | SIM | — (ver achado 4, observação de corpo) |\n| GET | `/certificados` | participante | 200 `[Certificado]` (só os emitidos do próprio) | 401, 403 | SIM | — |\n| GET | `/certificados/:codigo` | público, sem `X-Usuario` | 200 `Verificacao` | 404 `NAO_ENCONTRADO` | SIM | — |\n| GET | `/extrato` | participante | 200 `Extrato` | 401, 403 | SIM | — |\n\nEvidências: rota de emissão em `api/src/app.ts:394`; listagem em `api/src/app.ts:432`; extrato em `api/src/app.ts:438`; verificação pública (sem `requireUser`) em `api/src/app.ts:443`. Registro 201/200 em `api/src/app.ts:429`. Projeção pública exata (`codigo`, `participante`, `atividade`, `cargaHorariaMinutos`, `emitidoEm`) em `api/src/app.ts:453-459`.\n\n## Matriz de erros\n\n| Código de erro | Status | Rota | Contrato exige | Implementação retorna | Conforme? |\n|---|---|---|---|---|---|\n| `USUARIO_DESCONHECIDO` | 401 | POST `/atividades/:id/certificado`, GET `/certificados`, GET `/extrato` | 401 | 401 (`api/src/app.ts:128-141` aplicado em `:394`, `:432`, `:438`) | SIM |\n| `USUARIO_DESCONHECIDO` | — | GET `/certificados/:codigo` | rota isenta de `X-Usuario` (contrato §1) | rota não aplica `requireUser` (`api/src/app.ts:443`) — isento corretamente | SIM |\n| `SOMENTE_PARTICIPANTE` | 403 | as 3 rotas de participante | 403 | 403 (`api/src/app.ts:396-399` e `requireParticipant` `api/src/app.ts:152-159` em `:432`, `:438`) | SIM |\n| `NAO_ENCONTRADO` | 404 | POST certificado (atividade inexistente) | 404 | 404 (`api/src/app.ts:402-406`) | SIM |\n| `NAO_ENCONTRADO` | 404 | GET `/certificados/:codigo` (código inexistente) | 404 | 404 (`api/src/app.ts:446`) | SIM |\n| `NAO_INSCRITO` | 403 | POST certificado | 403 | 403 (`api/src/certificate/emissao-certificado.ts:49-51` → `api/src/app.ts:425`) | SIM |\n| `ATIVIDADE_CANCELADA` | 422 | POST certificado | 422 | 422 (`api/src/certificate/emissao-certificado.ts:43-44` → `api/src/app.ts:425`) | SIM |\n| `ATIVIDADE_NAO_ENCERRADA` | 422 | POST certificado | 422 | 422 (`api/src/certificate/emissao-certificado.ts:56-58` → `api/src/app.ts:425`) | SIM |\n| `PRESENCA_INSUFICIENTE` | 422 | POST certificado | 422 | 422 (`api/src/certificate/emissao-certificado.ts:62-63` → `api/src/app.ts:425`) | SIM |\n| `DADOS_INVALIDOS` | 422 | POST certificado com corpo mal formado | 422 pela convenção genérica do contrato §1 | não aplicado — a rota não instala parser de corpo (`api/src/app.ts:394`) e ignora o corpo | OBSERVAÇÃO (achado 4) |\n\nPrecedência (contrato §1: 401 → 403 `SOMENTE_…` → 404 → 422 corpo → regras do recurso): em `api/src/app.ts:394-415` a ordem é `requireUser` (401) → papel (403) → existência (404) → regras de recurso dentro de `EmitirCertificado`. R12 da spec (encerrada antes de presença) implementada em `api/src/certificate/emissao-certificado.ts:53-64` (checagem de término nas linhas 53-58 antes da contagem de presenças nas linhas 60-63). A ordem entre `ATIVIDADE_CANCELADA`/`NAO_INSCRITO` e as demais regras de recurso é regra de negócio (contrato §1) e a spec não a fixa — colocação aceitável. `NAO_INSCRITO` (403, regra de recurso) ocorre após o 404, conforme o rótulo do contrato (\"perfil (403 `SOMENTE_…`)\") — CONFORME.\n\nRegras da spec verificadas na implementação:\n- **R1** (fração exata 75% sem arredondamento): `presencas * 4 < encontros * 3` em `api/src/certificate/emissao-certificado.ts:62` — 3/4 emite, 2/4 e 3/5 recusam. CONFORME.\n- **R2** (emissão após término; instante exato permite): `agora < fimDoUltimoEncontro` recusa em `api/src/certificate/emissao-certificado.ts:56` — instante exato não é menor, logo emite. Usa `clock.now()` (`:53`), não `Date` do sistema. CONFORME.\n- **R3/R4/R5** (brutas sem teto, teto 240 palestras, teto total 1200): `api/src/certificate/horas-complementares.ts:12-29` (`Math.min(240, …)` e `Math.min(1200, …)`). CONFORME.\n- **R6** (formato `SA26-XXXX-XXXX`, unicidade): `api/src/certificate/gerar-codigo.ts:8`; PK em `codigo` (`api/src/db/migrate.ts:62`); retry de colisão em `api/src/certificate/emissao-certificado.ts:76-94`. CONFORME.\n- **R7** (abreviação): `api/src/certificate/abreviar-nome.ts:4-32`; exemplos da spec cobertos em `api/tests/abreviar-nome.test.ts:6-16` e no HTTP `api/tests/certificado-r8.test.ts:104`. CONFORME (com observação informativa no achado 6).\n- **R8** (público sem `X-Usuario`, só campos públicos): `api/src/app.ts:443-459`; testes critérios 15 e 16 em `api/tests/certificado-r8.test.ts:82-128`. CONFORME.\n- **R9** (idempotência 201/200, mesmo código/`emitidoEm`): `api/src/certificate/emissao-certificado.ts:66-69` + `api/src/app.ts:429`; testes em `api/tests/certificado.test.ts:175-193` e `api/tests/certificado-r9.test.ts`. CONFORME.\n- **R10** (itens com código preenchido ou `null`, recalculado): `api/src/certificate/extrato.ts:41-47`. CONFORME.\n- **R11** (alfabeto sem `I`, `O`, `0`, `1`, mesmo da presença): `api/src/certificate/gerar-codigo.ts:3` (`ABCDEFGHJKLMNPQRSTUVWXYZ23456789`) = mesmo conjunto de `api/src/application/get-codigo-do-encontro.ts:8` e `register-presenca.ts:10` (ordem distinta, conjunto idêntico). CONFORME.\n- **R12**: ver acima. CONFORME.\n- **R13–R17** (só inscrição `confirmada` elegível): filtro em `api/src/certificate/extrato.ts:34-36`, via porta M2 `api/src/integrations/m2-port.ts:72-86` (status atual por atividade, deduplicado; `findByActivityAndParticipant` prioriza status ativos em `api/src/repositories/inscricao-repository.ts:25-35`, cobrindo re-inscrição). CONFORME.\n- **R18** (atividade cancelada fora do extrato): `api/src/certificate/extrato.ts:38`. CONFORME.\n\n## Dependências de módulos externos\n\n- **M4 ↔ M3 (presenças):** contagem por `SQLiteM3PresenceAdapter.countPresencas` (`api/src/integrations/m3-presence-port.ts:14-28`), que conta encontros da atividade com presença do participante (não linhas brutas). Dependência satisfeita e exercitada nos testes via rotas do M3 (`api/tests/certificado-g3-presenca-offline.test.ts`, `api/tests/certificado-g3-presenca-manual.test.ts`, cenários QR em `api/tests/certificado.test.ts:56-68`).\n- **M4 ↔ M2 (inscrições):** `M2IntegrationPort.listarInscricoesDoParticipante` (`api/src/integrations/m2-port.ts:72-86`) para exigir `confirmada` na emissão (`emissao-certificado.ts:47-51`) e filtrar o extrato. Satisfeita; exercitada via rotas do M2 nos testes.\n- **M4 ↔ M1 (atividades/encontros/carga):** snapshot de encontros, `cargaHorariaMinutos` e `cancelada` via `ActivityRepository` (`api/src/repositories/activity-repository.ts:22-59`), montado na rota `api/src/app.ts:401-415`. Satisfeita.\n- O módulo não escreve em tabelas de outros módulos: só lê `atividades`/`encontros`/`presencas`/`inscricoes` por repositórios/portas e grava em `certificados` (`api/src/db/migrate.ts:61-71`).\n\n## Suíte\n\nComandos exigidos por `projeto.json` (`projeto.json:8-11`):\n\n- `npm --prefix api test` → **40 arquivos de teste, 273 testes, todos passaram** (duração 14,78s). Dos quais, arquivos do M4: `certificado.test.ts` (7), `certificado-atividade-cancelada.test.ts` (2), `certificado-contrato-http.test.ts` (6), `certificado-colisao.test.ts` (1), `certificado-g3-presenca-manual.test.ts` (1), `certificado-g3-presenca-offline.test.ts` (1), `certificado-listagem.test.ts` (5), `certificado-nao-inscrito.test.ts` (5), `certificado-r8.test.ts` (3), `certificado-r12.test.ts` (1), `certificado-r9.test.ts` (1), `certificado-restart.test.ts` (1), `extrato.test.ts` (14), `horas-complementares.test.ts` (16), `gerar-codigo.test.ts` (12), `abreviar-nome.test.ts` (14) — **90 testes do M4, todos verdes**.\n- `npm --prefix app test` → **10 arquivos de teste, 136 testes, todos passaram** (duração 12,10s). M4 na interface: `ExtratoHoras.test.tsx` (6), `MeusCertificados.test.tsx` (5), `VerificarCertificado.test.tsx` (6) e o bloco M4 de `api/client.test.ts` — todos verdes. Aparecem avisos `stderr` de `act(...)` em `App.test.tsx`, sem falhas e sem relação com M4.\n\nOs testes confirmam: status/código de erro, efeito persistido (1 linha por par em `certificado-r9.test.ts:96-99`), campos exatos das respostas e precedência. A interface usa os caminhos exatos do contrato (`app/src/api/client.ts:175-191`) e apresenta `{erro, mensagem}`.\n\n## Achados\n\n1. [CONFORME] Endpoints — os quatro endpoints do M4 existem, com método, caminho, papel e status de sucesso exatos do contrato: `POST /atividades/:id/certificado` (`api/src/app.ts:394`, 201/200 em `:429`), `GET /certificados` (`:432`), `GET /certificados/:codigo` (`:443`), `GET /extrato` (`:438`).\n2. [CONFORME] Quem acessa e Headers — `X-Usuario` validado com 401 e 403 `SOMENTE_PARTICIPANTE` nas rotas identificadas; a verificação pública é a única rota M4 sem exigência de cabeçalho, como manda o contrato §1 (`api/src/app.ts:443` vs `:394`, `:432`, `:438`).\n3. [CONFORME] Sucesso e erros — corpos `Certificado`, `[Certificado]`, `Verificacao` e `Extrato` com os campos exatos do contrato (`emissao-certificado.ts:19-27`, `certificate-repository.ts:81-89`, `app.ts:453-459`, `extrato.ts:14-20`); todos os status/códigos da matriz de erros conferem; precedência 401→403→404→regras respeitada (`app.ts:394-415`); R12 em `emissao-certificado.ts:53-64`; idempotência 201/200 conforme (`app.ts:429`, `emissao-certificado.ts:66-69`).\n4. [OBSERVAÇÃO — BAIXA] `DADOS_INVALIDOS` não coberto na emissão — o contrato §1 exige `422 DADOS_INVALIDOS` para \"corpo que não é JSON\", mas `POST /atividades/:id/certificado` não instala `express.json()` nem validação de corpo (`api/src/app.ts:394`); um corpo malformado seria ignorado e a emissão prosseguiria. Como o contrato/spec não definem corpo de entrada para esta rota (spec §4), o risco prático é baixo e nenhum teste cobre o caso.\n5. [OBSERVAÇÃO — BAIXA] \"Último encontro\" da R2 — a rota ordena por `inicio` (`api/src/app.ts:408-410`) e o domínio usa o `fim` do último por início (`api/src/certificate/emissao-certificado.ts:54-55`), não o maior `fim`. Havendo encontro sobreposto com término posterior ao último por início, a janela de encerramento ficaria errada; cenário não previsto nem coberto pela spec (R2 fala em \"término do último encontro da atividade\").\n6. [OBSERVAÇÃO — INFORMATIVA] Exceção de abreviação não descrita em R7 — `abreviar-nome.ts:24-26` mantém por extenso o termo após partícula somente quando não está em `i === 2`; assim \"Maria da Silva\" → \"Maria da S.\" (`api/tests/abreviar-nome.test.ts:63`), enquanto \"Elisa Fernandes da Rocha\" → \"Elisa F. da Rocha\". Os três exemplos da spec (critérios 13–14) são atendidos; o caso \"partícula logo após o primeiro nome + sobrenome final\" não é coberto pela spec.\n7. [OBSERVAÇÃO — BAIXA] Idempotência do par sem restrição estrutural — a tabela `certificados` tem PK só em `codigo`, sem `UNIQUE (atividade_id, participante_id)` (`api/src/db/migrate.ts:61-71`); a R9 é garantida apenas na aplicação (`api/src/certificate/emissao-certificado.ts:66-69`). Com better-sqlite3 síncrono single-thread o risco prático de duplicação é nulo na execução sequencial, mas a garantia não é estrutural no banco.\n8. [CONFORME] Casos de borda declarados — `emitidoEm` ISO 8601 com fuso via `clock.now().toISO()` (`emissao-certificado.ts:71`); campos `codigo: null` no extrato (`extrato.ts:47`); array vazio em `GET /certificados` e `itens: []` no extrato (testes `certificado-listagem.test.ts:108-115`, `extrato.test.ts:539-551`); reemissão após reinício preserva código/`emitidoEm` (`certificado-restart.test.ts`); unicidade com recuperação de colisão (`certificado-colisao.test.ts`).\n9. [CONFORME] Testes como evidência — os 90 testes de API do M4 e os 17+ da interface cobrem todos os critérios de aceite 1–26 da spec (R1 em `certificado.test.ts`, R2 e R12, R3–R5 em `extrato.test.ts`/`horas-complementares.test.ts`, R6/R11 em `gerar-codigo.test.ts`/`certificado-colisao.test.ts`, R7/R8 em `abreviar-nome.test.ts`/`certificado-r8.test.ts`, R9 em `certificado.test.ts`/`certificado-r9.test.ts`, R10 e R13–R18 em `extrato.test.ts`) e verificam status HTTP, código `erro` e efeito persistido.\n\n## Veredito\n\nO M4 pode ser aceito: os quatro endpoints, campos, status, códigos de erro, precedência, idempotência 201/200 e as 18 regras da spec estão implementados conforme `contrato-api.md` e `specs/M4-certificados.md`, com as duas suítes de teste verdes (API 273/273, interface 136/136); restam apenas quatro observações de severidade baixa/informativa (achados 4–7), nenhuma das quais uma divergência confirmada de contrato ou spec.",
+     "time": {
+      "start": 1790084906461,
+      "end": 1790084940192
+     },
+     "id": "prt_0c95ffddd0012jb3g5tUpSL7iF",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c95ff13e0010bkA1ADp2PQYEL"
+    },
+    {
+     "reason": "stop",
+     "snapshot": "ffc020e742f780c53e1d76a46ba1e01f56abba30",
+     "type": "step-finish",
+     "tokens": {
+      "total": 31604,
+      "input": 5327,
+      "output": 5010,
+      "reasoning": 19,
+      "cache": {
+       "write": 0,
+       "read": 21248
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c960837b001zgLV4z3zYUMNaD",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c95ff13e0010bkA1ADp2PQYEL"
+    }
+   ]
+  },
+  {
+   "info": {
+    "role": "user",
+    "time": {
+     "created": 1790085001034
+    },
+    "agent": "build",
+    "model": {
+     "providerID": "opencode",
+     "modelID": "big-pickle"
+    },
+    "summary": {
+     "diffs": [
+      {
+       "file": "auditorias/M4-revisao-contrato-2026-09-22.md",
+       "patch": "Index: auditorias/M4-revisao-contrato-2026-09-22.md\n===================================================================\n--- auditorias/M4-revisao-contrato-2026-09-22.md\t\n+++ auditorias/M4-revisao-contrato-2026-09-22.md\t\n@@ -0,0 +1,81 @@\n+# Parecer do revisor de contrato — M4 (certificados)\n+\n+Fontes lidas: `contrato-api.md` (inteiro), `specs/M4-certificados.md` (inteiro), implementação em `api/src/app.ts`, `api/src/certificate/*`, `api/src/repositories/certificate-repository.ts`, portas `api/src/integrations/m2-port.ts` e `m3-presence-port.ts`, migração `api/src/db/migrate.ts`, 16 arquivos de teste da API, e os arquivos da interface (`app/src/api/client.ts`, hooks e componentes M4 com testes). Nenhum documento de requisitos externo foi consultado. Nenhum arquivo foi alterado.\n+\n+**Alinhamento spec ↔ contrato (procedimento passo 2):** os endpoints, métodos, papéis, campos e status da spec §3–§4 batem exatamente com a seção M4 do `contrato-api.md` (rotas, 201/200 condicional, público sem `X-Usuario`, corpo `Certificado`/`Verificacao`/`Extrato`). Os códigos `PRESENCA_INSUFICIENTE` (422), `ATIVIDADE_NAO_ENCERRADA` (422), `NAO_INSCRITO` (403), `ATIVIDADE_CANCELADA` (422) e `NAO_ENCONTRADO` (404) da spec existem na seção 6 do contrato. **Nenhuma divergência spec↔contrato encontrada.**\n+\n+---\n+\n+## Matriz de endpoints\n+\n+| Método | Rota | Quem | Status sucesso | Status/erro esperado | Implementado? | Achado |\n+|---|---|---|---|---|---|---|\n+| POST | `/atividades/:id/certificado` | participante | 201 na 1ª vez; 200 depois | 401, 403 (`SOMENTE_PARTICIPANTE`, `NAO_INSCRITO`), 404, 422 (`ATIVIDADE_CANCELADA`, `ATIVIDADE_NAO_ENCERRADA`, `PRESENCA_INSUFICIENTE`) | SIM | — (ver achado 4, observação de corpo) |\n+| GET | `/certificados` | participante | 200 `[Certificado]` (só os emitidos do próprio) | 401, 403 | SIM | — |\n+| GET | `/certificados/:codigo` | público, sem `X-Usuario` | 200 `Verificacao` | 404 `NAO_ENCONTRADO` | SIM | — |\n+| GET | `/extrato` | participante | 200 `Extrato` | 401, 403 | SIM | — |\n+\n+Evidências: rota de emissão em `api/src/app.ts:394`; listagem em `api/src/app.ts:432`; extrato em `api/src/app.ts:438`; verificação pública (sem `requireUser`) em `api/src/app.ts:443`. Registro 201/200 em `api/src/app.ts:429`. Projeção pública exata (`codigo`, `participante`, `atividade`, `cargaHorariaMinutos`, `emitidoEm`) em `api/src/app.ts:453-459`.\n+\n+## Matriz de erros\n+\n+| Código de erro | Status | Rota | Contrato exige | Implementação retorna | Conforme? |\n+|---|---|---|---|---|---|\n+| `USUARIO_DESCONHECIDO` | 401 | POST `/atividades/:id/certificado`, GET `/certificados`, GET `/extrato` | 401 | 401 (`api/src/app.ts:128-141` aplicado em `:394`, `:432`, `:438`) | SIM |\n+| `USUARIO_DESCONHECIDO` | — | GET `/certificados/:codigo` | rota isenta de `X-Usuario` (contrato §1) | rota não aplica `requireUser` (`api/src/app.ts:443`) — isento corretamente | SIM |\n+| `SOMENTE_PARTICIPANTE` | 403 | as 3 rotas de participante | 403 | 403 (`api/src/app.ts:396-399` e `requireParticipant` `api/src/app.ts:152-159` em `:432`, `:438`) | SIM |\n+| `NAO_ENCONTRADO` | 404 | POST certificado (atividade inexistente) | 404 | 404 (`api/src/app.ts:402-406`) | SIM |\n+| `NAO_ENCONTRADO` | 404 | GET `/certificados/:codigo` (código inexistente) | 404 | 404 (`api/src/app.ts:446`) | SIM |\n+| `NAO_INSCRITO` | 403 | POST certificado | 403 | 403 (`api/src/certificate/emissao-certificado.ts:49-51` → `api/src/app.ts:425`) | SIM |\n+| `ATIVIDADE_CANCELADA` | 422 | POST certificado | 422 | 422 (`api/src/certificate/emissao-certificado.ts:43-44` → `api/src/app.ts:425`) | SIM |\n+| `ATIVIDADE_NAO_ENCERRADA` | 422 | POST certificado | 422 | 422 (`api/src/certificate/emissao-certificado.ts:56-58` → `api/src/app.ts:425`) | SIM |\n+| `PRESENCA_INSUFICIENTE` | 422 | POST certificado | 422 | 422 (`api/src/certificate/emissao-certificado.ts:62-63` → `api/src/app.ts:425`) | SIM |\n+| `DADOS_INVALIDOS` | 422 | POST certificado com corpo mal formado | 422 pela convenção genérica do contrato §1 | não aplicado — a rota não instala parser de corpo (`api/src/app.ts:394`) e ignora o corpo | OBSERVAÇÃO (achado 4) |\n+\n+Precedência (contrato §1: 401 → 403 `SOMENTE_…` → 404 → 422 corpo → regras do recurso): em `api/src/app.ts:394-415` a ordem é `requireUser` (401) → papel (403) → existência (404) → regras de recurso dentro de `EmitirCertificado`. R12 da spec (encerrada antes de presença) implementada em `api/src/certificate/emissao-certificado.ts:53-64` (checagem de término nas linhas 53-58 antes da contagem de presenças nas linhas 60-63). A ordem entre `ATIVIDADE_CANCELADA`/`NAO_INSCRITO` e as demais regras de recurso é regra de negócio (contrato §1) e a spec não a fixa — colocação aceitável. `NAO_INSCRITO` (403, regra de recurso) ocorre após o 404, conforme o rótulo do contrato (\"perfil (403 `SOMENTE_…`)\") — CONFORME.\n+\n+Regras da spec verificadas na implementação:\n+- **R1** (fração exata 75% sem arredondamento): `presencas * 4 < encontros * 3` em `api/src/certificate/emissao-certificado.ts:62` — 3/4 emite, 2/4 e 3/5 recusam. CONFORME.\n+- **R2** (emissão após término; instante exato permite): `agora < fimDoUltimoEncontro` recusa em `api/src/certificate/emissao-certificado.ts:56` — instante exato não é menor, logo emite. Usa `clock.now()` (`:53`), não `Date` do sistema. CONFORME.\n+- **R3/R4/R5** (brutas sem teto, teto 240 palestras, teto total 1200): `api/src/certificate/horas-complementares.ts:12-29` (`Math.min(240, …)` e `Math.min(1200, …)`). CONFORME.\n+- **R6** (formato `SA26-XXXX-XXXX`, unicidade): `api/src/certificate/gerar-codigo.ts:8`; PK em `codigo` (`api/src/db/migrate.ts:62`); retry de colisão em `api/src/certificate/emissao-certificado.ts:76-94`. CONFORME.\n+- **R7** (abreviação): `api/src/certificate/abreviar-nome.ts:4-32`; exemplos da spec cobertos em `api/tests/abreviar-nome.test.ts:6-16` e no HTTP `api/tests/certificado-r8.test.ts:104`. CONFORME (com observação informativa no achado 6).\n+- **R8** (público sem `X-Usuario`, só campos públicos): `api/src/app.ts:443-459`; testes critérios 15 e 16 em `api/tests/certificado-r8.test.ts:82-128`. CONFORME.\n+- **R9** (idempotência 201/200, mesmo código/`emitidoEm`): `api/src/certificate/emissao-certificado.ts:66-69` + `api/src/app.ts:429`; testes em `api/tests/certificado.test.ts:175-193` e `api/tests/certificado-r9.test.ts`. CONFORME.\n+- **R10** (itens com código preenchido ou `null`, recalculado): `api/src/certificate/extrato.ts:41-47`. CONFORME.\n+- **R11** (alfabeto sem `I`, `O`, `0`, `1`, mesmo da presença): `api/src/certificate/gerar-codigo.ts:3` (`ABCDEFGHJKLMNPQRSTUVWXYZ23456789`) = mesmo conjunto de `api/src/application/get-codigo-do-encontro.ts:8` e `register-presenca.ts:10` (ordem distinta, conjunto idêntico). CONFORME.\n+- **R12**: ver acima. CONFORME.\n+- **R13–R17** (só inscrição `confirmada` elegível): filtro em `api/src/certificate/extrato.ts:34-36`, via porta M2 `api/src/integrations/m2-port.ts:72-86` (status atual por atividade, deduplicado; `findByActivityAndParticipant` prioriza status ativos em `api/src/repositories/inscricao-repository.ts:25-35`, cobrindo re-inscrição). CONFORME.\n+- **R18** (atividade cancelada fora do extrato): `api/src/certificate/extrato.ts:38`. CONFORME.\n+\n+## Dependências de módulos externos\n+\n+- **M4 ↔ M3 (presenças):** contagem por `SQLiteM3PresenceAdapter.countPresencas` (`api/src/integrations/m3-presence-port.ts:14-28`), que conta encontros da atividade com presença do participante (não linhas brutas). Dependência satisfeita e exercitada nos testes via rotas do M3 (`api/tests/certificado-g3-presenca-offline.test.ts`, `api/tests/certificado-g3-presenca-manual.test.ts`, cenários QR em `api/tests/certificado.test.ts:56-68`).\n+- **M4 ↔ M2 (inscrições):** `M2IntegrationPort.listarInscricoesDoParticipante` (`api/src/integrations/m2-port.ts:72-86`) para exigir `confirmada` na emissão (`emissao-certificado.ts:47-51`) e filtrar o extrato. Satisfeita; exercitada via rotas do M2 nos testes.\n+- **M4 ↔ M1 (atividades/encontros/carga):** snapshot de encontros, `cargaHorariaMinutos` e `cancelada` via `ActivityRepository` (`api/src/repositories/activity-repository.ts:22-59`), montado na rota `api/src/app.ts:401-415`. Satisfeita.\n+- O módulo não escreve em tabelas de outros módulos: só lê `atividades`/`encontros`/`presencas`/`inscricoes` por repositórios/portas e grava em `certificados` (`api/src/db/migrate.ts:61-71`).\n+\n+## Suíte\n+\n+Comandos exigidos por `projeto.json` (`projeto.json:8-11`):\n+\n+- `npm --prefix api test` → **40 arquivos de teste, 273 testes, todos passaram** (duração 14,78s). Dos quais, arquivos do M4: `certificado.test.ts` (7), `certificado-atividade-cancelada.test.ts` (2), `certificado-contrato-http.test.ts` (6), `certificado-colisao.test.ts` (1), `certificado-g3-presenca-manual.test.ts` (1), `certificado-g3-presenca-offline.test.ts` (1), `certificado-listagem.test.ts` (5), `certificado-nao-inscrito.test.ts` (5), `certificado-r8.test.ts` (3), `certificado-r12.test.ts` (1), `certificado-r9.test.ts` (1), `certificado-restart.test.ts` (1), `extrato.test.ts` (14), `horas-complementares.test.ts` (16), `gerar-codigo.test.ts` (12), `abreviar-nome.test.ts` (14) — **90 testes do M4, todos verdes**.\n+- `npm --prefix app test` → **10 arquivos de teste, 136 testes, todos passaram** (duração 12,10s). M4 na interface: `ExtratoHoras.test.tsx` (6), `MeusCertificados.test.tsx` (5), `VerificarCertificado.test.tsx` (6) e o bloco M4 de `api/client.test.ts` — todos verdes. Aparecem avisos `stderr` de `act(...)` em `App.test.tsx`, sem falhas e sem relação com M4.\n+\n+Os testes confirmam: status/código de erro, efeito persistido (1 linha por par em `certificado-r9.test.ts:96-99`), campos exatos das respostas e precedência. A interface usa os caminhos exatos do contrato (`app/src/api/client.ts:175-191`) e apresenta `{erro, mensagem}`.\n+\n+## Achados\n+\n+1. [CONFORME] Endpoints — os quatro endpoints do M4 existem, com método, caminho, papel e status de sucesso exatos do contrato: `POST /atividades/:id/certificado` (`api/src/app.ts:394`, 201/200 em `:429`), `GET /certificados` (`:432`), `GET /certificados/:codigo` (`:443`), `GET /extrato` (`:438`).\n+2. [CONFORME] Quem acessa e Headers — `X-Usuario` validado com 401 e 403 `SOMENTE_PARTICIPANTE` nas rotas identificadas; a verificação pública é a única rota M4 sem exigência de cabeçalho, como manda o contrato §1 (`api/src/app.ts:443` vs `:394`, `:432`, `:438`).\n+3. [CONFORME] Sucesso e erros — corpos `Certificado`, `[Certificado]`, `Verificacao` e `Extrato` com os campos exatos do contrato (`emissao-certificado.ts:19-27`, `certificate-repository.ts:81-89`, `app.ts:453-459`, `extrato.ts:14-20`); todos os status/códigos da matriz de erros conferem; precedência 401→403→404→regras respeitada (`app.ts:394-415`); R12 em `emissao-certificado.ts:53-64`; idempotência 201/200 conforme (`app.ts:429`, `emissao-certificado.ts:66-69`).\n+4. [OBSERVAÇÃO — BAIXA] `DADOS_INVALIDOS` não coberto na emissão — o contrato §1 exige `422 DADOS_INVALIDOS` para \"corpo que não é JSON\", mas `POST /atividades/:id/certificado` não instala `express.json()` nem validação de corpo (`api/src/app.ts:394`); um corpo malformado seria ignorado e a emissão prosseguiria. Como o contrato/spec não definem corpo de entrada para esta rota (spec §4), o risco prático é baixo e nenhum teste cobre o caso.\n+5. [OBSERVAÇÃO — BAIXA] \"Último encontro\" da R2 — a rota ordena por `inicio` (`api/src/app.ts:408-410`) e o domínio usa o `fim` do último por início (`api/src/certificate/emissao-certificado.ts:54-55`), não o maior `fim`. Havendo encontro sobreposto com término posterior ao último por início, a janela de encerramento ficaria errada; cenário não previsto nem coberto pela spec (R2 fala em \"término do último encontro da atividade\").\n+6. [OBSERVAÇÃO — INFORMATIVA] Exceção de abreviação não descrita em R7 — `abreviar-nome.ts:24-26` mantém por extenso o termo após partícula somente quando não está em `i === 2`; assim \"Maria da Silva\" → \"Maria da S.\" (`api/tests/abreviar-nome.test.ts:63`), enquanto \"Elisa Fernandes da Rocha\" → \"Elisa F. da Rocha\". Os três exemplos da spec (critérios 13–14) são atendidos; o caso \"partícula logo após o primeiro nome + sobrenome final\" não é coberto pela spec.\n+7. [OBSERVAÇÃO — BAIXA] Idempotência do par sem restrição estrutural — a tabela `certificados` tem PK só em `codigo`, sem `UNIQUE (atividade_id, participante_id)` (`api/src/db/migrate.ts:61-71`); a R9 é garantida apenas na aplicação (`api/src/certificate/emissao-certificado.ts:66-69`). Com better-sqlite3 síncrono single-thread o risco prático de duplicação é nulo na execução sequencial, mas a garantia não é estrutural no banco.\n+8. [CONFORME] Casos de borda declarados — `emitidoEm` ISO 8601 com fuso via `clock.now().toISO()` (`emissao-certificado.ts:71`); campos `codigo: null` no extrato (`extrato.ts:47`); array vazio em `GET /certificados` e `itens: []` no extrato (testes `certificado-listagem.test.ts:108-115`, `extrato.test.ts:539-551`); reemissão após reinício preserva código/`emitidoEm` (`certificado-restart.test.ts`); unicidade com recuperação de colisão (`certificado-colisao.test.ts`).\n+9. [CONFORME] Testes como evidência — os 90 testes de API do M4 e os 17+ da interface cobrem todos os critérios de aceite 1–26 da spec (R1 em `certificado.test.ts`, R2 e R12, R3–R5 em `extrato.test.ts`/`horas-complementares.test.ts`, R6/R11 em `gerar-codigo.test.ts`/`certificado-colisao.test.ts`, R7/R8 em `abreviar-nome.test.ts`/`certificado-r8.test.ts`, R9 em `certificado.test.ts`/`certificado-r9.test.ts`, R10 e R13–R18 em `extrato.test.ts`) e verificam status HTTP, código `erro` e efeito persistido.\n+\n+## Veredito\n+\n+O M4 pode ser aceito: os quatro endpoints, campos, status, códigos de erro, precedência, idempotência 201/200 e as 18 regras da spec estão implementados conforme `contrato-api.md` e `specs/M4-certificados.md`, com as duas suítes de teste verdes (API 273/273, interface 136/136); restam apenas quatro observações de severidade baixa/informativa (achados 4–7), nenhuma das quais uma divergência confirmada de contrato ou spec.\n",
+       "additions": 81,
+       "deletions": 0,
+       "status": "added"
+      }
+     ]
+    },
+    "id": "msg_0c9616f4a001e65ps8vWxDc6Th",
+    "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX"
+   },
+   "parts": [
+    {
+     "type": "text",
+     "text": "Salve exatamente o parecer integral que você acabou de apresentar, sem resumir, reescrever, corrigir ou omitir qualquer trecho, no arquivo:\n\nauditorias/M4-revisao-contrato-2026-09-22.md\n\nO conteúdo deve começar em \"Parecer do revisor de contrato — M4 (certificados)\" e terminar no final do \"Veredito\".\n\nNão altere nenhum outro arquivo.\nNão faça commit.\nNão faça push.\n\nDepois informe somente:\n1. caminho do arquivo criado;\n2. quantidade de linhas;\n3. git status --short. ",
+     "id": "prt_0c9616f4b0019g304Z2sTmv3f5",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c9616f4a001e65ps8vWxDc6Th"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c9616f4a001e65ps8vWxDc6Th",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 36849,
+     "input": 5196,
+     "output": 5078,
+     "reasoning": 15,
+     "cache": {
+      "write": 0,
+      "read": 26560
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790085001062,
+     "completed": 1790085041511
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c9616f660019DoDsFKNB17J7W",
+    "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX"
+   },
+   "parts": [
+    {
+     "snapshot": "ffc020e742f780c53e1d76a46ba1e01f56abba30",
+     "type": "step-start",
+     "id": "prt_0c96183d50017Kt1s97mGAs4JG",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c9616f660019DoDsFKNB17J7W"
+    },
+    {
+     "type": "reasoning",
+     "text": "Write the file with exact content, then count lines and git status.",
+     "time": {
+      "start": 1790085006381,
+      "end": 1790085006608
+     },
+     "id": "prt_0c961842c001sKcLnnlVfsBAn5",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c9616f660019DoDsFKNB17J7W"
+    },
+    {
+     "type": "tool",
+     "tool": "write",
+     "callID": "call_716f32f21bfd466db2a3b7e1",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\auditorias\\M4-revisao-contrato-2026-09-22.md",
+       "content": "# Parecer do revisor de contrato — M4 (certificados)\n\nFontes lidas: `contrato-api.md` (inteiro), `specs/M4-certificados.md` (inteiro), implementação em `api/src/app.ts`, `api/src/certificate/*`, `api/src/repositories/certificate-repository.ts`, portas `api/src/integrations/m2-port.ts` e `m3-presence-port.ts`, migração `api/src/db/migrate.ts`, 16 arquivos de teste da API, e os arquivos da interface (`app/src/api/client.ts`, hooks e componentes M4 com testes). Nenhum documento de requisitos externo foi consultado. Nenhum arquivo foi alterado.\n\n**Alinhamento spec ↔ contrato (procedimento passo 2):** os endpoints, métodos, papéis, campos e status da spec §3–§4 batem exatamente com a seção M4 do `contrato-api.md` (rotas, 201/200 condicional, público sem `X-Usuario`, corpo `Certificado`/`Verificacao`/`Extrato`). Os códigos `PRESENCA_INSUFICIENTE` (422), `ATIVIDADE_NAO_ENCERRADA` (422), `NAO_INSCRITO` (403), `ATIVIDADE_CANCELADA` (422) e `NAO_ENCONTRADO` (404) da spec existem na seção 6 do contrato. **Nenhuma divergência spec↔contrato encontrada.**\n\n---\n\n## Matriz de endpoints\n\n| Método | Rota | Quem | Status sucesso | Status/erro esperado | Implementado? | Achado |\n|---|---|---|---|---|---|---|\n| POST | `/atividades/:id/certificado` | participante | 201 na 1ª vez; 200 depois | 401, 403 (`SOMENTE_PARTICIPANTE`, `NAO_INSCRITO`), 404, 422 (`ATIVIDADE_CANCELADA`, `ATIVIDADE_NAO_ENCERRADA`, `PRESENCA_INSUFICIENTE`) | SIM | — (ver achado 4, observação de corpo) |\n| GET | `/certificados` | participante | 200 `[Certificado]` (só os emitidos do próprio) | 401, 403 | SIM | — |\n| GET | `/certificados/:codigo` | público, sem `X-Usuario` | 200 `Verificacao` | 404 `NAO_ENCONTRADO` | SIM | — |\n| GET | `/extrato` | participante | 200 `Extrato` | 401, 403 | SIM | — |\n\nEvidências: rota de emissão em `api/src/app.ts:394`; listagem em `api/src/app.ts:432`; extrato em `api/src/app.ts:438`; verificação pública (sem `requireUser`) em `api/src/app.ts:443`. Registro 201/200 em `api/src/app.ts:429`. Projeção pública exata (`codigo`, `participante`, `atividade`, `cargaHorariaMinutos`, `emitidoEm`) em `api/src/app.ts:453-459`.\n\n## Matriz de erros\n\n| Código de erro | Status | Rota | Contrato exige | Implementação retorna | Conforme? |\n|---|---|---|---|---|---|\n| `USUARIO_DESCONHECIDO` | 401 | POST `/atividades/:id/certificado`, GET `/certificados`, GET `/extrato` | 401 | 401 (`api/src/app.ts:128-141` aplicado em `:394`, `:432`, `:438`) | SIM |\n| `USUARIO_DESCONHECIDO` | — | GET `/certificados/:codigo` | rota isenta de `X-Usuario` (contrato §1) | rota não aplica `requireUser` (`api/src/app.ts:443`) — isento corretamente | SIM |\n| `SOMENTE_PARTICIPANTE` | 403 | as 3 rotas de participante | 403 | 403 (`api/src/app.ts:396-399` e `requireParticipant` `api/src/app.ts:152-159` em `:432`, `:438`) | SIM |\n| `NAO_ENCONTRADO` | 404 | POST certificado (atividade inexistente) | 404 | 404 (`api/src/app.ts:402-406`) | SIM |\n| `NAO_ENCONTRADO` | 404 | GET `/certificados/:codigo` (código inexistente) | 404 | 404 (`api/src/app.ts:446`) | SIM |\n| `NAO_INSCRITO` | 403 | POST certificado | 403 | 403 (`api/src/certificate/emissao-certificado.ts:49-51` → `api/src/app.ts:425`) | SIM |\n| `ATIVIDADE_CANCELADA` | 422 | POST certificado | 422 | 422 (`api/src/certificate/emissao-certificado.ts:43-44` → `api/src/app.ts:425`) | SIM |\n| `ATIVIDADE_NAO_ENCERRADA` | 422 | POST certificado | 422 | 422 (`api/src/certificate/emissao-certificado.ts:56-58` → `api/src/app.ts:425`) | SIM |\n| `PRESENCA_INSUFICIENTE` | 422 | POST certificado | 422 | 422 (`api/src/certificate/emissao-certificado.ts:62-63` → `api/src/app.ts:425`) | SIM |\n| `DADOS_INVALIDOS` | 422 | POST certificado com corpo mal formado | 422 pela convenção genérica do contrato §1 | não aplicado — a rota não instala parser de corpo (`api/src/app.ts:394`) e ignora o corpo | OBSERVAÇÃO (achado 4) |\n\nPrecedência (contrato §1: 401 → 403 `SOMENTE_…` → 404 → 422 corpo → regras do recurso): em `api/src/app.ts:394-415` a ordem é `requireUser` (401) → papel (403) → existência (404) → regras de recurso dentro de `EmitirCertificado`. R12 da spec (encerrada antes de presença) implementada em `api/src/certificate/emissao-certificado.ts:53-64` (checagem de término nas linhas 53-58 antes da contagem de presenças nas linhas 60-63). A ordem entre `ATIVIDADE_CANCELADA`/`NAO_INSCRITO` e as demais regras de recurso é regra de negócio (contrato §1) e a spec não a fixa — colocação aceitável. `NAO_INSCRITO` (403, regra de recurso) ocorre após o 404, conforme o rótulo do contrato (\"perfil (403 `SOMENTE_…`)\") — CONFORME.\n\nRegras da spec verificadas na implementação:\n- **R1** (fração exata 75% sem arredondamento): `presencas * 4 < encontros * 3` em `api/src/certificate/emissao-certificado.ts:62` — 3/4 emite, 2/4 e 3/5 recusam. CONFORME.\n- **R2** (emissão após término; instante exato permite): `agora < fimDoUltimoEncontro` recusa em `api/src/certificate/emissao-certificado.ts:56` — instante exato não é menor, logo emite. Usa `clock.now()` (`:53`), não `Date` do sistema. CONFORME.\n- **R3/R4/R5** (brutas sem teto, teto 240 palestras, teto total 1200): `api/src/certificate/horas-complementares.ts:12-29` (`Math.min(240, …)` e `Math.min(1200, …)`). CONFORME.\n- **R6** (formato `SA26-XXXX-XXXX`, unicidade): `api/src/certificate/gerar-codigo.ts:8`; PK em `codigo` (`api/src/db/migrate.ts:62`); retry de colisão em `api/src/certificate/emissao-certificado.ts:76-94`. CONFORME.\n- **R7** (abreviação): `api/src/certificate/abreviar-nome.ts:4-32`; exemplos da spec cobertos em `api/tests/abreviar-nome.test.ts:6-16` e no HTTP `api/tests/certificado-r8.test.ts:104`. CONFORME (com observação informativa no achado 6).\n- **R8** (público sem `X-Usuario`, só campos públicos): `api/src/app.ts:443-459`; testes critérios 15 e 16 em `api/tests/certificado-r8.test.ts:82-128`. CONFORME.\n- **R9** (idempotência 201/200, mesmo código/`emitidoEm`): `api/src/certificate/emissao-certificado.ts:66-69` + `api/src/app.ts:429`; testes em `api/tests/certificado.test.ts:175-193` e `api/tests/certificado-r9.test.ts`. CONFORME.\n- **R10** (itens com código preenchido ou `null`, recalculado): `api/src/certificate/extrato.ts:41-47`. CONFORME.\n- **R11** (alfabeto sem `I`, `O`, `0`, `1`, mesmo da presença): `api/src/certificate/gerar-codigo.ts:3` (`ABCDEFGHJKLMNPQRSTUVWXYZ23456789`) = mesmo conjunto de `api/src/application/get-codigo-do-encontro.ts:8` e `register-presenca.ts:10` (ordem distinta, conjunto idêntico). CONFORME.\n- **R12**: ver acima. CONFORME.\n- **R13–R17** (só inscrição `confirmada` elegível): filtro em `api/src/certificate/extrato.ts:34-36`, via porta M2 `api/src/integrations/m2-port.ts:72-86` (status atual por atividade, deduplicado; `findByActivityAndParticipant` prioriza status ativos em `api/src/repositories/inscricao-repository.ts:25-35`, cobrindo re-inscrição). CONFORME.\n- **R18** (atividade cancelada fora do extrato): `api/src/certificate/extrato.ts:38`. CONFORME.\n\n## Dependências de módulos externos\n\n- **M4 ↔ M3 (presenças):** contagem por `SQLiteM3PresenceAdapter.countPresencas` (`api/src/integrations/m3-presence-port.ts:14-28`), que conta encontros da atividade com presença do participante (não linhas brutas). Dependência satisfeita e exercitada nos testes via rotas do M3 (`api/tests/certificado-g3-presenca-offline.test.ts`, `api/tests/certificado-g3-presenca-manual.test.ts`, cenários QR em `api/tests/certificado.test.ts:56-68`).\n- **M4 ↔ M2 (inscrições):** `M2IntegrationPort.listarInscricoesDoParticipante` (`api/src/integrations/m2-port.ts:72-86`) para exigir `confirmada` na emissão (`emissao-certificado.ts:47-51`) e filtrar o extrato. Satisfeita; exercitada via rotas do M2 nos testes.\n- **M4 ↔ M1 (atividades/encontros/carga):** snapshot de encontros, `cargaHorariaMinutos` e `cancelada` via `ActivityRepository` (`api/src/repositories/activity-repository.ts:22-59`), montado na rota `api/src/app.ts:401-415`. Satisfeita.\n- O módulo não escreve em tabelas de outros módulos: só lê `atividades`/`encontros`/`presencas`/`inscricoes` por repositórios/portas e grava em `certificados` (`api/src/db/migrate.ts:61-71`).\n\n## Suíte\n\nComandos exigidos por `projeto.json` (`projeto.json:8-11`):\n\n- `npm --prefix api test` → **40 arquivos de teste, 273 testes, todos passaram** (duração 14,78s). Dos quais, arquivos do M4: `certificado.test.ts` (7), `certificado-atividade-cancelada.test.ts` (2), `certificado-contrato-http.test.ts` (6), `certificado-colisao.test.ts` (1), `certificado-g3-presenca-manual.test.ts` (1), `certificado-g3-presenca-offline.test.ts` (1), `certificado-listagem.test.ts` (5), `certificado-nao-inscrito.test.ts` (5), `certificado-r8.test.ts` (3), `certificado-r12.test.ts` (1), `certificado-r9.test.ts` (1), `certificado-restart.test.ts` (1), `extrato.test.ts` (14), `horas-complementares.test.ts` (16), `gerar-codigo.test.ts` (12), `abreviar-nome.test.ts` (14) — **90 testes do M4, todos verdes**.\n- `npm --prefix app test` → **10 arquivos de teste, 136 testes, todos passaram** (duração 12,10s). M4 na interface: `ExtratoHoras.test.tsx` (6), `MeusCertificados.test.tsx` (5), `VerificarCertificado.test.tsx` (6) e o bloco M4 de `api/client.test.ts` — todos verdes. Aparecem avisos `stderr` de `act(...)` em `App.test.tsx`, sem falhas e sem relação com M4.\n\nOs testes confirmam: status/código de erro, efeito persistido (1 linha por par em `certificado-r9.test.ts:96-99`), campos exatos das respostas e precedência. A interface usa os caminhos exatos do contrato (`app/src/api/client.ts:175-191`) e apresenta `{erro, mensagem}`.\n\n## Achados\n\n1. [CONFORME] Endpoints — os quatro endpoints do M4 existem, com método, caminho, papel e status de sucesso exatos do contrato: `POST /atividades/:id/certificado` (`api/src/app.ts:394`, 201/200 em `:429`), `GET /certificados` (`:432`), `GET /certificados/:codigo` (`:443`), `GET /extrato` (`:438`).\n2. [CONFORME] Quem acessa e Headers — `X-Usuario` validado com 401 e 403 `SOMENTE_PARTICIPANTE` nas rotas identificadas; a verificação pública é a única rota M4 sem exigência de cabeçalho, como manda o contrato §1 (`api/src/app.ts:443` vs `:394`, `:432`, `:438`).\n3. [CONFORME] Sucesso e erros — corpos `Certificado`, `[Certificado]`, `Verificacao` e `Extrato` com os campos exatos do contrato (`emissao-certificado.ts:19-27`, `certificate-repository.ts:81-89`, `app.ts:453-459`, `extrato.ts:14-20`); todos os status/códigos da matriz de erros conferem; precedência 401→403→404→regras respeitada (`app.ts:394-415`); R12 em `emissao-certificado.ts:53-64`; idempotência 201/200 conforme (`app.ts:429`, `emissao-certificado.ts:66-69`).\n4. [OBSERVAÇÃO — BAIXA] `DADOS_INVALIDOS` não coberto na emissão — o contrato §1 exige `422 DADOS_INVALIDOS` para \"corpo que não é JSON\", mas `POST /atividades/:id/certificado` não instala `express.json()` nem validação de corpo (`api/src/app.ts:394`); um corpo malformado seria ignorado e a emissão prosseguiria. Como o contrato/spec não definem corpo de entrada para esta rota (spec §4), o risco prático é baixo e nenhum teste cobre o caso.\n5. [OBSERVAÇÃO — BAIXA] \"Último encontro\" da R2 — a rota ordena por `inicio` (`api/src/app.ts:408-410`) e o domínio usa o `fim` do último por início (`api/src/certificate/emissao-certificado.ts:54-55`), não o maior `fim`. Havendo encontro sobreposto com término posterior ao último por início, a janela de encerramento ficaria errada; cenário não previsto nem coberto pela spec (R2 fala em \"término do último encontro da atividade\").\n6. [OBSERVAÇÃO — INFORMATIVA] Exceção de abreviação não descrita em R7 — `abreviar-nome.ts:24-26` mantém por extenso o termo após partícula somente quando não está em `i === 2`; assim \"Maria da Silva\" → \"Maria da S.\" (`api/tests/abreviar-nome.test.ts:63`), enquanto \"Elisa Fernandes da Rocha\" → \"Elisa F. da Rocha\". Os três exemplos da spec (critérios 13–14) são atendidos; o caso \"partícula logo após o primeiro nome + sobrenome final\" não é coberto pela spec.\n7. [OBSERVAÇÃO — BAIXA] Idempotência do par sem restrição estrutural — a tabela `certificados` tem PK só em `codigo`, sem `UNIQUE (atividade_id, participante_id)` (`api/src/db/migrate.ts:61-71`); a R9 é garantida apenas na aplicação (`api/src/certificate/emissao-certificado.ts:66-69`). Com better-sqlite3 síncrono single-thread o risco prático de duplicação é nulo na execução sequencial, mas a garantia não é estrutural no banco.\n8. [CONFORME] Casos de borda declarados — `emitidoEm` ISO 8601 com fuso via `clock.now().toISO()` (`emissao-certificado.ts:71`); campos `codigo: null` no extrato (`extrato.ts:47`); array vazio em `GET /certificados` e `itens: []` no extrato (testes `certificado-listagem.test.ts:108-115`, `extrato.test.ts:539-551`); reemissão após reinício preserva código/`emitidoEm` (`certificado-restart.test.ts`); unicidade com recuperação de colisão (`certificado-colisao.test.ts`).\n9. [CONFORME] Testes como evidência — os 90 testes de API do M4 e os 17+ da interface cobrem todos os critérios de aceite 1–26 da spec (R1 em `certificado.test.ts`, R2 e R12, R3–R5 em `extrato.test.ts`/`horas-complementares.test.ts`, R6/R11 em `gerar-codigo.test.ts`/`certificado-colisao.test.ts`, R7/R8 em `abreviar-nome.test.ts`/`certificado-r8.test.ts`, R9 em `certificado.test.ts`/`certificado-r9.test.ts`, R10 e R13–R18 em `extrato.test.ts`) e verificam status HTTP, código `erro` e efeito persistido.\n\n## Veredito\n\nO M4 pode ser aceito: os quatro endpoints, campos, status, códigos de erro, precedência, idempotência 201/200 e as 18 regras da spec estão implementados conforme `contrato-api.md` e `specs/M4-certificados.md`, com as duas suítes de teste verdes (API 273/273, interface 136/136); restam apenas quatro observações de severidade baixa/informativa (achados 4–7), nenhuma das quais uma divergência confirmada de contrato ou spec.\n"
+      },
+      "output": "Wrote file successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "filepath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\auditorias\\M4-revisao-contrato-2026-09-22.md",
+       "exists": false,
+       "truncated": false
+      },
+      "title": "auditorias\\M4-revisao-contrato-2026-09-22.md",
+      "time": {
+       "start": 1790085040427,
+       "end": 1790085040463
+      }
+     },
+     "id": "prt_0c9618517001xZp46V1AHuVaMR",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c9616f660019DoDsFKNB17J7W"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "fc5d0bd7f0a58a8caf7cb685ab4b6ad8fb7840e3",
+     "type": "step-finish",
+     "tokens": {
+      "total": 36849,
+      "input": 5196,
+      "output": 5078,
+      "reasoning": 15,
+      "cache": {
+       "write": 0,
+       "read": 26560
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c9620b8b001d7dScS5bejA0bX",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c9616f660019DoDsFKNB17J7W"
+    },
+    {
+     "type": "patch",
+     "hash": "ffc020e742f780c53e1d76a46ba1e01f56abba30",
+     "files": [
+      "C:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/auditorias/M4-revisao-contrato-2026-09-22.md"
+     ],
+     "id": "prt_0c9620d62001cfKtwgwGo4aJHo",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c9616f660019DoDsFKNB17J7W"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c9616f4a001e65ps8vWxDc6Th",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 36962,
+     "input": 5117,
+     "output": 92,
+     "reasoning": 9,
+     "cache": {
+      "write": 0,
+      "read": 31744
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790085041516,
+     "completed": 1790085046535
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c9620d6c001XXnN6mAFnnusbG",
+    "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX"
+   },
+   "parts": [
+    {
+     "snapshot": "fc5d0bd7f0a58a8caf7cb685ab4b6ad8fb7840e3",
+     "type": "step-start",
+     "id": "prt_0c962194b001DQ7Jd82et7Pnby",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c9620d6c001XXnN6mAFnnusbG"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now get line count and git status.",
+     "time": {
+      "start": 1790085044613,
+      "end": 1790085044714
+     },
+     "id": "prt_0c9621985001PJEz8fceA4iLUL",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c9620d6c001XXnN6mAFnnusbG"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_c93c4a43fe594987b7664b1c",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "(Get-Content -LiteralPath \"auditorias\\M4-revisao-contrato-2026-09-22.md\" | Measure-Object -Line).Lines; git status --short",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+      },
+      "output": "61\r\n?? auditorias/M4-revisao-contrato-2026-09-22.md\n",
+      "metadata": {
+       "output": "61\r\n?? auditorias/M4-revisao-contrato-2026-09-22.md\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "(Get-Content -LiteralPath \"auditorias\\M4-revisao-contrato-2026-09-22.md\" | Measure-Object -Line).Lines; git status --short",
+      "time": {
+       "start": 1790085045325,
+       "end": 1790085045804
+      }
+     },
+     "id": "prt_0c96219ed001aIL1g0eIpRHlNt",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c9620d6c001XXnN6mAFnnusbG"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "fc5d0bd7f0a58a8caf7cb685ab4b6ad8fb7840e3",
+     "type": "step-finish",
+     "tokens": {
+      "total": 36962,
+      "input": 5117,
+      "output": 92,
+      "reasoning": 9,
+      "cache": {
+       "write": 0,
+       "read": 31744
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c9621f93001XF0HR5dbZS2mNG",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c9620d6c001XXnN6mAFnnusbG"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c9616f4a001e65ps8vWxDc6Th",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 37174,
+     "input": 196,
+     "output": 80,
+     "reasoning": 98,
+     "cache": {
+      "write": 0,
+      "read": 36800
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790085046540,
+     "completed": 1790085054223
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c962210c0016gkc8jmQIbFxzC",
+    "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX"
+   },
+   "parts": [
+    {
+     "snapshot": "fc5d0bd7f0a58a8caf7cb685ab4b6ad8fb7840e3",
+     "type": "step-start",
+     "id": "prt_0c9623251001gOtDU4oCRcUS07",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c962210c0016gkc8jmQIbFxzC"
+    },
+    {
+     "type": "reasoning",
+     "text": "Line count: 61. Note Measure-Object -Line may not count empty lines... Actually Measure-Object -Line counts lines with content? Let me check - Measure-Object -Line counts lines in text; for string arrays it counts lines that contain text? Actually it counts lines but empty lines may not be counted. User asked for quantidade de linhas - I could verify with a more accurate count. Let me use (Get-Content).Count which counts all lines.",
+     "time": {
+      "start": 1790085051105,
+      "end": 1790085052716
+     },
+     "id": "prt_0c96232e1001oe5jldESQfBlG7",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c962210c0016gkc8jmQIbFxzC"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_bec58c4ac9cd49bca2bc4b53",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "(Get-Content -LiteralPath \"auditorias\\M4-revisao-contrato-2026-09-22.md\").Count",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+      },
+      "output": "81\r\n",
+      "metadata": {
+       "output": "81\r\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "(Get-Content -LiteralPath \"auditorias\\M4-revisao-contrato-2026-09-22.md\").Count",
+      "time": {
+       "start": 1790085053190,
+       "end": 1790085053507
+      }
+     },
+     "id": "prt_0c962392f001mbjWjNVD9DePLO",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c962210c0016gkc8jmQIbFxzC"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "fc5d0bd7f0a58a8caf7cb685ab4b6ad8fb7840e3",
+     "type": "step-finish",
+     "tokens": {
+      "total": 37174,
+      "input": 196,
+      "output": 80,
+      "reasoning": 98,
+      "cache": {
+       "write": 0,
+       "read": 36800
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c9623d8a001KhxLBxqp59JTD0",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c962210c0016gkc8jmQIbFxzC"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c9616f4a001e65ps8vWxDc6Th",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 37284,
+     "input": 192,
+     "output": 64,
+     "reasoning": 36,
+     "cache": {
+      "write": 0,
+      "read": 36992
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790085054227,
+     "completed": 1790085058657
+    },
+    "finish": "stop",
+    "id": "msg_0c9623f13001UtSR493Dhguy0X",
+    "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX"
+   },
+   "parts": [
+    {
+     "snapshot": "fc5d0bd7f0a58a8caf7cb685ab4b6ad8fb7840e3",
+     "type": "step-start",
+     "id": "prt_0c96248d3001S0Xh6vTTyqgwqL",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c9623f13001UtSR493Dhguy0X"
+    },
+    {
+     "type": "reasoning",
+     "text": "The Measure-Object -Line gave 61 because it doesn't count empty lines. Get-Content .Count gives 81 lines total. Use 81.",
+     "time": {
+      "start": 1790085056800,
+      "end": 1790085057384
+     },
+     "id": "prt_0c96249200010BihvVRMTehPLX",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c9623f13001UtSR493Dhguy0X"
+    },
+    {
+     "type": "text",
+     "text": "1. `auditorias/M4-revisao-contrato-2026-09-22.md`\n2. 81 linhas\n3. `?? auditorias/M4-revisao-contrato-2026-09-22.md`",
+     "time": {
+      "start": 1790085057386,
+      "end": 1790085057766
+     },
+     "id": "prt_0c9624b6a001wfvXZe0LWYJ0Hi",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c9623f13001UtSR493Dhguy0X"
+    },
+    {
+     "reason": "stop",
+     "snapshot": "fc5d0bd7f0a58a8caf7cb685ab4b6ad8fb7840e3",
+     "type": "step-finish",
+     "tokens": {
+      "total": 37284,
+      "input": 192,
+      "output": 64,
+      "reasoning": 36,
+      "cache": {
+       "write": 0,
+       "read": 36992
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c9624ec6001h5qv7mNoLAziLl",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c9623f13001UtSR493Dhguy0X"
+    }
+   ]
+  },
+  {
+   "info": {
+    "role": "user",
+    "time": {
+     "created": 1790085094743
+    },
+    "agent": "build",
+    "model": {
+     "providerID": "opencode",
+     "modelID": "big-pickle"
+    },
+    "summary": {
+     "diffs": []
+    },
+    "id": "msg_0c962dd570012pca0qcWNKTBmA",
+    "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX"
+   },
+   "parts": [
+    {
+     "type": "text",
+     "text": "git add auditorias/M4-revisao-contrato-2026-09-22.md\ngit diff --cached --stat",
+     "id": "prt_0c962dd59001rWE6UOLqqK2mxn",
+     "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX",
+     "messageID": "msg_0c962dd570012pca0qcWNKTBmA"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c962dd570012pca0qcWNKTBmA",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "input": 0,
+     "output": 0,
+     "reasoning": 0,
+     "cache": {
+      "read": 0,
+      "write": 0
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790085094773,
+     "completed": 1790085096532
+    },
+    "error": {
+     "name": "MessageAbortedError",
+     "data": {
+      "message": "Aborted"
+     }
+    },
+    "id": "msg_0c962dd75001RhioNhESOLGBGY",
+    "sessionID": "ses_f36a8e173ffeb1xGNUBSrLgxCX"
+   },
+   "parts": []
+  }
+ ]
+}

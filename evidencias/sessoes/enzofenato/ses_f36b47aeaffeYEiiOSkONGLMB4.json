@@ -1,0 +1,2478 @@
+{
+ "info": {
+  "id": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+  "slug": "tidy-canyon",
+  "projectID": "08a8850750a50d17a216613ef31c5f0b0d1b31ca",
+  "directory": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+  "path": "",
+  "title": "Teste de estabilidade do código após reinício",
+  "agent": "build",
+  "model": {
+   "id": "big-pickle",
+   "providerID": "opencode"
+  },
+  "version": "1.18.32",
+  "summary": {
+   "additions": 0,
+   "deletions": 0,
+   "files": 0
+  },
+  "cost": 0,
+  "tokens": {
+   "input": 90111,
+   "output": 10635,
+   "reasoning": 30,
+   "cache": {
+    "read": 1268480,
+    "write": 0
+   }
+  },
+  "time": {
+   "created": 1790083564821,
+   "updated": 1790083927241
+  }
+ },
+ "messages": [
+  {
+   "info": {
+    "role": "user",
+    "time": {
+     "created": 1790083564894
+    },
+    "agent": "build",
+    "model": {
+     "providerID": "opencode",
+     "modelID": "big-pickle"
+    },
+    "summary": {
+     "diffs": []
+    },
+    "id": "msg_0c94b855e001WxFJGHDrrARO1M",
+    "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4"
+   },
+   "parts": [
+    {
+     "type": "text",
+     "text": "Use a skill `.opencode/skills/tdd-m4/SKILL.md` nesta tarefa.\n\nObjetivo:\nverificar se o código de um certificado já emitido permanece o mesmo após reinicializar a aplicação usando o mesmo banco persistente, e identificar se já existe teste do M4 que comprove isso.\n\nIMPORTANTE:\n- NÃO consulte, abra, leia ou altere `requisitos-envolvidos.md` nem documentos oficiais/confidenciais.\n- NÃO invente regra de negócio.\n- Use somente `specs/M4-certificados.md`, código versionado e testes existentes.\n- NÃO altere a spec.\n- NÃO altere produção.\n- NÃO crie teste ainda.\n- NÃO faça commit nem push.\n\nFaça SOMENTE a análise:\n\n1. Leia `.opencode/skills/tdd-m4/SKILL.md`.\n2. Identifique na spec do M4 as regras relacionadas à unicidade, estabilidade e idempotência do código do certificado.\n3. Localize onde certificados e códigos são persistidos.\n4. Verifique como `createApp` permite utilizar um banco persistente (`dbPath` ou mecanismo equivalente).\n5. Procure nos testes existentes do M4 se há algum cenário que:\n   - cria uma aplicação com banco persistente;\n   - emite um certificado;\n   - encerra/reinicializa a aplicação;\n   - cria outra instância apontando para o mesmo banco;\n   - consulta ou reemite o certificado;\n   - comprova que o código permanece exatamente o mesmo.\n6. Diferencie:\n   - idempotência dentro da mesma instância;\n   - persistência/estabilidade após reinicialização.\n7. Se esse teste não existir, proponha o MENOR teste de integração possível pelo contrato HTTP, indicando:\n   - arquivo a criar ou alterar;\n   - preparação mínima;\n   - como reinicializar sem perder o banco;\n   - qual endpoint usar após a reinicialização;\n   - quais asserções são necessárias.\n8. Verifique também se a arquitetura atual já aparenta suportar esse comportamento ou se existe indício de que seria necessária alteração de produção.\n\nPARE após a análise.\nNão edite nenhum arquivo. ",
+     "id": "prt_0c94b8562001Ax5JoLOQ7uZtbW",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94b855e001WxFJGHDrrARO1M"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c94b855e001WxFJGHDrrARO1M",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 21098,
+     "input": 12762,
+     "output": 114,
+     "reasoning": 30,
+     "cache": {
+      "write": 0,
+      "read": 8192
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790083564939,
+     "completed": 1790083574923
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c94b858b001Qc4zt1HMXcTtMG",
+    "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4"
+   },
+   "parts": [
+    {
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-start",
+     "id": "prt_0c94ba23c001k5OQKUG43J5oGC",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94b858b001Qc4zt1HMXcTtMG"
+    },
+    {
+     "type": "reasoning",
+     "text": "The user wants me to read a skill file and do an analysis only. Let me start by reading the skill file and relevant spec/code files.",
+     "time": {
+      "start": 1790083572316,
+      "end": 1790083572698
+     },
+     "id": "prt_0c94ba25c001YIyFevotJiV406",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94b858b001Qc4zt1HMXcTtMG"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_1994ac10460f48c0a7d46ade",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\.opencode\\skills\\tdd-m4\\SKILL.md"
+      },
+      "output": "[10705 caracteres omitidos]",
+      "title": ".opencode\\skills\\tdd-m4\\SKILL.md",
+      "time": {
+       "start": 1790083572953,
+       "end": 1790083573066
+      }
+     },
+     "id": "prt_0c94ba3df001XNf29MpyZ1Ozsh",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94b858b001Qc4zt1HMXcTtMG"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_29ff9ab28565426c8ede78a6",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md"
+      },
+      "output": "[16300 caracteres omitidos]",
+      "title": "specs\\M4-certificados.md",
+      "time": {
+       "start": 1790083573254,
+       "end": 1790083573270
+      }
+     },
+     "id": "prt_0c94ba504001YoQyUdHZ0HbJ6Z",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94b858b001Qc4zt1HMXcTtMG"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_c72a3ee459c24f248343a5ce",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git status"
+      },
+      "output": "On branch feat/m4-certificados\nYour branch is up to date with 'origin/feat/m4-certificados'.\n\nnothing to commit, working tree clean\n",
+      "metadata": {
+       "output": "On branch feat/m4-certificados\nYour branch is up to date with 'origin/feat/m4-certificados'.\n\nnothing to commit, working tree clean\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git status",
+      "time": {
+       "start": 1790083573405,
+       "end": 1790083573966
+      }
+     },
+     "id": "prt_0c94ba630001LaNo2i5zKxigX6",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94b858b001Qc4zt1HMXcTtMG"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-finish",
+     "tokens": {
+      "total": 21098,
+      "input": 12762,
+      "output": 114,
+      "reasoning": 30,
+      "cache": {
+       "write": 0,
+       "read": 8192
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c94baaad0013F6wKauWxYuAcA",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94b858b001Qc4zt1HMXcTtMG"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c94b855e001WxFJGHDrrARO1M",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 31023,
+     "input": 29111,
+     "output": 120,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 1792
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790083574930,
+     "completed": 1790083578710
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c94bac92001TSQmhRez98GTKn",
+    "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4"
+   },
+   "parts": [
+    {
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-start",
+     "id": "prt_0c94bb57d001CDl6iJn1zC4gH3",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94bac92001TSQmhRez98GTKn"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now let me explore the api structure - specifically how certificados are persisted, how createApp works with dbPath, and existing M4 tests. Let me explore the codebase.",
+     "time": {
+      "start": 1790083577216,
+      "end": 1790083577442
+     },
+     "id": "prt_0c94bb580001r53cC1dsMb853i",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94bac92001TSQmhRez98GTKn"
+    },
+    {
+     "type": "text",
+     "text": "\n\n",
+     "time": {
+      "start": 1790083577446,
+      "end": 1790083577861
+     },
+     "id": "prt_0c94bb66600165NREMmf6IShTv",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94bac92001TSQmhRez98GTKn"
+    },
+    {
+     "type": "tool",
+     "tool": "glob",
+     "callID": "call_f797a21b9da440a09da52357",
+     "state": {
+      "status": "completed",
+      "input": {
+       "pattern": "api/src/**/*.ts"
+      },
+      "output": "[3801 caracteres omitidos]",
+      "title": "",
+      "time": {
+       "start": 1790083577672,
+       "end": 1790083577774
+      }
+     },
+     "id": "prt_0c94bb6bb001RgKwaHBFoTSUFT",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94bac92001TSQmhRez98GTKn"
+    },
+    {
+     "type": "tool",
+     "tool": "glob",
+     "callID": "call_1f6be5bbf7304ed7a5f7cf4f",
+     "state": {
+      "status": "completed",
+      "input": {
+       "pattern": "api/tests/**/*.ts"
+      },
+      "output": "[3876 caracteres omitidos]",
+      "title": "",
+      "time": {
+       "start": 1790083577792,
+       "end": 1790083577915
+      }
+     },
+     "id": "prt_0c94bb76c001eeTQRAfDoBpBX1",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94bac92001TSQmhRez98GTKn"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-finish",
+     "tokens": {
+      "total": 31023,
+      "input": 29111,
+      "output": 120,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 1792
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c94bb9d5001s539Y1PD4qHbq4",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94bac92001TSQmhRez98GTKn"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c94b855e001WxFJGHDrrARO1M",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 34000,
+     "input": 3055,
+     "output": 225,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 30720
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790083578715,
+     "completed": 1790083593251
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c94bbb5b001R0OWsSUNNEp5hJ",
+    "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4"
+   },
+   "parts": [
+    {
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-start",
+     "id": "prt_0c94bd1b1001JBYwslKFPFvMo9",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94bbb5b001R0OWsSUNNEp5hJ"
+    },
+    {
+     "type": "reasoning",
+     "text": "Let me read the key files: app.ts (createApp), database connection, certificate repository, and the M4 tests.",
+     "time": {
+      "start": 1790083584439,
+      "end": 1790083586632
+     },
+     "id": "prt_0c94bd1b6001WfxZDtgn1VTuzw",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94bbb5b001R0OWsSUNNEp5hJ"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_e1d6055b96a84d5d8fcfee1f",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\app.ts"
+      },
+      "output": "[25232 caracteres omitidos]",
+      "title": "api\\src\\app.ts",
+      "time": {
+       "start": 1790083591448,
+       "end": 1790083591509
+      }
+     },
+     "id": "prt_0c94bda4c0017pFOvLKmalQXcl",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94bbb5b001R0OWsSUNNEp5hJ"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_0d3f89c0472f4bccb088f5eb",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\db\\connection.ts"
+      },
+      "output": "[917 caracteres omitidos]",
+      "title": "api\\src\\db\\connection.ts",
+      "time": {
+       "start": 1790083591703,
+       "end": 1790083591755
+      }
+     },
+     "id": "prt_0c94bed1d001pnwAFNC6JVr6c0",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94bbb5b001R0OWsSUNNEp5hJ"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_2665184ef14a4cd394835e70",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\repositories\\certificate-repository.ts"
+      },
+      "output": "[4290 caracteres omitidos]",
+      "title": "api\\src\\repositories\\certificate-repository.ts",
+      "time": {
+       "start": 1790083592192,
+       "end": 1790083592232
+      }
+     },
+     "id": "prt_0c94bee590015J3tf5yFEaJhzE",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94bbb5b001R0OWsSUNNEp5hJ"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-finish",
+     "tokens": {
+      "total": 34000,
+      "input": 3055,
+      "output": 225,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 30720
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c94bf22300145FnTwaWNvynbp",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94bbb5b001R0OWsSUNNEp5hJ"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c94b855e001WxFJGHDrrARO1M",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 43301,
+     "input": 9170,
+     "output": 339,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 33792
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790083593258,
+     "completed": 1790083599479
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c94bf42a001IDxP7Bi8fOiuMf",
+    "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4"
+   },
+   "parts": [
+    {
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-start",
+     "id": "prt_0c94bff05001wDr3rackp5zf6N",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94bf42a001IDxP7Bi8fOiuMf"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now let me look at the M4 tests, particularly the idempotency test (r9), and check if any test uses dbPath to persist. Let me read certificado-r9.test.ts and certificado.test.ts and some other M4 tests. Also the gerar-codigo.ts and emissao-certificado.ts.",
+     "time": {
+      "start": 1790083596041,
+      "end": 1790083596992
+     },
+     "id": "prt_0c94bff090015ZBG6xq37HtQ72",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94bf42a001IDxP7Bi8fOiuMf"
+    },
+    {
+     "type": "text",
+     "text": "\n\n",
+     "time": {
+      "start": 1790083596994,
+      "end": 1790083598511
+     },
+     "id": "prt_0c94c02c2001Dp8OF7c2cBQTBF",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94bf42a001IDxP7Bi8fOiuMf"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_963a2085230e41b78ced87a8",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\certificado-r9.test.ts"
+      },
+      "output": "[4177 caracteres omitidos]",
+      "title": "api\\tests\\certificado-r9.test.ts",
+      "time": {
+       "start": 1790083597334,
+       "end": 1790083597368
+      }
+     },
+     "id": "prt_0c94c0326001bqtfVzEMO1wdVI",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94bf42a001IDxP7Bi8fOiuMf"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_37f2288275ac4c83b22ab055",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\certificado.test.ts"
+      },
+      "output": "[7669 caracteres omitidos]",
+      "title": "api\\tests\\certificado.test.ts",
+      "time": {
+       "start": 1790083597780,
+       "end": 1790083597835
+      }
+     },
+     "id": "prt_0c94c0510001LtbYZYW7AyVo4h",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94bf42a001IDxP7Bi8fOiuMf"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_99cd9fdc90304c23a4e8d754",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\certificate\\emissao-certificado.ts"
+      },
+      "output": "[3981 caracteres omitidos]",
+      "title": "api\\src\\certificate\\emissao-certificado.ts",
+      "time": {
+       "start": 1790083598198,
+       "end": 1790083598215
+      }
+     },
+     "id": "prt_0c94c0677001IbkI6PEItI6Zah",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94bf42a001IDxP7Bi8fOiuMf"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_6ce97b7b65e74552843501bf",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\certificate\\gerar-codigo.ts"
+      },
+      "output": "[523 caracteres omitidos]",
+      "title": "api\\src\\certificate\\gerar-codigo.ts",
+      "time": {
+       "start": 1790083598474,
+       "end": 1790083598551
+      }
+     },
+     "id": "prt_0c94c07c3001Trlj7hJPbHKe6S",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94bf42a001IDxP7Bi8fOiuMf"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-finish",
+     "tokens": {
+      "total": 43301,
+      "input": 9170,
+      "output": 339,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 33792
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c94c0aa4001908XDcU48S5G6A",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94bf42a001IDxP7Bi8fOiuMf"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c94b855e001WxFJGHDrrARO1M",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 48960,
+     "input": 5721,
+     "output": 231,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 43008
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790083599489,
+     "completed": 1790083607426
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c94c0c81001Pa4eKIPrel3ATD",
+    "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4"
+   },
+   "parts": [
+    {
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-start",
+     "id": "prt_0c94c1507001JuyIQfVdH9razR",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c0c81001Pa4eKIPrel3ATD"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now let me check whether any other M4 test uses dbPath (persistent file) or simulates restart. Let me grep for dbPath in tests and for \"restart\"/\"reinicial\" concepts.",
+     "time": {
+      "start": 1790083601677,
+      "end": 1790083602133
+     },
+     "id": "prt_0c94c150c001Zfm2zhR53Pgt9C",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c0c81001Pa4eKIPrel3ATD"
+    },
+    {
+     "type": "tool",
+     "tool": "grep",
+     "callID": "call_eb42ee52b517401e9536c0bd",
+     "state": {
+      "status": "error",
+      "input": {
+       "pattern": "dbPath",
+       "path": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+      },
+      "error": "Ripgrep JSON record exceeded 65536 bytes",
+      "time": {
+       "start": 1790083602469,
+       "end": 1790083603203
+      }
+     },
+     "id": "prt_0c94c16d8001tn34TPUTtiRL2r",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c0c81001Pa4eKIPrel3ATD"
+    },
+    {
+     "type": "tool",
+     "tool": "grep",
+     "callID": "call_b09d0a2071914f4190e8b1d8",
+     "state": {
+      "status": "completed",
+      "input": {
+       "pattern": "reinicial|restart|reinicia|nova inst|mesmo banco|persistente|banco em arquivo|arquivo.*db|\\.sqlite",
+       "path": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api"
+      },
+      "output": "[3201 caracteres omitidos]",
+      "title": "reinicial|restart|reinicia|nova inst|mesmo banco|persistente|banco em arquivo|arquivo.*db|\\.sqlite",
+      "time": {
+       "start": 1790083606352,
+       "end": 1790083606474
+      }
+     },
+     "id": "prt_0c94c182c001dZYrlVDPcztDzl",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c0c81001Pa4eKIPrel3ATD"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-finish",
+     "tokens": {
+      "total": 48960,
+      "input": 5721,
+      "output": 231,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 43008
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c94c29b9001NDMwSw1GZw30c4",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c0c81001Pa4eKIPrel3ATD"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c94b855e001WxFJGHDrrARO1M",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 50319,
+     "input": 1215,
+     "output": 208,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 48896
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790083607431,
+     "completed": 1790083611363
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c94c2b87001lQepwF1Jd8wUMI",
+    "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4"
+   },
+   "parts": [
+    {
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-start",
+     "id": "prt_0c94c303d001l4c3srA7Q2FUyp",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c2b87001lQepwF1Jd8wUMI"
+    },
+    {
+     "type": "reasoning",
+     "text": "Let me look at initialization.test.ts — it tests the restart scenario but for activities. This is a reference pattern for what the M4 test would look like. Let me read it. Also check the db/migrate.ts to see the certificados table, and reset behavior.\n\nLet me read initialization.test.ts and db/migrate.ts.",
+     "time": {
+      "start": 1790083608641,
+      "end": 1790083609675
+     },
+     "id": "prt_0c94c304100143lZopyVkfe5EO",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c2b87001lQepwF1Jd8wUMI"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_a3f8c45057b147f38bbce24c",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\initialization.test.ts"
+      },
+      "output": "[2315 caracteres omitidos]",
+      "title": "api\\tests\\initialization.test.ts",
+      "time": {
+       "start": 1790083609994,
+       "end": 1790083610005
+      }
+     },
+     "id": "prt_0c94c3451001XoHC6PX0ysdJ2R",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c2b87001lQepwF1Jd8wUMI"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_552f20a553094014aa21a5f1",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\db\\migrate.ts"
+      },
+      "output": "[3235 caracteres omitidos]",
+      "title": "api\\src\\db\\migrate.ts",
+      "time": {
+       "start": 1790083610496,
+       "end": 1790083610512
+      }
+     },
+     "id": "prt_0c94c35e2001Ju6PWaHlrfLgpe",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c2b87001lQepwF1Jd8wUMI"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-finish",
+     "tokens": {
+      "total": 50319,
+      "input": 1215,
+      "output": 208,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 48896
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c94c392b0010h57beYxppQOx0",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c2b87001lQepwF1Jd8wUMI"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c94b855e001WxFJGHDrrARO1M",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 52184,
+     "input": 1830,
+     "output": 178,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 50176
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790083611368,
+     "completed": 1790083617880
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c94c3ae80015Fhsmg1FYWg1ec",
+    "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4"
+   },
+   "parts": [
+    {
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-start",
+     "id": "prt_0c94c4884001jq2Ogn9RYm2Yxc",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c3ae80015Fhsmg1FYWg1ec"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now let me check the seed.ts to understand if seed is also run when an app is restarted on the same DB (runSeed re-seeds; does it wipe? RunReset wipes). Let me check seed.ts and the m2-port and how listarInscricoesDoParticipante works (SQLiteM2Adapter). Also confirm that running the seed twice is idempotent (INSERT OR IGNORE?). This determines whether a restart keeps certificates. Let me read seed.ts.",
+     "time": {
+      "start": 1790083614855,
+      "end": 1790083616320
+     },
+     "id": "prt_0c94c4887001fGqTJWEDh5NP8y",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c3ae80015Fhsmg1FYWg1ec"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_fe1bbb042db14aa999d05f00",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\db\\seed.ts"
+      },
+      "output": "[3310 caracteres omitidos]",
+      "title": "api\\src\\db\\seed.ts",
+      "time": {
+       "start": 1790083616851,
+       "end": 1790083616918
+      }
+     },
+     "id": "prt_0c94c4e43001kFZ7brJKT0GEMQ",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c3ae80015Fhsmg1FYWg1ec"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-finish",
+     "tokens": {
+      "total": 52184,
+      "input": 1830,
+      "output": 178,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 50176
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c94c528b001rTPAmygnSLxRGb",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c3ae80015Fhsmg1FYWg1ec"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c94b855e001WxFJGHDrrARO1M",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 53647,
+     "input": 1356,
+     "output": 323,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 51968
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790083617888,
+     "completed": 1790083624238
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c94c5460001vL60uitxedg2cz",
+    "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4"
+   },
+   "parts": [
+    {
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-start",
+     "id": "prt_0c94c5ad7001gZNZlR3MxTJFVM",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c5460001vL60uitxedg2cz"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now I understand the full picture. Let me verify the DatabaseControllableClock persistence of relogio_estado, and check how SQLiteM2Adapter listarInscricoesDoParticipante works — to know whether restart keeps inscrições. And whether a second createApp on the same dbPath would still see the certificado. Actually, the certificado is stored in SQLite (certificados table), so persistence works. The key question: does findByAtividadeEParticipante or findByCodigo find the certificate after restart? Yes, stored in SQLite.\n\nLet me check the controllable-clock.ts (DatabaseControllableClock) to understand clock persistence across restart, since the emission depends on clock > end of last activity. After restart with same db, the DatabaseControllableClock reads relogio_estado from sqlite? Let me read.",
+     "time": {
+      "start": 1790083619546,
+      "end": 1790083622518
+     },
+     "id": "prt_0c94c5ada0010o6omtwWSjPSJC",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c5460001vL60uitxedg2cz"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_6fae118bd14c4d2f92a4ac46",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\clock\\controllable-clock.ts"
+      },
+      "output": "[1339 caracteres omitidos]",
+      "title": "api\\src\\clock\\controllable-clock.ts",
+      "time": {
+       "start": 1790083622908,
+       "end": 1790083622924
+      }
+     },
+     "id": "prt_0c94c667c001P7NF4ecwd1kthg",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c5460001vL60uitxedg2cz"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_14b52111f43843e58fdfe388",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\integrations\\m2-port.ts"
+      },
+      "output": "[3600 caracteres omitidos]",
+      "title": "api\\src\\integrations\\m2-port.ts",
+      "time": {
+       "start": 1790083623333,
+       "end": 1790083623370
+      }
+     },
+     "id": "prt_0c94c67ff001R0j9dw455wg8JB",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c5460001vL60uitxedg2cz"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-finish",
+     "tokens": {
+      "total": 53647,
+      "input": 1356,
+      "output": 323,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 51968
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c94c6b9b001AiS3C0CntLP3q6",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c5460001vL60uitxedg2cz"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c94b855e001WxFJGHDrrARO1M",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 55433,
+     "input": 1675,
+     "output": 254,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 53504
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790083624248,
+     "completed": 1790083630286
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c94c6d370015MkhcjQMQ3JT5a",
+    "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4"
+   },
+   "parts": [
+    {
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-start",
+     "id": "prt_0c94c7ba90011PxfjHOhdlhF7W",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c6d370015MkhcjQMQ3JT5a"
+    },
+    {
+     "type": "reasoning",
+     "text": "I now have a full picture. Let me also verify the certificado tests that specifically use HTTP with the idempotency (certificado-contrato-http.test.ts, certificado-listagem.test.ts, certificado-colisao.test.ts) to confirm none restart the app. Let me quickly grep across the M4 tests for createApp usage and close.\n\nActually let me quickly check certificado-contrato-http.test.ts and certificado-colisao.test.ts to confirm they use same-instance idempotency only.",
+     "time": {
+      "start": 1790083627948,
+      "end": 1790083628938
+     },
+     "id": "prt_0c94c7bac001hutzyatfgM4LbF",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c6d370015MkhcjQMQ3JT5a"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_f1c00fabd9af4d8eac45e927",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\certificado-contrato-http.test.ts"
+      },
+      "output": "[4619 caracteres omitidos]",
+      "title": "api\\tests\\certificado-contrato-http.test.ts",
+      "time": {
+       "start": 1790083629160,
+       "end": 1790083629198
+      }
+     },
+     "id": "prt_0c94c7f90001MCXzclZF0Nvpsu",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c6d370015MkhcjQMQ3JT5a"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_d6c820f60e824ace9a62df5e",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\certificado-colisao.test.ts"
+      },
+      "output": "[5638 caracteres omitidos]",
+      "title": "api\\tests\\certificado-colisao.test.ts",
+      "time": {
+       "start": 1790083629442,
+       "end": 1790083629451
+      }
+     },
+     "id": "prt_0c94c80af0014yFi4LCKc00neR",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c6d370015MkhcjQMQ3JT5a"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-finish",
+     "tokens": {
+      "total": 55433,
+      "input": 1675,
+      "output": 254,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 53504
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c94c8325001SWZMx4jsQVi41l",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c6d370015MkhcjQMQ3JT5a"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c94b855e001WxFJGHDrrARO1M",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 61753,
+     "input": 3623,
+     "output": 2834,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 55296
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790083630293,
+     "completed": 1790083677330
+    },
+    "finish": "stop",
+    "id": "msg_0c94c84d5001u6UJt72aL1dEEc",
+    "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4"
+   },
+   "parts": [
+    {
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-start",
+     "id": "prt_0c94c8bc9001FhpB4yYx7qCSz5",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c84d5001u6UJt72aL1dEEc"
+    },
+    {
+     "type": "reasoning",
+     "text": "I now have enough to complete the analysis. Let me summarize what I found for each of the 8 points.\n\n1. Skill read ✓\n2. Spec rules related to uniqueness/stability/idempotency of code: R6 (formato, unicidade, mesmo código na reemissão), R9 (idempotência 201/200 mesmo código), R11 (alfabeto). Note: R6's criteria 11 & 12 cover format and uniqueness across participants within same instance. There is NO rule or criterion that explicitly says \"código permanece mesmo após reinicialização da aplicação\" — persistence/restart stability is not explicitly in the spec. But R6 says \"código é criado na primeira emissão e permanece o mesmo nas reemissões\" — reemissão here arguably includes reemissão após reinicialização. But the spec criteria don't test that across restarts. So a restart test would be an infrastructure/persistence guarantee (like initialization.test.ts which already does this for atividades) rather than a spec business rule. It's a natural extension of R6/R9 through persistence.\n\n3. Persistence: `certificados` table in SQLite (migrate.ts:61-71), CertificateRepository (certificate-repository.ts). Also relogio_estado persisted for the controllable clock.\n\n4. createApp supports dbPath via AppOptions.dbPath (app.ts:39-50) — `createApp({ dbPath, modoTeste })`. Also createDatabase(dbPath) supports file path. In tests, default without dbPath + NODE_ENV/VITEST → `:memory:`.\n\n5. Existing M4 tests: \n   - Idempotency within same instance: certificado.test.ts:175-193 (R9 HTTP 201→200 same code), certificado-r9.test.ts (unit-level same DB connection).\n   - Uniqueness: certificado-colisao.test.ts (unit, same instance).\n   - No M4 test resets/recreates app on same db file and re-emits or queries. initialization.test.ts does the restart pattern but for atividades (M1) not certificates.\n   - grep showed no restart/banco persistente pattern in M4 cert tests.\n\n6. Difference: idempotency within same instance = R9 (findByAtividadeEParticipante returns existing row from same DB connection). Persistence after restart = depends on SQLite file durability + on the fact that reemissão path reads existing from the same table. R9's implementation is DB-based, so it inherently works across restarts — but no test proves it.\n\n7. Proposed minimal integration test (not created). File: new `api/tests/certificado-restart.test.ts` (or append to certificado.test.ts). Minimal scenario, mirroring initialization.test.ts pattern:\n   - Create tmp dbPath in os.tmpdir().\n   - app1 = createApp({ dbPath, modoTeste: true }).\n   - Build scenario via HTTP: reset, create atividade (org), inscrição (participant), register presences (via /encontros/:id/codigo + POST presencas), advance clock beyond end, POST certificado → 201, capture codigo + emitidoEm.\n   - app1.close().\n   - app2 = createApp({ dbPath, modoTeste: true }) — same dbPath, no reset.\n   - Repost certificado → 200 same codigo/emitidoEm (idempotency across restart). Optionally GET /certificados with X-Usuario → list contains same codigo, or GET /certificados/:codigo public → 200 (persisted read after restart).\n   - Assertions: status 200, codigo === captured, emitidoEm === captured; optionally GET /certificados/:codigo returns 200 with same codigo.\n   - Cleanup: app2.close(), unlink dbPath.\n   - Clock consideration: after restart, DatabaseControllableClock reads relogio_estado persisted in db, so the clock stays after the end → re-emission won't be rejected as ATIVIDADE_NAO_ENCERRADA. Good — the scenario would work without touching the clock on app2. If using with in-memory clock via PUT /_teste/relogio on app2, would also work (set again), but better minimal: rely on persisted relogio_estado. Actually runSeed in app creation preserves relogio_estado (existing not reset). Good.\n\n8. Architecture support: Yes — certificates stored in SQLite `certificados` table via migrations; CertificateRepository reads by (atividade_id, participante_id) in re-emission path (emissao-certificado.ts:66-69); createApp(dbPath) reopens the same file; seed is idempotent (INSERT OR IGNORE); controllable clock persisted in relogio_estado. So no production change needed — the behavior already holds. Risk only if code generation in-memory — but it's not; código is persisted. No evidence of production change needed.\n\nAlso note: spec R6/R9 don't explicitly demand restart stability as a criterion, so this would be a test proving persistence (like initialization test) rather than a new business rule. It validates the persistence guarantee without inventing rule.\n\nLet me write the analysis concisely. The user said \"PARE após a análise.\" and don't edit files. So I just output the findings.\n\nI should be concise but this is an analysis which requires some detail. I'll structure it per the 8 points.",
+     "time": {
+      "start": 1790083632078,
+      "end": 1790083651795
+     },
+     "id": "prt_0c94c8bce001gAbDro5cbeJrew",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c84d5001u6UJt72aL1dEEc"
+    },
+    {
+     "type": "text",
+     "text": "## Análise — persistência do código do certificado após reinicialização\n\n### 1. Skill lida\n`.opencode/skills/tdd-m4/SKILL.md` — define testes via HTTP, `createApp()` sem abrir porta, `MODO_TESTE=1`, e o ciclo red/green já é conhecido. Nada diz sobre reinicialização; o padrão de restart existe só como infra no projeto (`initialization.test.ts`).\n\n### 2. Regras da spec sobre unicidade/estabilidade/idempotência\n- **R6** (`specs/M4-certificados.md:53`): formato `SA26-XXXX-XXXX`, código único, criado na 1ª emissão e permanece o mesmo nas reemissões.\n- **R9** (spec:56, critério 17): idempotência 201→200 com o **mesmo código e mesmo `emitidoEm`**, sem nova emissão.\n- **R11** (spec:58): alfabeto sem `I/O/0/1`.\n\nA spec **não** tem regra nem critério que mencione explicitamente \"após reinicialização da aplicação\". A estabilidade entre reinicializações é uma garantia de persistência (infra), não uma regra de negócio nova — e a reemissão em R6/R9 cobre naturalmente o cenário se os dados persistirem.\n\n### 3. Onde certificado/código são persistidos\n- Tabela `certificados` (SQLite), `codigo TEXT PRIMARY KEY` — `api/src/db/migrate.ts:61-71`.\n- `CertificateRepository` grava/consulta por `codigo`, `participante_id` e par `(atividade_id, participante_id)` — `api/src/repositories/certificate-repository.ts:24-122`.\n\n### 4. Como `createApp` aceita banco persistente\n`AppOptions.dbPath` (`api/src/app.ts:39-50`) → `createDatabase(dbPath)` abre o arquivo (`api/src/db/connection.ts:5-18`; sem `dbPath` + env de teste usa `:memory:`). `app.close()` fecha o banco (`app.ts:490-492`). O seed é idempotente (`INSERT OR IGNORE`, `seed.ts:27-47`) e o relógio de teste persiste em `relogio_estado` (`controllable-clock.ts:18-27`), então reiniciar apontando pro mesmo arquivo **não** zera certificados nem o relógio.\n\n### 5. Testes existentes do M4 — cenário restart? **Não existe.**\n- Idempotência **dentro da mesma instância**: `certificado.test.ts:175-193` (HTTP 201→200, mesmo código/`emitidoEm`) e `certificado-r9.test.ts` (unidade, mesma conexão).\n- Unicidade: `certificado-colisao.test.ts` (mesma instância/banco).\n- Nenhum teste do M4: cria app com `dbPath`, emite, encerra (`close()`), recria app no mesmo arquivo e reemite/consulta.\n- O padrão de reinicialização só existe para atividades/API geral: `api/tests/initialization.test.ts:9-50` (recria app no mesmo `dbPath` e confirma que a atividade segue lá). O M4 não tem equivalente.\n\n### 6. Diferença entre os dois cenários\n- **Idempotência intra-instância (R9)**: implementada por `EmitirCertificado.execute` que busca certificado existente por `(atividade_id, participante_id)` antes de criar (`emissao-certificado.ts:66-69`). Já coberta por teste.\n- **Estabilidade pós-reinicialização**: depende de o arquivo SQLite reter a linha; a reemissão após reiniciar continuaria na mesma tabela e `findByAtividadeEParticipante` retornaria a linha da primeira emissão → mesmo código. Sem teste que comprove.\n\n### 7. Proposta de menor teste de integração (não criado)\nArquivo: **`api/tests/certificado-restart.test.ts`** (novo; não mexer em `certificado.test.ts` para não alterar testes existentes).\n\nPreparação mínima (espelha `initialization.test.ts`):\n1. `dbPath` em `os.tmpdir()` com sufixo único.\n2. `app1 = createApp({ dbPath, modoTeste: true })`.\n3. Cenário por HTTP: `POST /_teste/reset` → criar atividade e encontrar via `POST /atividades` (org) → inscrição via `POST /atividades/:id/inscricoes` → registrar presenças via `GET /encontros/:id/codigo` + `POST /encontros/:id/presencas` → avançar `PUT /_teste/relogio` além do fim → `POST /atividades/:id/certificado` **expect 201**; capturar `codigo` e `emitidoEm`.\n4. **Reinicializar sem perder o banco**: `app1.close()`; `app2 = createApp({ dbPath, modoTeste: true })` (sem `reset`). O relógio continua o já persistido em `relogio_estado`, então não é preciso mexer no relógio de novo.\n5. Endpoint após reinício: reenviar **`POST /atividades/:id/certificado`** com `X-Usuario` do participante → **expect 200**; opcional: `GET /certificados/:codigo` (público) → **expect 200**.\n6. Asserções: `status === 200`; `body.codigo === codigoCapturado`; `body.emitidoEm === emitidoEmCapturado` (e, se usar a rota pública, o mesmo `codigo` retornado 200).\n7. Cleanup: `app2.close()` e `fs.unlinkSync(dbPath)`.\n\nIsso diferencia R9 (intra-instância) da persistência pós-restart, pelo menor caminho.\n\n### 8. Arquitetura suporta o comportamento? **Sim.**\n- Código e `emitidoEm` ficam no SQLite (`migrate.ts`), reabrindo o mesmo arquivo com `dbPath` a reemissão lê a mesma linha (`findByAtividadeEParticipante`) e devolve o código original.\n- Seed idempotente e relógio persistido em `relogio_estado` impedem reset acidental da emissão ao reiniciar.\n- **Nenhuma alteração de produção seria necessária**; não há indício de estado volátil em memória na emissão (o código é gerado e gravado de imediato, `emissao-certificado.ts:76-94`).\n\n**Conclusão:** não existe teste do M4 que comprove estabilidade do código após reinicialização com o mesmo banco; o teste proposto em (7) é suficiente e a produção já o suporta. Análise encerrada, nenhum arquivo alterado.",
+     "time": {
+      "start": 1790083651800,
+      "end": 1790083676545
+     },
+     "id": "prt_0c94cd8d8001RF9l8YDsxvb4AT",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c84d5001u6UJt72aL1dEEc"
+    },
+    {
+     "reason": "stop",
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-finish",
+     "tokens": {
+      "total": 61753,
+      "input": 3623,
+      "output": 2834,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 55296
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c94d3b03001N71XOLtPpB1USN",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94c84d5001u6UJt72aL1dEEc"
+    }
+   ]
+  },
+  {
+   "info": {
+    "role": "user",
+    "time": {
+     "created": 1790083723541
+    },
+    "agent": "build",
+    "model": {
+     "providerID": "opencode",
+     "modelID": "big-pickle"
+    },
+    "summary": {
+     "diffs": [
+      {
+       "file": "api/tests/certificado-restart.test.ts",
+       "patch": "Index: api/tests/certificado-restart.test.ts\n===================================================================\n--- api/tests/certificado-restart.test.ts\t\n+++ api/tests/certificado-restart.test.ts\t\n@@ -0,0 +1,86 @@\n+import { describe, it, expect } from 'vitest';\n+import request from 'supertest';\n+import path from 'path';\n+import os from 'os';\n+import fs from 'fs';\n+import { createApp } from '../src/app.js';\n+\n+const PARTICIPANTE = 'p-carla';\n+const ORGANIZACAO = 'org-ana';\n+\n+describe('M4 - Certificados - persistencia do codigo apos reinicializacao com o mesmo banco', () => {\n+  it('mantem o mesmo codigo e emitidoEm ao reemitir em nova instancia com o mesmo dbPath, sem reset', async () => {\n+    const dbPath = path.join(os.tmpdir(), `test-certificado-restart-${Date.now()}-${Math.random()}.sqlite`);\n+    let app1: any;\n+    let app2: any;\n+\n+    try {\n+      app1 = createApp({ dbPath, modoTeste: true });\n+\n+      const resReset = await request(app1).post('/_teste/reset');\n+      expect(resReset.status).toBe(204);\n+\n+      const criacao = await request(app1)\n+        .post('/atividades')\n+        .set('X-Usuario', ORGANIZACAO)\n+        .send({\n+          titulo: 'Palestra para restart',\n+          tipo: 'palestra',\n+          salaId: 'auditorio',\n+          vagas: 30,\n+          encontros: [\n+            { inicio: '2026-10-19T19:00:00-03:00', fim: '2026-10-19T22:00:00-03:00' }\n+          ]\n+        });\n+      expect(criacao.status).toBe(201);\n+      const atividadeId: string = criacao.body?.id;\n+      const encontroId: string = criacao.body?.encontros?.[0]?.id;\n+\n+      const inscricao = await request(app1)\n+        .post(`/atividades/${atividadeId}/inscricoes`)\n+        .set('X-Usuario', PARTICIPANTE);\n+      expect(inscricao.status).toBe(201);\n+\n+      await request(app1).put('/_teste/relogio').send({ agora: '2026-10-19T19:30:00-03:00' });\n+      const codigoRes = await request(app1)\n+        .get(`/encontros/${encontroId}/codigo`)\n+        .set('X-Usuario', ORGANIZACAO);\n+      const codigo: string = codigoRes.body?.codigo ?? '';\n+      expect(codigo).not.toBe('');\n+\n+      const presenca = await request(app1)\n+        .post(`/encontros/${encontroId}/presencas`)\n+        .set('X-Usuario', PARTICIPANTE)\n+        .send({ codigo });\n+      expect(presenca.status).toBe(201);\n+\n+      await request(app1).put('/_teste/relogio').send({ agora: '2026-10-19T23:00:00-03:00' });\n+\n+      const primeira = await request(app1)\n+        .post(`/atividades/${atividadeId}/certificado`)\n+        .set('X-Usuario', PARTICIPANTE);\n+      expect(primeira.status).toBe(201);\n+      const codigoOriginal: string = primeira.body.codigo;\n+      const emitidoEmOriginal: string = primeira.body.emitidoEm;\n+      expect(codigoOriginal).toMatch(/^SA26-[A-Z2-9]{4}-[A-Z2-9]{4}$/);\n+\n+      app1.close();\n+      app1 = null;\n+\n+      app2 = createApp({ dbPath, modoTeste: true });\n+\n+      const reemissao = await request(app2)\n+        .post(`/atividades/${atividadeId}/certificado`)\n+        .set('X-Usuario', PARTICIPANTE);\n+      expect(reemissao.status).toBe(200);\n+      expect(reemissao.body.codigo).toBe(codigoOriginal);\n+      expect(reemissao.body.emitidoEm).toBe(emitidoEmOriginal);\n+    } finally {\n+      app2?.close?.();\n+      app1?.close?.();\n+      if (fs.existsSync(dbPath)) {\n+        fs.unlinkSync(dbPath);\n+      }\n+    }\n+  });\n+});\n\\ No newline at end of file\n",
+       "additions": 86,
+       "deletions": 0,
+       "status": "added"
+      }
+     ]
+    },
+    "id": "msg_0c94df115001mHMJFm7L1u9TNf",
+    "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4"
+   },
+   "parts": [
+    {
+     "type": "text",
+     "text": "Continue usando a skill `.opencode/skills/tdd-m4/SKILL.md`.\n\nAutorizo SOMENTE a criação do teste de caracterização proposto:\n\n`api/tests/certificado-restart.test.ts`\n\nObjetivo:\ncomprovar pelo contrato HTTP que um certificado emitido permanece persistido após reinicialização da aplicação usando o mesmo `dbPath`, mantendo exatamente o mesmo `codigo` e `emitidoEm`.\n\nImplemente o menor teste possível conforme a análise anterior:\n\n1. crie um banco SQLite temporário em arquivo;\n2. inicialize `app1` com `createApp({ dbPath, modoTeste: true })`;\n3. prepare pelo contrato HTTP o cenário mínimo elegível para emissão;\n4. faça a primeira emissão e espere HTTP 201;\n5. capture `codigo` e `emitidoEm`;\n6. feche corretamente `app1`;\n7. inicialize `app2` usando exatamente o mesmo `dbPath`, SEM executar reset;\n8. faça novamente POST `/atividades/:id/certificado` para o mesmo participante;\n9. espere HTTP 200;\n10. comprove:\n   - `codigo` exatamente igual ao da primeira emissão;\n   - `emitidoEm` exatamente igual ao da primeira emissão;\n11. faça cleanup seguro da aplicação e do banco temporário.\n\nPode também consultar `GET /certificados/:codigo` após o restart somente se isso permanecer simples e útil, mas não amplie desnecessariamente o teste.\n\nRestrições:\n- NÃO consulte `requisitos-envolvidos.md` nem documentos oficiais/confidenciais.\n- NÃO altere produção.\n- NÃO altere a spec.\n- NÃO altere testes existentes.\n- NÃO faça commit.\n- NÃO faça push.\n- Não crie regra nova.\n- Reutilize os padrões de `initialization.test.ts` e dos testes HTTP do M4.\n- Garanta cleanup mesmo se o teste falhar, conforme os padrões existentes do projeto.\n\nDepois:\n1. execute somente `certificado-restart.test.ts`;\n2. informe se nasceu verde ou falhou;\n3. se falhar, NÃO altere produção: diagnostique primeiro;\n4. se passar, execute `npm --prefix api test`;\n5. execute o typecheck da API;\n6. reporte os resultados;\n7. liste exatamente todos os arquivos modificados.\n\nPARE ao final. Não faça commit. ",
+     "id": "prt_0c94df116001VaaHRk4v21BlYj",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94df115001mHMJFm7L1u9TNf"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c94df115001mHMJFm7L1u9TNf",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 63178,
+     "input": 616,
+     "output": 866,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 61696
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790083723568,
+     "completed": 1790083738449
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c94df130001X78t03zzJqpbJv",
+    "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4"
+   },
+   "parts": [
+    {
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-start",
+     "id": "prt_0c94df6a5001puitdRIZK2Cq6q",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94df130001X78t03zzJqpbJv"
+    },
+    {
+     "type": "reasoning",
+     "text": "Let me load the skill first, then look at the test patterns. I already have the skill content from before, but the user said \"Continue usando a skill\". Let me load it via the skill tool to be proper. Actually I already read it. But let me use the skill tool to inject it.\n\nLet me also check certificado-listagem.test.ts to reuse HTTP patterns, and verify how the encontros codigo/presenga flow works for the minimal scenario. Actually the analysis already laid out the plan. Let me check the listagem test quickly to see how they GET certificates; and maybe the certificado-g3-presenca tests use presença via HTTP.\n\nLet me write the test. I need to be careful about:\n- finding the encontro id for presença (the POST /atividades returns encontros with id, inicio).\n- The clock: after first emission, we set clock beyond the end. After restart, clock is persisted in relogio_estado (DatabaseControllableClock reads from db). So we don't need to set clock again on app2. Good.\n- Also note createApp with modoTeste:true and no explicit clock uses DatabaseControllableClock(db) and runSeed(db, clock) preserves existing relogio_estado (only resets if not existing). Good.\n\nMinimal scenario needs:\n- POST /_teste/reset\n- POST /atividades (org) with encontros ending before clock\n- POST /atividades/:id/inscricoes (participant) → creates inscricao. Status? createInscricaoUseCase probably returns 'confirmada' (no waitlist rule for bare activity). Need verified.\n- presença: need at least 75%. With 2 encontros, participante precisa de 2 presenças (100%). Simpler: create activity with 4 encontros, register 3 presencas (75%). Or 2 encontros, 2 presenças. Minimal = fewest steps. 1 encontro → need 1 presença (100%). But R2 emission: after end of last encontro. And what about \"encontros\" total? presencas >= 75% of 1 = 1. So 1 encontro with 1 presença works. Actually check: presencas * 4 < encontros * 3 → 1*4=4 < 1*3=3 false → ok. So a single encontro with a single presença is enough. Minimal.\n\nBut wait — the encontro id: POST /atividades returns body.encontros array with id. Then GET /encontros/:id/codigo (org) returns codigo. Then POST /encontros/:id/presencas (participant) with { codigo }. Need clock set to during the encontro for presence to register (registerPresencaUseCase likely checks the clock duration). Let me check register-presenca.ts to know constraints.\n\nLet me read register-presenca.ts and certificado-listagem.test.ts.\n\nAlso need to handle cleanup even on failure: use try/finally or afterEach pattern. initialization.test.ts unlinks in the test body directly. I'll use try/finally with app close and fs.unlinkSync with exists check.\n\nLet me read the two files.",
+     "time": {
+      "start": 1790083724969,
+      "end": 1790083734028
+     },
+     "id": "prt_0c94df6a9001d4S4Hmbn7yTfCe",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94df130001X78t03zzJqpbJv"
+    },
+    {
+     "type": "tool",
+     "tool": "skill",
+     "callID": "call_008c7806b744493aa47d65ca",
+     "state": {
+      "status": "completed",
+      "input": {
+       "name": "tdd-m4"
+      },
+      "output": "<skill_content name=\"tdd-m4\">\n# Skill: tdd-m4\n\n# TDD para M4-certificados\n\nA fonte de verdade é `specs/M4-certificados.md`. Não invente regras de negócio.\nNão altere a spec. Não acesse documentos externos de requisitos.\n\nO ciclo é o mesmo do `tdd` geral — teste que falha, código mínimo, refactor — mas\nancorado nas 4 fatias e 18 regras de M4. Uma regra ou grupo coeso por ciclo TDD.\n\n## Onde o teste mora\n\nTeste verifica comportamento pela interface pública (HTTP), nunca implementação.\nUse Vitest + Supertest, a aplicação Express de `createApp()` sem abrir porta,\ne as rotas `/_teste/*` com `MODO_TESTE=1` para setup e controle do relógio.\n\nArquivos de teste em `api/tests/`. Para rodar: `npm --prefix api test`.\n\nRegra do projeto: não importe serviço nem repositório no teste — se importar,\no teste quebra em refatoração sem que o comportamento tenha mudado.\n\n## Fatias e regras\n\nCada fatia é um entregável vertical que pode ser testado sozinho.\nImplemente as fatias nesta ordem. Dentro de cada fatia, uma regra ou grupo\ncoeso de regras por ciclo TDD.\n\n### Fatia 1 — emissão do certificado\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R1 | Presença mínima de 75% (`presencas / encontros`, sem arredondamento) | 1, 2, 3, 4 |\n| R2 | Emissão somente após encerramento da atividade | 5, 6 |\n| R12 | Precedência: `ATIVIDADE_NAO_ENCERRADA` antes de `PRESENCA_INSUFICIENTE` | 20 |\n| R9 | Idempotência: 201 na primeira vez, 200 nas seguintes, mesmo código | 17 |\n\nOrdem sugerida dentro da fatia:\n1. R1 — teste presence check, implemente, refactor.\n2. R2 — teste encerramento, implemente, refactor.\n3. R12 — teste precedência quando ambos falham, implemente, refactor.\n4. R9 — teste idempotência 201→200, implemente, refactor.\n5. Validação adicional do contrato — teste `ATIVIDADE_CANCELADA` na emissão e sua precedência sobre as demais regras, implemente, refactor.\n\n### Fatia 2 — código e listagem\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R6 | Formato `SA26-XXXX-XXXX`, unicidade, mesmo código na reemissão | 11, 12 |\n| R11 | Alfabeto: maiúsculas + dígitos, sem `I`, `O`, `0`, `1` | 19 |\n\nOrdem sugerida dentro da fatia:\n1. R6 — teste formato e unicidade, implemente geração, refactor.\n2. R11 — teste exclusão de caracteres ambíguos, implemente, refactor.\n3. R9 (continuação) — teste `GET /certificados` retornando apenas emitidos.\n\n### Fatia 3 — verificação pública\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R8 | `GET /certificados/:codigo` sem `X-Usuario`, campos públicos apenas | 15, 16 |\n| R7 | Abreviação do nome: primeiro nome + iniciais + partículas por extenso | 13, 14 |\n\nOrdem sugerida dentro da fatia:\n1. R8 — teste rota pública sem header, campos corretos, implemente, refactor.\n2. R7 — teste abreviação com partículas, implemente, refactor.\n\n### Fatia 4 — extrato de horas complementares\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R3 | Cargas brutas: `palestrasMinutos`, `minicursosMinutos`, `totalMinutos` sem teto | 7, 8, 9, 10 |\n| R4 | Teto de palestras: `min(240, palestrasMinutos)` | 7, 8, 9 |\n| R5 | Teto total: `aproveitadoMinutos = min(1200, min(240, palestrasMinutos) + minicursosMinutos)` | 7, 8 |\n| R10 | Itens do extrato: `codigo` preenchido ou `null` conforme emissão | 18 |\n| R13 | Inscrição `confirmada` é elegível para o extrato | 21 |\n| R14 | Inscrição `em_espera` não é elegível para o extrato | 22 |\n| R15 | Inscrição `convocada` não é elegível para o extrato | 23 |\n| R16 | Inscrição `cancelada` não é elegível para o extrato | 24 |\n| R17 | Inscrição `expirada` não é elegível para o extrato | 25 |\n| R18 | Atividade cancelada não é elegível para o extrato | 26 |\n\nOrdem sugerida dentro da fatia:\n1. R3+R4+R5 — teste cálculos de extrato (juntos, são uma unidade coesa), implemente, refactor.\n2. R10+R13 — teste composição dos itens com código/null e a elegibilidade da inscrição confirmada, implemente, refactor.\n3. R14, R15, R16, R17 — teste não elegibilidade das inscrições `em_espera`, `convocada`, `cancelada` e `expirada`, implemente, refactor.\n4. R18 — teste exclusão de atividade cancelada, implemente, refactor.\n\n## O ciclo TDD, passo a passo\n\nPara cada regra (ou grupo coeso), nestes passos:\n\n1. **RED**: Escreva um teste que prova o critério de aceite. Rode. **Ele tem que falhar.**\n   Se passar antes do código existir, algo está errado — descubra o quê antes de seguir.\n   O nome do teste descreve a regra em português:\n   `it('recusa certificado com menos de 75% de presenca')`.\n\n2. **GREEN**: Escreva o mínimo de código que faz o teste passar.\n   Nada de já implementar a regra seguinte \"que eu vou precisar mesmo\".\n   Rode o teste individual. Verde? Rode a suíte inteira. Verde? Próximo passo.\n\n3. **REFACTOR**: Com verde, limpe o código sem alterar comportamento.\n   Extraia funções, melhore nomes, remova duplicação. Rode a suíte inteira de novo.\n   Ainda verde? Próxima regra.\n\n## A regra que não se quebra\n\n**Quando o teste falha, o suspeito é o código.**\n\nSe você mudar um teste para ele passar, trocou o contrato pela implementação e o\nverde virou enfeite. Só se altera um teste quando a **spec** mudou — e aí você diz\nqual regra da spec mudou e por quê.\n\nVale para o valor esperado, para o status HTTP e para o cenário. Trocar\n`expect(response.body.presencas).toBe(3)` por `expect(response.body.presencas).toBe(0)`\nporque o código deu 0 é a forma mais comum de mentir sozinho.\n\n## Três testes que não valem nada\n\n- **Acoplado à implementação** — chama serviço ou repositório direto, ou confere o\n  dado espiando o `Map`/banco. Quebra em refatoração, não em regressão.\n- **Tautológico** — o esperado é calculado do mesmo jeito que o código calcula.\n  Passa por construção, nunca discorda. O valor esperado vem da spec, escrito na mão.\n- **Frouxo** — confere só o status e ignora o corpo. `201` com o `codigo` errado passa.\n\n## Dependências de M2 e M3\n\nM4 depende de dados que vêm de outros módulos. Não implemente esses módulos —\nuse as interfaces e portas de integração que já existem.\n\n### M3 — Presenças\n\n- Porta: `M3PresencePort` em `src/integrations/m3-presence-port.ts`\n- Método: `countPresencas(atividadeId, participanteId) → number`\n- Estado atual: `NeutralM3PresenceAdapter` retorna sempre 0.\n- Para testes de emissão (R1), registre presenças via rotas HTTP do M3\n  (`POST /encontros/:id/presencas`) no setup do teste. O adapter real do M3\n  deve ser ativado em ambiente de teste, ou o teste deve montar o cenário\n  pelas rotas existentes da API.\n- Se M3 não estiver funcional, documente o bloqueio e não simule dados.\n\n### M2 — Inscrições\n\n- Porta: `M2IntegrationPort` em `src/integrations/m2-port.ts`\n- Estado atual: `NeutralM2Adapter` não expõe listagem de inscrições por participante.\n- Para R10 (extrato), M4 precisa saber em quais atividades o participante está\n  inscrito e se há certificado emitido para cada uma.\n- Se a porta de M2 não fornecer esse dado, documente o bloqueio — não invente\n  persistência de inscrições dentro de M4.\n\n### M1 — Atividades\n\n- Já acessível via `ActivityRepository`. M4 precisa de `titulo`, `tipo`,\n  `cargaHorariaMinutos`, `encontros` (total de encontros) e `dataTermino`\n  (para R2).\n- Não altere o repositório de M1. Se faltar campo, documente o bloqueio.\n\n## Validações adicionais do contrato\n\nAlém das regras R1–R18, o `contrato-api.md` lista códigos de erro que o M4\ndeve retornar. Teste-os quando implementar a rota correspondente:\n\n| Código | HTTP | Quando |\n|--------|------|--------|\n| `NAO_INSCRITO` | 403 | Participante não inscrito na atividade |\n| `ATIVIDADE_CANCELADA` | 422 | Atividade foi cancelada |\n| `ATIVIDADE_NAO_ENCERRADA` | 422 | Atividade ainda não encerrada (R2) |\n| `PRESENCA_INSUFICIENTE` | 422 | Presença abaixo de 75% (R1) |\n\n## Execução e verificação\n\nApós cada regra implementada (GREEN + REFACTOR):\n\n1. Rode `npm --prefix api test` — suíte inteira tem que estar verde.\n2. Rode `npx tsc --noEmit` dentro de `api/` — typecheck tem que passar.\n3. Se falhar, corrija antes de seguir para a próxima regra.\n\nTerminada a última fatia, rode a suíte inteira uma vez e relate o número real\nde testes que apareceu na saída. Não estime, não arredonde.\n\n## Commits\n\nFaça commits pequenos, um por regra ou grupo coeso de regras dentro da fatia.\nMensagem no padrão do projeto, identificando a regra:\n\n```\nM4: implementa R1 — presença mínima de 75%\nM4: implementa R2 — emissão após encerramento\nM4: implementa R9 — idempotência 201/200\n```\n\nAntes de commitar, verifique `git status` e `git diff` para confirmar que\napenas arquivos intencionais estão staged.\n\n## Rastreabilidade\n\nCada regra da spec deve ter:\n- Pelo menos um teste que a comprove (critério de aceite correspondente).\n- Implementação que o teste exercita.\n- Referência explícita: nome do teste cita a regra, commit cita a regra.\n\nSe uma regra não tem teste, ela não está implementada — pare e escreva o teste.\n\n## O que não fazer\n\n- Não acesse documentos externos de requisitos.\n- Não altere `specs/M4-certificados.md`.\n- Não altere `contrato-api.md`.\n- Não implemente código de M1, M2 ou M3 — apenas use suas portas/interfaces.\n- Não altere testes existentes apenas para fazê-los passar.\n- Não altere código de outros módulos.\n- Não faça commit de código que não esteja verde na suíte inteira.\n\nBase directory for this skill: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\.opencode\\skills\\tdd-m4\nRelative paths in this skill (e.g., scripts/, reference/) are relative to this base directory.\nNote: file list is sampled.\n\n<skill_files>\n\n</skill_files>\n</skill_content>",
+      "metadata": {
+       "name": "tdd-m4",
+       "dir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\.opencode\\skills\\tdd-m4",
+       "truncated": false
+      },
+      "title": "Loaded skill: tdd-m4",
+      "time": {
+       "start": 1790083734124,
+       "end": 1790083734202
+      }
+     },
+     "id": "prt_0c94e1a11001gN6FDNwpUR4cTJ",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94df130001X78t03zzJqpbJv"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_c2d6771397ed43959b9b44c2",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\application\\register-presenca.ts"
+      },
+      "output": "[4694 caracteres omitidos]",
+      "title": "api\\src\\application\\register-presenca.ts",
+      "time": {
+       "start": 1790083737198,
+       "end": 1790083737236
+      }
+     },
+     "id": "prt_0c94e1a82001L0ywgYdT3Kmxhx",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94df130001X78t03zzJqpbJv"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_b173e76c88a74a6ead532118",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\certificado-listagem.test.ts"
+      },
+      "output": "[6330 caracteres omitidos]",
+      "title": "api\\tests\\certificado-listagem.test.ts",
+      "time": {
+       "start": 1790083737489,
+       "end": 1790083737510
+      }
+     },
+     "id": "prt_0c94e26a9001MH6WVfEcRRXVBn",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94df130001X78t03zzJqpbJv"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-finish",
+     "tokens": {
+      "total": 63178,
+      "input": 616,
+      "output": 866,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 61696
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c94e298e001teCzSEuf501gUt",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94df130001X78t03zzJqpbJv"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c94df115001mHMJFm7L1u9TNf",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 70323,
+     "input": 6706,
+     "output": 641,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 62976
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790083738461,
+     "completed": 1790083752691
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c94e2b5d001d5KWmxEE2EUMzZ",
+    "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4"
+   },
+   "parts": [
+    {
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-start",
+     "id": "prt_0c94e35db001cpJ2QNKr9Yy5NF",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94e2b5d001d5KWmxEE2EUMzZ"
+    },
+    {
+     "type": "reasoning",
+     "text": "I have enough to write the test. Let me use the minimal scenario: 4 encontros (minicurso, lab-3), 4 presenças, clock final beyond. Reuse patterns from certificado-listagem.test.ts.\n\nActually, the minimal scenario: I could use 1 encontro with 1 presença. But the presence window check: refTime must be within inicio-15min to inicio+30min. So set clock to inicio+30min. But the code generation `generateCode(encontroId, refTime)` uses the minute bucket; the code obtained via GET /encontros/:id/codigo — let me check get-codigo-do-encontro to see what clock it uses. The existing tests set clock at 19:30 (30 min after inicio 19:00, within window) get code, then post. I'll mirror exactly that pattern, which is known-good.\n\nFor minimal: use 1 encontro on dia 19, presença on dia 19 at 19:30, final relogio after. Actually to be safe, mirror the known-good pattern with 4 encontros/4 presenças like listagem test. But user wants \"menor teste possível\". Using 1 encontro reduces steps. Let me check get-codigo-do-encontro to ensure code is deterministic given clock.\n\nLet me read get-codigo-do-encontro.ts.\n\nActually, the existing listagem test uses the exact flow and it's verified working. To reduce number of encontros but keep it reliable, I'll use 2 encontros and 2 presenças (100% ≥ 75%). Need at least... with 1 foundro and 1 presença it also works. The GET code route: let me quickly check it uses clock.now() similar bucket. The presence post at 19:30 → refTime=agora=19:30 within window [18:45, 19:30]. ok 19:30 inclusive is fine. And the code at 19:30 bucket. GET /encontros/:id/codigo uses clock too presumably same bucket.\n\nI'll use 1 encontro, 1 presença — minimal. But wait, cargaHorariaMinutos: the certificate records cargaHorariaMinutos from activity. For minicurso created via POST /atividades, what cargaHorariaMinutos is assigned? In the listagem test they expected 720 (4 encontros * 3h). So carga is computed from encontros. With 1 encontro → 180. Irrelevant for our assertions.\n\nLet me read get-codigo-do-encontro.ts quickly to confirm the code is clock-based.",
+     "time": {
+      "start": 1790083741151,
+      "end": 1790083751445
+     },
+     "id": "prt_0c94e35df001FiLsj1Rf4n1N2E",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94e2b5d001d5KWmxEE2EUMzZ"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_8869754fd86a43598c1604ba",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\application\\get-codigo-do-encontro.ts"
+      },
+      "output": "[2322 caracteres omitidos]",
+      "title": "api\\src\\application\\get-codigo-do-encontro.ts",
+      "time": {
+       "start": 1790083751718,
+       "end": 1790083751771
+      }
+     },
+     "id": "prt_0c94e5e18001eZAdivY5lvzCJV",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94e2b5d001d5KWmxEE2EUMzZ"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-finish",
+     "tokens": {
+      "total": 70323,
+      "input": 6706,
+      "output": 641,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 62976
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c94e6145001R2HIluBTTGMHbe",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94e2b5d001d5KWmxEE2EUMzZ"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c94df115001mHMJFm7L1u9TNf",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 73062,
+     "input": 916,
+     "output": 2002,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 70144
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790083752698,
+     "completed": 1790083827690
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c94e62fa00176UeSDQ9Cbxlpd",
+    "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4"
+   },
+   "parts": [
+    {
+     "snapshot": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "type": "step-start",
+     "id": "prt_0c94e6b10001VS3RVPcPuPIZ3C",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94e62fa00176UeSDQ9Cbxlpd"
+    },
+    {
+     "type": "reasoning",
+     "text": "The code route and presence code use the same minute bucket. Window is inicio-15min to inicio+30min. Existing tests set clock at 19:30 (inicio 19:00 → within window inclusive). Code obtained at 19:30, then POST presença at same clock (19:30) → code matches. Good.\n\nNow I'll write the minimal test with 1 encontro (dia 19), presença at dia 19 19:30, final clock at 2026-10-24T10:00:00-03:00 (well after). Actually simpler: final clock could be right after the encontro end, but let's use the known pattern value.\n\nWait: one encontro with fim 2026-10-19T22:00:00-03:00. Final clock 2026-10-19T23:00:00-03:00 is after the end. But we need presença first at 19:30 then advance. Use final '2026-10-19T23:00:00-03:00'. That's after end of last encontro. Good.\n\nActually the emission requires clock >= fim of last encontro. 23:00 > 22:00. Good.\n\nNow the restart: after app1.close, app2 = createApp({ dbPath, modoTeste: true }) — no reset. The relogio_estado persists 2026-10-19T23:00. On re-emission, clock.now() = 23:00 → still after end. Also find existing certificate → returns existing row. So expect 200 with same codigo/emitidoEm.\n\nCleanup: use try/finally. app1, app2 close via `app?.close?.()`. Unlink db file. There are also -wal/-shm files? better-sqlite3 with WAL? Default journal mode is delete. Actually pragma only sets foreign_keys. SQLite default journal = delete; no -wal files unless WAL enabled. To be safe, unlink dbPath only (mirror initialization.test.ts). But if WAL were used, -wal remains; createApp without delete would break on cleanup. The existing initialization.test.ts only unlinks the single file. I'll also guard cleanup within try/finally and unlink if exists.\n\nOne concern: runSeed on app2 — INSERT OR IGNORE, won't delete users. Good. Doesn't reset relogio_estado since existing. Good.\n\nAnother concern: `runMigrations` on app2 — CREATE TABLE IF NOT EXISTS, idempotent. Good.\n\nAlso, after app2 you might need the relogio to be exact. Since we don't call reset on app2, relogio_estado keeps '2026-10-19T23:00...'. \n\nAlso note: POST /atividades on app1 assigns cargaHorariaMinutos computed from encontros. 1 encontro 3h = 180.\n\nNow, the emission route: requireUser + checks papel participante. Then finds atividade. Then emitirCertificado.execute with snapshot of encontros sorted. m2Port SQLiteM2Adapter lists inscrições; inscrição created via POST /atividades/:id/inscricoes has status 'confirmada' (from inscricao-fatia tests presumably). Good.\n\nLet me also confirm the inscrição status default. In create-inscricao.ts, likely creates 'confirmada' if no waitlist. The certificado tests use this same flow and get 201, so yes.\n\nNow write the test file. I'll name description \"M4 - Certificados - persistência do código após reinicialização com o mesmo banco\". Single `it`.\n\nI'll capture codigo and emitidoEm. After restart, re-post → expect 200, codigo equal, emitidoEm equal. I'll keep it minimal without GET public route (per user: only if simple/useful, don't overexpand). I'll skip it to keep minimal — actually it's a useful persistence proof and simple. But user said don't expand unnecessarily. Keep only the required assertions.\n\nLet me write the file.\n\nRegarding cleanup even if a step fails: use try/finally in the test body. Initialize app variables. In finally, close both and unlink file (check exists). Also wrap the whole it body.\n\nVitest is testing. Let me write it.\n\nImports: describe, it, expect from vitest; request from supertest; path, os, fs; createApp from '../src/app.js'.\n\nLet me write.",
+     "time": {
+      "start": 1790083754771,
+      "end": 1790083815804
+     },
+     "id": "prt_0c94e6b13001kjw7kRJlURY8W3",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94e62fa00176UeSDQ9Cbxlpd"
+    },
+    {
+     "type": "text",
+     "text": "Autorizado: criar apenas `api/tests/certificado-restart.test.ts`.",
+     "time": {
+      "start": 1790083815808,
+      "end": 1790083826379
+     },
+     "id": "prt_0c94f59800018sGC4IabScfLS4",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94e62fa00176UeSDQ9Cbxlpd"
+    },
+    {
+     "type": "tool",
+     "tool": "write",
+     "callID": "call_a6f79a014b87405d87d3ac7e",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\certificado-restart.test.ts",
+       "content": "import { describe, it, expect } from 'vitest';\nimport request from 'supertest';\nimport path from 'path';\nimport os from 'os';\nimport fs from 'fs';\nimport { createApp } from '../src/app.js';\n\nconst PARTICIPANTE = 'p-carla';\nconst ORGANIZACAO = 'org-ana';\n\ndescribe('M4 - Certificados - persistencia do codigo apos reinicializacao com o mesmo banco', () => {\n  it('mantem o mesmo codigo e emitidoEm ao reemitir em nova instancia com o mesmo dbPath, sem reset', async () => {\n    const dbPath = path.join(os.tmpdir(), `test-certificado-restart-${Date.now()}-${Math.random()}.sqlite`);\n    let app1: any;\n    let app2: any;\n\n    try {\n      app1 = createApp({ dbPath, modoTeste: true });\n\n      const resReset = await request(app1).post('/_teste/reset');\n      expect(resReset.status).toBe(204);\n\n      const criacao = await request(app1)\n        .post('/atividades')\n        .set('X-Usuario', ORGANIZACAO)\n        .send({\n          titulo: 'Minicurso para restart',\n          tipo: 'minicurso',\n          salaId: 'lab-3',\n          vagas: 10,\n          encontros: [\n            { inicio: '2026-10-19T19:00:00-03:00', fim: '2026-10-19T22:00:00-03:00' }\n          ]\n        });\n      expect(criacao.status).toBe(201);\n      const atividadeId: string = criacao.body?.id;\n      const encontroId: string = criacao.body?.encontros?.[0]?.id;\n\n      const inscricao = await request(app1)\n        .post(`/atividades/${atividadeId}/inscricoes`)\n        .set('X-Usuario', PARTICIPANTE);\n      expect(inscricao.status).toBe(201);\n\n      await request(app1).put('/_teste/relogio').send({ agora: '2026-10-19T19:30:00-03:00' });\n      const codigoRes = await request(app1)\n        .get(`/encontros/${encontroId}/codigo`)\n        .set('X-Usuario', ORGANIZACAO);\n      const codigo: string = codigoRes.body?.codigo ?? '';\n      expect(codigo).not.toBe('');\n\n      const presenca = await request(app1)\n        .post(`/encontros/${encontroId}/presencas`)\n        .set('X-Usuario', PARTICIPANTE)\n        .send({ codigo });\n      expect(presenca.status).toBe(201);\n\n      await request(app1).put('/_teste/relogio').send({ agora: '2026-10-19T23:00:00-03:00' });\n\n      const primeira = await request(app1)\n        .post(`/atividades/${atividadeId}/certificado`)\n        .set('X-Usuario', PARTICIPANTE);\n      expect(primeira.status).toBe(201);\n      const codigoOriginal: string = primeira.body.codigo;\n      const emitidoEmOriginal: string = primeira.body.emitidoEm;\n      expect(codigoOriginal).toMatch(/^SA26-[A-Z2-9]{4}-[A-Z2-9]{4}$/);\n\n      app1.close();\n      app1 = null;\n\n      app2 = createApp({ dbPath, modoTeste: true });\n\n      const reemissao = await request(app2)\n        .post(`/atividades/${atividadeId}/certificado`)\n        .set('X-Usuario', PARTICIPANTE);\n      expect(reemissao.status).toBe(200);\n      expect(reemissao.body.codigo).toBe(codigoOriginal);\n      expect(reemissao.body.emitidoEm).toBe(emitidoEmOriginal);\n    } finally {\n      app2?.close?.();\n      app1?.close?.();\n      if (fs.existsSync(dbPath)) {\n        fs.unlinkSync(dbPath);\n      }\n    }\n  });\n});"
+      },
+      "output": "Wrote file successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "filepath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\certificado-restart.test.ts",
+       "exists": false,
+       "truncated": false
+      },
+      "title": "api\\tests\\certificado-restart.test.ts",
+      "time": {
+       "start": 1790083826360,
+       "end": 1790083826396
+      }
+     },
+     "id": "prt_0c94f5e42001x4nw175zJrfhlH",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94e62fa00176UeSDQ9Cbxlpd"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "b16801a3f0e5129b90104f4ba18f92091d6ae4b3",
+     "type": "step-finish",
+     "tokens": {
+      "total": 73062,
+      "input": 916,
+      "output": 2002,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 70144
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c94f8563001Mpu818MvEhdCDL",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94e62fa00176UeSDQ9Cbxlpd"
+    },
+    {
+     "type": "patch",
+     "hash": "213883723c95708bd6d9fa19ef28b9b217a71d42",
+     "files": [
+      "C:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/api/tests/certificado-restart.test.ts"
+     ],
+     "id": "prt_0c94f87e3001uQBiSJkABUGrGw",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94e62fa00176UeSDQ9Cbxlpd"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c94df115001mHMJFm7L1u9TNf",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 73174,
+     "input": 117,
+     "output": 97,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 72960
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790083827705,
+     "completed": 1790083836635
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c94f87f90011gRPjjAYWzm5X7",
+    "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4"
+   },
+   "parts": [
+    {
+     "snapshot": "b16801a3f0e5129b90104f4ba18f92091d6ae4b3",
+     "type": "step-start",
+     "id": "prt_0c94f8f6f001RixN6Bpub0kG7y",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94f87f90011gRPjjAYWzm5X7"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_b5e8900a4c3043139d86e98f",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "npx vitest run tests/certificado-restart.test.ts",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api"
+      },
+      "output": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/api\u001b[39m\n\n \u001b[31m❯\u001b[39m tests/certificado-restart.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m | \u001b[22m\u001b[31m1 failed\u001b[39m\u001b[2m)\u001b[22m\u001b[32m 192\u001b[2mms\u001b[22m\u001b[39m\n\u001b[31m   \u001b[31m×\u001b[31m M4 - Certificados - persistencia do codigo apos reinicializacao com o mesmo banco\u001b[2m > \u001b[22mmantem o mesmo codigo e emitidoEm ao reemitir em nova instancia com o mesmo dbPath, sem reset\u001b[39m\u001b[32m 190\u001b[2mms\u001b[22m\u001b[39m\n\u001b[31m     → expected 422 to be 201 // Object.is equality\u001b[39m\n\n\u001b[31m⎯⎯⎯⎯⎯⎯⎯\u001b[39m\u001b[1m\u001b[41m Failed Tests 1 \u001b[49m\u001b[22m\u001b[31m⎯⎯⎯⎯⎯⎯⎯\u001b[39m\n\n\u001b[41m\u001b[1m FAIL \u001b[22m\u001b[49m tests/certificado-restart.test.ts\u001b[2m > \u001b[22mM4 - Certificados - persistencia do codigo apos reinicializacao com o mesmo banco\u001b[2m > \u001b[22mmantem o mesmo codigo e emitidoEm ao reemitir em nova instancia com o mesmo dbPath, sem reset\n\u001b[31m\u001b[1mAssertionError\u001b[22m: expected 422 to be 201 // Object.is equality\u001b[39m\n\n\u001b[32m- Expected\u001b[39m\n\u001b[31m+ Received\u001b[39m\n\n\u001b[32m- 201\u001b[39m\n\u001b[31m+ 422\u001b[39m\n\n\u001b[36m \u001b[2m❯\u001b[22m tests/certificado-restart.test.ts:\u001b[2m35:30\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[31m1 failed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[31m1 failed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m   Start at \u001b[22m 10:30:33\n\u001b[2m   Duration \u001b[22m 1.86s\u001b[2m (transform 358ms, setup 0ms, collect 927ms, tests 192ms, environment 0ms, prepare 194ms)\u001b[22m\n\n    \u001b[90m 33| \u001b[39m          ]\n    \u001b[90m 34| \u001b[39m        })\u001b[33m;\u001b[39m\n    \u001b[90m 35| \u001b[39m      \u001b[34mexpect\u001b[39m(criacao\u001b[33m.\u001b[39mstatus)\u001b[33m.\u001b[39m\u001b[34mtoBe\u001b[39m(\u001b[34m201\u001b[39m)\u001b[33m;\u001b[39m\n    \u001b[90m   | \u001b[39m                             \u001b[31m^\u001b[39m\n    \u001b[90m 36| \u001b[39m      \u001b[35mconst\u001b[39m atividadeId\u001b[33m:\u001b[39m string \u001b[33m=\u001b[39m criacao\u001b[33m.\u001b[39mbody\u001b[33m?.\u001b[39mid\u001b[33m;\u001b[39m\n    \u001b[90m 37| \u001b[39m      \u001b[35mconst\u001b[39m encontroId\u001b[33m:\u001b[39m string \u001b[33m=\u001b[39m criacao\u001b[33m.\u001b[39mbody\u001b[33m?.\u001b[39mencontros\u001b[33m?.\u001b[39m[\u001b[34m0\u001b[39m]\u001b[33m?.\u001b[39mid\u001b[33m;\u001b[39m\n\n\u001b[31m\u001b[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\u001b[22m\u001b[39m\n\n",
+      "metadata": {
+       "output": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/api\u001b[39m\n\n \u001b[31m❯\u001b[39m tests/certificado-restart.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m | \u001b[22m\u001b[31m1 failed\u001b[39m\u001b[2m)\u001b[22m\u001b[32m 192\u001b[2mms\u001b[22m\u001b[39m\n\u001b[31m   \u001b[31m×\u001b[31m M4 - Certificados - persistencia do codigo apos reinicializacao com o mesmo banco\u001b[2m > \u001b[22mmantem o mesmo codigo e emitidoEm ao reemitir em nova instancia com o mesmo dbPath, sem reset\u001b[39m\u001b[32m 190\u001b[2mms\u001b[22m\u001b[39m\n\u001b[31m     → expected 422 to be 201 // Object.is equality\u001b[39m\n\n\u001b[31m⎯⎯⎯⎯⎯⎯⎯\u001b[39m\u001b[1m\u001b[41m Failed Tests 1 \u001b[49m\u001b[22m\u001b[31m⎯⎯⎯⎯⎯⎯⎯\u001b[39m\n\n\u001b[41m\u001b[1m FAIL \u001b[22m\u001b[49m tests/certificado-restart.test.ts\u001b[2m > \u001b[22mM4 - Certificados - persistencia do codigo apos reinicializacao com o mesmo banco\u001b[2m > \u001b[22mmantem o mesmo codigo e emitidoEm ao reemitir em nova instancia com o mesmo dbPath, sem reset\n\u001b[31m\u001b[1mAssertionError\u001b[22m: expected 422 to be 201 // Object.is equality\u001b[39m\n\n\u001b[32m- Expected\u001b[39m\n\u001b[31m+ Received\u001b[39m\n\n\u001b[32m- 201\u001b[39m\n\u001b[31m+ 422\u001b[39m\n\n\u001b[36m \u001b[2m❯\u001b[22m tests/certificado-restart.test.ts:\u001b[2m35:30\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[31m1 failed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[31m1 failed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m   Start at \u001b[22m 10:30:33\n\u001b[2m   Duration \u001b[22m 1.86s\u001b[2m (transform 358ms, setup 0ms, collect 927ms, tests 192ms, environment 0ms, prepare 194ms)\u001b[22m\n\n    \u001b[90m 33| \u001b[39m          ]\n    \u001b[90m 34| \u001b[39m        })\u001b[33m;\u001b[39m\n    \u001b[90m 35| \u001b[39m      \u001b[34mexpect\u001b[39m(criacao\u001b[33m.\u001b[39mstatus)\u001b[33m.\u001b[39m\u001b[34mtoBe\u001b[39m(\u001b[34m201\u001b[39m)\u001b[33m;\u001b[39m\n    \u001b[90m   | \u001b[39m                             \u001b[31m^\u001b[39m\n    \u001b[90m 36| \u001b[39m      \u001b[35mconst\u001b[39m atividadeId\u001b[33m:\u001b[39m string \u001b[33m=\u001b[39m criacao\u001b[33m.\u001b[39mbody\u001b[33m?.\u001b[39mid\u001b[33m;\u001b[39m\n    \u001b[90m 37| \u001b[39m      \u001b[35mconst\u001b[39m encontroId\u001b[33m:\u001b[39m string \u001b[33m=\u001b[39m criacao\u001b[33m.\u001b[39mbody\u001b[33m?.\u001b[39mencontros\u001b[33m?.\u001b[39m[\u001b[34m0\u001b[39m]\u001b[33m?.\u001b[39mid\u001b[33m;\u001b[39m\n\n\u001b[31m\u001b[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\u001b[22m\u001b[39m\n\n",
+       "exit": 1,
+       "truncated": false
+      },
+      "title": "npx vitest run tests/certificado-restart.test.ts",
+      "time": {
+       "start": 1790083830595,
+       "end": 1790083835506
+      }
+     },
+     "id": "prt_0c94f91790013oScUXlwvVlNJy",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94f87f90011gRPjjAYWzm5X7"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "b16801a3f0e5129b90104f4ba18f92091d6ae4b3",
+     "type": "step-finish",
+     "tokens": {
+      "total": 73174,
+      "input": 117,
+      "output": 97,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 72960
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c94fa850001KxTRbXmVHcGmEg",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94f87f90011gRPjjAYWzm5X7"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c94df115001mHMJFm7L1u9TNf",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 74776,
+     "input": 1343,
+     "output": 473,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 72960
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790083836646,
+     "completed": 1790083849328
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c94faae6001j3mgew7rM7HiqS",
+    "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4"
+   },
+   "parts": [
+    {
+     "snapshot": "b16801a3f0e5129b90104f4ba18f92091d6ae4b3",
+     "type": "step-start",
+     "id": "prt_0c94fb382001fop5wTp3CyZ5sP",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94faae6001j3mgew7rM7HiqS"
+    },
+    {
+     "type": "reasoning",
+     "text": "The test failed at activity creation: 422 instead of 201. The POST /atividades returned 422. Let me see what the body says. It could be a validation issue with a single encontro, or something about vagas/sala. Let me diagnose by printing the response. Let me check create-activity use case — maybe an activity needs at least... or perhaps the failure is that the atividade requires something. Let me debug by running a quick script to see the 422 body.\n\nActually, let me capture the body by modifying the test temporarily? No, I shouldn't tinker. Better: run a quick node/vitest one-off to see the error. Let me just do a quick script using the app to print the response body.\n\nActually the simplest: add a temporary console log? The user said don't alter existing tests, but I can debug. Let me run a quick node script via tsx? Not installed necessarily. Alternative: use vitest with a temporary inline test? Instead, I can edit my test to log the body, run, then decide. Actually, I'm allowed to modify my own new test. But better diagnose first.\n\nLet me check create-activity.ts and update activity creation — maybe encontros need at least... or sala 'lab-3' exists (seed has lab-3). vagas 10. tipo minicurso. Hmm 422 DADOS_INVALIDOS means zod schema failed. Let me check the schema: encontros is required array. Maybe there's an additional required field? The schema in app.ts:309-320 is titulo, tipo, salaId, vagas, encontros[inicio,fim]. Our payload matches. Maybe Date validation inside CreateActivityUseCase rejects a single encontro? Let me check create-activity.ts.",
+     "time": {
+      "start": 1790083838856,
+      "end": 1790083847710
+     },
+     "id": "prt_0c94fb388001scxwQQjldPU9LY",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94faae6001j3mgew7rM7HiqS"
+    },
+    {
+     "type": "text",
+     "text": "Nascido red em 422 na criação de atividade. Vou diagnosticar antes de alterar qualquer coisa.",
+     "time": {
+      "start": 1790083847735,
+      "end": 1790083848460
+     },
+     "id": "prt_0c94fd637001KZ6pa7piwpYUjP",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94faae6001j3mgew7rM7HiqS"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_d1626a8ec0c1411ba8f02098",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\application\\create-activity.ts"
+      },
+      "output": "[2480 caracteres omitidos]",
+      "title": "api\\src\\application\\create-activity.ts",
+      "time": {
+       "start": 1790083848191,
+       "end": 1790083848218
+      }
+     },
+     "id": "prt_0c94fd730001cCYs7J1bicTnDC",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94faae6001j3mgew7rM7HiqS"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "b16801a3f0e5129b90104f4ba18f92091d6ae4b3",
+     "type": "step-finish",
+     "tokens": {
+      "total": 74776,
+      "input": 1343,
+      "output": 473,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 72960
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c94fdaaf001iLLDbCRmPxBBPA",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94faae6001j3mgew7rM7HiqS"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c94df115001mHMJFm7L1u9TNf",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 75672,
+     "input": 759,
+     "output": 161,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 74752
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790083849340,
+     "completed": 1790083856936
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c94fdc7c001HYzkkAa0Jerx1X",
+    "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4"
+   },
+   "parts": [
+    {
+     "snapshot": "b16801a3f0e5129b90104f4ba18f92091d6ae4b3",
+     "type": "step-start",
+     "id": "prt_0c94fe308001GtZHe0hTsr1eSh",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94fdc7c001HYzkkAa0Jerx1X"
+    },
+    {
+     "type": "reasoning",
+     "text": "`validateActivityEncounterCount(input.tipo, input.encontros.length)` — minicurso probably requires at least a certain number of encontros, OR palestra. Let me check domain/activity.ts validateActivityEncounterCount.",
+     "time": {
+      "start": 1790083851023,
+      "end": 1790083851502
+     },
+     "id": "prt_0c94fe30f001c7Xh333vIngVBB",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94fdc7c001HYzkkAa0Jerx1X"
+    },
+    {
+     "type": "tool",
+     "tool": "grep",
+     "callID": "call_f9d5bded40c044098094254e",
+     "state": {
+      "status": "completed",
+      "input": {
+       "path": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\domain\\activity.ts",
+       "pattern": "validateActivityEncounterCount|function validateEncounterRules|ENCONTROS|minicurso|palestra"
+      },
+      "output": "[700 caracteres omitidos]",
+      "title": "validateActivityEncounterCount|function validateEncounterRules|ENCONTROS|minicurso|palestra",
+      "time": {
+       "start": 1790083855892,
+       "end": 1790083855987
+      }
+     },
+     "id": "prt_0c94fe4f2001EWmXcDJpK07JVU",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94fdc7c001HYzkkAa0Jerx1X"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "b16801a3f0e5129b90104f4ba18f92091d6ae4b3",
+     "type": "step-finish",
+     "tokens": {
+      "total": 75672,
+      "input": 759,
+      "output": 161,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 74752
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c94ff854001tcLkvWZ0McMxdq",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94fdc7c001HYzkkAa0Jerx1X"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c94df115001mHMJFm7L1u9TNf",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 76344,
+     "input": 395,
+     "output": 429,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 75520
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790083856944,
+     "completed": 1790083862956
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c94ffa30001a5e425314fRjv2",
+    "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4"
+   },
+   "parts": [
+    {
+     "snapshot": "b16801a3f0e5129b90104f4ba18f92091d6ae4b3",
+     "type": "step-start",
+     "id": "prt_0c950001f001zCkbDMBrIBYcCs",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94ffa30001a5e425314fRjv2"
+    },
+    {
+     "type": "reasoning",
+     "text": "Minicurso needs 2-5 encontros. Single encontro → 422. \n\nAlternative: use tipo 'palestra' which requires exactly 1 encontro! But wait — the extrato uses palestras; but emission of certificate — does it care about tipo? No. EmitirCertificado receives snapshot with id, cargaHorariaMinutos, encontros, cancelada. So palestra with 1 encontro works for certificate emission. But requirement: presença em 75% dos encontros → 1 presença basta. Perfect.\n\nBut wait — does the certificate R-spec care about tipo? No. And the cargaHorariaMinutos for palestra: calculateCargaHoraria of 3h = 180. Fine, not asserted.\n\nHowever, is there an inscrição restriction or waitlist for palestra? No.\n\nSo switch to tipo 'palestra', salaId 'auditorio', vagas 30. This gives exactly 1 encontro, 1 presença needed. Minimal.\n\nLet me update the test payload.",
+     "time": {
+      "start": 1790083858468,
+      "end": 1790083860691
+     },
+     "id": "prt_0c9500023001pAIZ4hzBRYFU6W",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94ffa30001a5e425314fRjv2"
+    },
+    {
+     "type": "text",
+     "text": "Minicurso exige 2–5 encontros. Uso `palestra` (exatamente 1 encontro) — ainda menor e elegível.",
+     "time": {
+      "start": 1790083860695,
+      "end": 1790083861891
+     },
+     "id": "prt_0c95008d7001OpOjffvWibJwqL",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94ffa30001a5e425314fRjv2"
+    },
+    {
+     "type": "tool",
+     "tool": "edit",
+     "callID": "call_d2ef6687f9ae404f901690bf",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\certificado-restart.test.ts",
+       "oldString": "titulo: 'Minicurso para restart',\n          tipo: 'minicurso',\n          salaId: 'lab-3',\n          vagas: 10,",
+       "newString": "titulo: 'Palestra para restart',\n          tipo: 'palestra',\n          salaId: 'auditorio',\n          vagas: 30,"
+      },
+      "output": "Edit applied successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "diff": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\certificado-restart.test.ts\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\certificado-restart.test.ts\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\certificado-restart.test.ts\n@@ -23,12 +23,12 @@\n const criacao = await request(app1)\n   .post('/atividades')\n   .set('X-Usuario', ORGANIZACAO)\n   .send({\n-    titulo: 'Minicurso para restart',\n-    tipo: 'minicurso',\n-    salaId: 'lab-3',\n-    vagas: 10,\n+    titulo: 'Palestra para restart',\n+    tipo: 'palestra',\n+    salaId: 'auditorio',\n+    vagas: 30,\n     encontros: [\n       { inicio: '2026-10-19T19:00:00-03:00', fim: '2026-10-19T22:00:00-03:00' }\n     ]\n   });\n",
+       "filediff": {
+        "file": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\certificado-restart.test.ts",
+        "patch": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\certificado-restart.test.ts\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\certificado-restart.test.ts\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\certificado-restart.test.ts\n@@ -23,12 +23,12 @@\n const criacao = await request(app1)\n   .post('/atividades')\n   .set('X-Usuario', ORGANIZACAO)\n   .send({\n-    titulo: 'Minicurso para restart',\n-    tipo: 'minicurso',\n-    salaId: 'lab-3',\n-    vagas: 10,\n+    titulo: 'Palestra para restart',\n+    tipo: 'palestra',\n+    salaId: 'auditorio',\n+    vagas: 30,\n     encontros: [\n       { inicio: '2026-10-19T19:00:00-03:00', fim: '2026-10-19T22:00:00-03:00' }\n     ]\n   });\n",
+        "additions": 4,
+        "deletions": 4
+       },
+       "truncated": false
+      },
+      "title": "api\\tests\\certificado-restart.test.ts",
+      "time": {
+       "start": 1790083861845,
+       "end": 1790083861885
+      }
+     },
+     "id": "prt_0c95009c5001llil1NxvzROYp9",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94ffa30001a5e425314fRjv2"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "ee177e295edb9a17a5ddea0e9ece4dc4fe6e4fb7",
+     "type": "step-finish",
+     "tokens": {
+      "total": 76344,
+      "input": 395,
+      "output": 429,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 75520
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c9500f81001SNo6jYkXROoMXR",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94ffa30001a5e425314fRjv2"
+    },
+    {
+     "type": "patch",
+     "hash": "b16801a3f0e5129b90104f4ba18f92091d6ae4b3",
+     "files": [
+      "C:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/api/tests/certificado-restart.test.ts"
+     ],
+     "id": "prt_0c95011a9001ZgPKuECdxVD01Y",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c94ffa30001a5e425314fRjv2"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c94df115001mHMJFm7L1u9TNf",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 76453,
+     "input": 324,
+     "output": 97,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 76032
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790083862962,
+     "completed": 1790083870487
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c95011b2001nvozlXzU4h93gd",
+    "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4"
+   },
+   "parts": [
+    {
+     "snapshot": "ee177e295edb9a17a5ddea0e9ece4dc4fe6e4fb7",
+     "type": "step-start",
+     "id": "prt_0c9501714001UIl1wAP7hGbsto",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c95011b2001nvozlXzU4h93gd"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_a223be753ed54f72a93c149d",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "npx vitest run tests/certificado-restart.test.ts",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api"
+      },
+      "output": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/api\u001b[39m\n\n \u001b[32m✓\u001b[39m tests/certificado-restart.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 230\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m   Start at \u001b[22m 10:31:07\n\u001b[2m   Duration \u001b[22m 1.71s\u001b[2m (transform 330ms, setup 0ms, collect 810ms, tests 230ms, environment 1ms, prepare 269ms)\u001b[22m\n\n",
+      "metadata": {
+       "output": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/api\u001b[39m\n\n \u001b[32m✓\u001b[39m tests/certificado-restart.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 230\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m   Start at \u001b[22m 10:31:07\n\u001b[2m   Duration \u001b[22m 1.71s\u001b[2m (transform 330ms, setup 0ms, collect 810ms, tests 230ms, environment 1ms, prepare 269ms)\u001b[22m\n\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "npx vitest run tests/certificado-restart.test.ts",
+      "time": {
+       "start": 1790083864662,
+       "end": 1790083869050
+      }
+     },
+     "id": "prt_0c9501723001tXH4FQmDuzBewG",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c95011b2001nvozlXzU4h93gd"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "ee177e295edb9a17a5ddea0e9ece4dc4fe6e4fb7",
+     "type": "step-finish",
+     "tokens": {
+      "total": 76453,
+      "input": 324,
+      "output": 97,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 76032
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c9502be6001e9J6evPP6QwuUG",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c95011b2001nvozlXzU4h93gd"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c94df115001mHMJFm7L1u9TNf",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 76835,
+     "input": 468,
+     "output": 79,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 76288
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790083870501,
+     "completed": 1790083890586
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c9502f25001U5EN2QcpVa540F",
+    "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4"
+   },
+   "parts": [
+    {
+     "snapshot": "ee177e295edb9a17a5ddea0e9ece4dc4fe6e4fb7",
+     "type": "step-start",
+     "id": "prt_0c95035e9001P2kVB1C0VUWn55",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c9502f25001U5EN2QcpVa540F"
+    },
+    {
+     "type": "text",
+     "text": "Verde. Agora a suíte completa e o typecheck.",
+     "time": {
+      "start": 1790083872237,
+      "end": 1790083872865
+     },
+     "id": "prt_0c95035ed001F2jkEG0mwIh434",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c9502f25001U5EN2QcpVa540F"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_55df6bf7937644ac8dc54215",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "npm --prefix api test",
+       "timeout": 300000
+      },
+      "output": "\n> semana-academica-api@1.0.0 test\n> vitest run\n\n\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/api\u001b[39m\n\n \u001b[32m✓\u001b[39m tests/presenca-fatia5.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1414\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 5 (Precedência de Erros e Listagem)\u001b[2m > \u001b[22mR14 (Critério 18) — precedência de erros no registro pelo participante: presença existente (200) prevalece sobre não inscrito/janela/código inválido \u001b[33m 534\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 5 (Precedência de Erros e Listagem)\u001b[2m > \u001b[22mR16 (Critério 20) — pedido GET para /encontros/:id/presencas feito pela organização retorna 200 e a lista de presenças \u001b[33m 342\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia4.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1483\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 4 (Presença Manual e Limites)\u001b[2m > \u001b[22mcritério 9 (R6) — tentativa de presença manual sem justificativa ou com menos de 10 caracteres deve retornar 422 JUSTIFICATIVA_OBRIGATORIA \u001b[33m 503\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 4 (Presença Manual e Limites)\u001b[2m > \u001b[22mcritério 10 (R7) — tentativa de presença manual fora do período permitido (antes da janela ou mais de 2h após o fim) deve retornar 422 FORA_DA_JANELA \u001b[33m 363\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 4 (Presença Manual e Limites)\u001b[2m > \u001b[22mcritério 11 (R8) — tentativa de presença manual que excede o limite de 10% das inscrições confirmadas deve retornar 422 LIMITE_DE_MANUAIS \u001b[33m 347\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia1.test.ts \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1848\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 1 (R1)\u001b[2m > \u001b[22mrecusa GET /encontros/:id/codigo feito 16 minutos antes do início com 422 FORA_DA_JANELA \u001b[33m 502\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia2.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1810\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 2 (Registro via QR e Idempotência)\u001b[2m > \u001b[22mcritério 12 (R9) — presença registrada por participante sem inscrição confirmada deve retornar 403 NAO_INSCRITO \u001b[33m 479\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 2 (Registro via QR e Idempotência)\u001b[2m > \u001b[22mcritérios 6, 15, 16, 17, 22 — registro bem-sucedido, idempotência 201/200, sem lidoEm e origem qr \u001b[33m 356\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 2 (Registro via QR e Idempotência)\u001b[2m > \u001b[22mcritérios 7, 13, 14 — normalização (minúsculas/espaços), código anterior válido, código inválido / outro encontro \u001b[33m 410\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 2 (Registro via QR e Idempotência)\u001b[2m > \u001b[22mcritério 21 (R17) — relógio do celular adiantado (lidoEm no futuro) usa o instante do envio \u001b[33m 311\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/update-activity.test.ts \u001b[2m(\u001b[22m\u001b[2m19 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1831\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m PATCH /atividades/:id — Edição Básica (Fatia 4)\u001b[2m > \u001b[22m5. PATCH de uma atividade existente, com usuário organização e JSON malformado, retorna 422 DADOS_INVALIDOS e atividade original inalterada \u001b[33m 333\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/inscricoes-fatia4.test.ts \u001b[2m(\u001b[22m\u001b[2m7 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2556\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR20 (Critério 37) — recusa cancelamento por usuário não participante com 403 SOMENTE_PARTICIPANTE \u001b[33m 425\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR16 (Critério 28) — recusa cancelamento em inscrição já cancelada ou expirada com 422 INSCRICAO_INATIVA \u001b[33m 548\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR15 (Critério 27) — recusa cancelamento no instante exato do início do primeiro encontro ou após com 422 ATIVIDADE_JA_INICIADA \u001b[33m 346\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR8, R9 — convoca automático ao cancelar confirmada e reordena fila ao cancelar em_espera \u001b[33m 349\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR17 (Critério 29) — ao cancelar atividade no M1 via POST /atividades/:id/cancelamento, cancela automaticamente todas as inscrições ativas sem alterar inativas \u001b[33m 365\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/inscricoes-fatia1.test.ts \u001b[2m(\u001b[22m\u001b[2m10 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2587\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 1\u001b[2m > \u001b[22mR1 — realiza inscrição confirmada em atividade com vagas disponíveis \u001b[33m 447\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 1\u001b[2m > \u001b[22mR3 (Critério 6) — permite re-inscrição de participante com inscrição anterior cancelada ou expirada, inserindo ao final da fila ou como confirmada \u001b[33m 451\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 1\u001b[2m > \u001b[22mR18 — lista inscrições filtrando por perfil do usuário e por atividadeId \u001b[33m 324\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/extrato.test.ts \u001b[2m(\u001b[22m\u001b[2m14 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2968\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 4 (GET /extrato)\u001b[2m > \u001b[22mR10/R13 — composição dos itens (codigo preenchido ou null)\u001b[2m > \u001b[22mR10/R13: atividade com inscrição confirmada e certificado emitido aparece com codigo preenchido; atividade elegível sem certificado aparece com codigo null \u001b[33m 517\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 4 (GET /extrato)\u001b[2m > \u001b[22mG5/R10 — extrato recalculado a cada consulta (sem snapshot)\u001b[2m > \u001b[22mR10: a emissão de um certificado entre duas consultas muda codigo de null para o código emitido na MESMA instância e banco \u001b[33m 347\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 4 (GET /extrato)\u001b[2m > \u001b[22mR15 — inscrição convocada não elegível\u001b[2m > \u001b[22mR15: atividade com inscrição convocada não aparece no extrato \u001b[33m 310\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 4 (GET /extrato)\u001b[2m > \u001b[22mR17 — inscrição expirada não elegível\u001b[2m > \u001b[22mR17: atividade com inscrição expirada não aparece no extrato \u001b[33m 416\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado.test.ts \u001b[2m(\u001b[22m\u001b[2m7 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 3033\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 1 (R1 e R2)\u001b[2m > \u001b[22mR1 - Presença mínima de 75% sem arredondamento a favor\u001b[2m > \u001b[22memite o certificado de atividade encerrada com 4 encontros quando a presença é exatamente 75% (3 de 4) \u001b[33m 515\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 1 (R1 e R2)\u001b[2m > \u001b[22mR1 - Presença mínima de 75% sem arredondamento a favor\u001b[2m > \u001b[22mrecusa com 422 PRESENCA_INSUFICIENTE presença de 3 em 5 encontros (60%; 75% de 5 é 3,75, sem arredondamento a favor) \u001b[33m 465\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 1 (R1 e R2)\u001b[2m > \u001b[22mR1 - Presença mínima de 75% sem arredondamento a favor\u001b[2m > \u001b[22memite o certificado de atividade encerrada com 5 encontros quando a presença é 80% (4 de 5) \u001b[33m 354\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 1 (R1 e R2)\u001b[2m > \u001b[22mR2 - Emissão somente após o encerramento da atividade\u001b[2m > \u001b[22mrecusa com 422 ATIVIDADE_NAO_ENCERRADA antes do término do último encontro, mesmo com presença suficiente \u001b[33m 583\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 1 (R1 e R2)\u001b[2m > \u001b[22mR2 - Emissão somente após o encerramento da atividade\u001b[2m > \u001b[22memite o certificado no instante exato do término do último encontro \u001b[33m 603\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/inscricoes-fatia3.test.ts \u001b[2m(\u001b[22m\u001b[2m9 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 3065\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mFatia 3 — pré-condição: cria inscrição em_espera para testar posicaoNaEspera \u001b[33m 561\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mR8 — calcula posicaoNaEspera sequencial (1, 2, 3...) baseada na ordem de criação \u001b[33m 397\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mR9, R10 — convoca o 1º da fila de espera quando vaga é liberada e define convocadaAte para 2h depois \u001b[33m 419\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mR10 — trunca convocadaAte no limite de encerramento quando restam menos de 2h, e não convoca após o encerramento \u001b[33m 461\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mR11 — expira convocação não confirmada ao atingir convocadaAte e convoca o próximo da fila em cascata \u001b[33m 304\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/inscricoes-fatia2.test.ts \u001b[2m(\u001b[22m\u001b[2m11 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 3123\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 2 (Validações de Negócio e Conflitos)\u001b[2m > \u001b[22mR4 (Critério 7) — recusa inscrição de participante bloqueado por faltas (2 atividades encerradas com zero presença em ambas) com 422 INSCRICAO_BLOQUEADA \u001b[33m 468\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 2 (Validações de Negócio e Conflitos)\u001b[2m > \u001b[22mR5 (Critério 8) — recusa inscrição no 4º minicurso ocupando vaga com 422 LIMITE_DE_MINICURSOS \u001b[33m 511\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 2 (Validações de Negócio e Conflitos)\u001b[2m > \u001b[22mR5 (Critério 9) — permite inscrição quando participante tem 3 minicursos em estado em_espera \u001b[33m 549\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 2 (Validações de Negócio e Conflitos)\u001b[2m > \u001b[22mR5 (Critério 10) — permite inscrição em minicurso quando participante tem 3 palestras confirmadas \u001b[33m 344\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/create-activity.test.ts \u001b[2m(\u001b[22m\u001b[2m20 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 951\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/app.test.ts \u001b[2m(\u001b[22m\u001b[2m21 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 981\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/encounter-rules.test.ts \u001b[2m(\u001b[22m\u001b[2m15 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 811\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-r8.test.ts \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 982\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 3 (R8 - Verificação pública)\u001b[2m > \u001b[22mR8 - Critério 15: verificação pública sem X-Usuario\u001b[2m > \u001b[22mretorna 200 com exatamente codigo, participante abreviado, atividade, cargaHorariaMinutos e emitidoEm \u001b[33m 675\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-listagem.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1007\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 2 (GET /certificados)\u001b[2m > \u001b[22mlistagem dos próprios certificados (contrato: GET /certificados → 200 [Certificado])\u001b[2m > \u001b[22mretorna 200 com array contendo o certificado emitido com os campos do contrato \u001b[33m 614\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 2 (GET /certificados)\u001b[2m > \u001b[22misolamento por participante\u001b[2m > \u001b[22mnão lista certificado emitido para outro participante \u001b[33m 305\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-nao-inscrito.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 865\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - NAO_INSCRITO na emissão\u001b[2m > \u001b[22mexigência de inscrição confirmada conforme o contrato\u001b[2m > \u001b[22mrecusa com 403 NAO_INSCRITO a emissão de certificado de participante sem nenhuma inscrição na atividade \u001b[33m 427\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia3.test.ts \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 680\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 3 (Offline e Sincronização Tardia)\u001b[2m > \u001b[22mcritério 8 (R5) — envio com lidoEm correspondente a 2 horas e 1 minute após o fim do encontro deve retornar 422 SINCRONIZACAO_TARDIA \u001b[33m 446\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/cancel-activity.test.ts \u001b[2m(\u001b[22m\u001b[2m9 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 671\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/capacity-conflict.test.ts \u001b[2m(\u001b[22m\u001b[2m9 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 787\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-output.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 472\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-status.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 642\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m R15 — Estados temporais da atividade\u001b[2m > \u001b[22m1. Antes do primeiro encontro, situação é prevista \u001b[33m 321\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/migration.test.ts \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 452\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/cancel-activity-effects.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 512\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-filters.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 494\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-atividade-cancelada.test.ts \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 458\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - ATIVIDADE_CANCELADA na emissão\u001b[2m > \u001b[22mATIVIDADE_CANCELADA conforme o contrato\u001b[2m > \u001b[22mrecusa com 422 ATIVIDADE_CANCELADA a emissão de certificado de atividade cancelada \u001b[33m 369\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-g3-presenca-manual.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 374\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Integracao M3 -> M4 (G3): presenca manual contabilizada na emissao\u001b[2m > \u001b[22mG3 — emite certificado 201 contabilizando presencas registradas manualmente pelo fluxo publico do M3 (3 de 4 encontros, 75% exato) \u001b[33m 370\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-contrato-http.test.ts \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 405\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/reset.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 465\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m 2. Reset exato do M1\u001b[2m > \u001b[22mreseta o M1 removendo salas/usuários extras, mantendo os 10 oficiais, sem duplicação no segundo reset, e restaurando o relógio \u001b[33m 461\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-r12.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 487\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 1 (R12 - Precedência de erros na emissão)\u001b[2m > \u001b[22mR12 (Critério 20): atividade não encerrada com 2 de 4 presenças retorna 422 ATIVIDADE_NAO_ENCERRADA e não PRESENCA_INSUFICIENTE \u001b[33m 483\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-detail.test.ts \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 504\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-g3-presenca-offline.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 588\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Integracao M3 -> M4 (G3): presenca offline contabilizada na emissao\u001b[2m > \u001b[22mG3 — emite certificado 201 contabilizando presencas registradas pelo fluxo offline do M3 com lidoEm (3 de 4 encontros, 75% exato) \u001b[33m 584\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-list-order.test.ts \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 575\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m R17 — Ordenação da listagem de atividades\u001b[2m > \u001b[22m1. Ordem pelo primeiro encontro: atividade mais cedo aparece primeiro independentemente da ordem de criação \u001b[33m 332\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-r9.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 108\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-colisao.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 120\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/gerar-codigo.test.ts \u001b[2m(\u001b[22m\u001b[2m12 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 51\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/horas-complementares.test.ts \u001b[2m(\u001b[22m\u001b[2m16 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 22\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/abreviar-nome.test.ts \u001b[2m(\u001b[22m\u001b[2m14 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 18\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/initialization.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 343\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m 1. Inicialização não destrutiva\u001b[2m > \u001b[22mcomprova que reiniciar a aplicação apontando para o mesmo banco SQLite não apaga atividades \u001b[33m 339\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-restart.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 499\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - persistencia do codigo apos reinicializacao com o mesmo banco\u001b[2m > \u001b[22mmantem o mesmo codigo e emitidoEm ao reemitir em nova instancia com o mesmo dbPath, sem reset \u001b[33m 496\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m40 passed\u001b[39m\u001b[22m\u001b[90m (40)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m273 passed\u001b[39m\u001b[22m\u001b[90m (273)\u001b[39m\n\u001b[2m   Start at \u001b[22m 10:31:14\n\u001b[2m   Duration \u001b[22m 14.46s\u001b[2m (transform 3.41s, setup 0ms, collect 46.60s, tests 41.05s, environment 37ms, prepare 24.48s)\u001b[22m\n\n",
+      "metadata": {
+       "output": "\n> semana-academica-api@1.0.0 test\n> vitest run\n\n\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/api\u001b[39m\n\n \u001b[32m✓\u001b[39m tests/presenca-fatia5.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1414\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 5 (Precedência de Erros e Listagem)\u001b[2m > \u001b[22mR14 (Critério 18) — precedência de erros no registro pelo participante: presença existente (200) prevalece sobre não inscrito/janela/código inválido \u001b[33m 534\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 5 (Precedência de Erros e Listagem)\u001b[2m > \u001b[22mR16 (Critério 20) — pedido GET para /encontros/:id/presencas feito pela organização retorna 200 e a lista de presenças \u001b[33m 342\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia4.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1483\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 4 (Presença Manual e Limites)\u001b[2m > \u001b[22mcritério 9 (R6) — tentativa de presença manual sem justificativa ou com menos de 10 caracteres deve retornar 422 JUSTIFICATIVA_OBRIGATORIA \u001b[33m 503\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 4 (Presença Manual e Limites)\u001b[2m > \u001b[22mcritério 10 (R7) — tentativa de presença manual fora do período permitido (antes da janela ou mais de 2h após o fim) deve retornar 422 FORA_DA_JANELA \u001b[33m 363\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 4 (Presença Manual e Limites)\u001b[2m > \u001b[22mcritério 11 (R8) — tentativa de presença manual que excede o limite de 10% das inscrições confirmadas deve retornar 422 LIMITE_DE_MANUAIS \u001b[33m 347\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia1.test.ts \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1848\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 1 (R1)\u001b[2m > \u001b[22mrecusa GET /encontros/:id/codigo feito 16 minutos antes do início com 422 FORA_DA_JANELA \u001b[33m 502\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia2.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1810\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 2 (Registro via QR e Idempotência)\u001b[2m > \u001b[22mcritério 12 (R9) — presença registrada por participante sem inscrição confirmada deve retornar 403 NAO_INSCRITO \u001b[33m 479\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 2 (Registro via QR e Idempotência)\u001b[2m > \u001b[22mcritérios 6, 15, 16, 17, 22 — registro bem-sucedido, idempotência 201/200, sem lidoEm e origem qr \u001b[33m 356\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 2 (Registro via QR e Idempotência)\u001b[2m > \u001b[22mcritérios 7, 13, 14 — normalização (minúsculas/espaços), código anterior válido, código inválido / outro encontro \u001b[33m 410\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 2 (Registro via QR e Idempotência)\u001b[2m > \u001b[22mcritério 21 (R17) — relógio do celular adiantado (lidoEm no futuro) usa o instante do envio \u001b[33m 311\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/update-activity.test.ts \u001b[2m(\u001b[22m\u001b[2m19 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1831\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m PATCH /atividades/:id — Edição Básica (Fatia 4)\u001b[2m > \u001b[22m5. PATCH de uma atividade existente, com usuário organização e JSON malformado, retorna 422 DADOS_INVALIDOS e atividade original inalterada \u001b[33m 333\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/inscricoes-fatia4.test.ts \u001b[2m(\u001b[22m\u001b[2m7 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2556\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR20 (Critério 37) — recusa cancelamento por usuário não participante com 403 SOMENTE_PARTICIPANTE \u001b[33m 425\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR16 (Critério 28) — recusa cancelamento em inscrição já cancelada ou expirada com 422 INSCRICAO_INATIVA \u001b[33m 548\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR15 (Critério 27) — recusa cancelamento no instante exato do início do primeiro encontro ou após com 422 ATIVIDADE_JA_INICIADA \u001b[33m 346\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR8, R9 — convoca automático ao cancelar confirmada e reordena fila ao cancelar em_espera \u001b[33m 349\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR17 (Critério 29) — ao cancelar atividade no M1 via POST /atividades/:id/cancelamento, cancela automaticamente todas as inscrições ativas sem alterar inativas \u001b[33m 365\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/inscricoes-fatia1.test.ts \u001b[2m(\u001b[22m\u001b[2m10 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2587\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 1\u001b[2m > \u001b[22mR1 — realiza inscrição confirmada em atividade com vagas disponíveis \u001b[33m 447\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 1\u001b[2m > \u001b[22mR3 (Critério 6) — permite re-inscrição de participante com inscrição anterior cancelada ou expirada, inserindo ao final da fila ou como confirmada \u001b[33m 451\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 1\u001b[2m > \u001b[22mR18 — lista inscrições filtrando por perfil do usuário e por atividadeId \u001b[33m 324\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/extrato.test.ts \u001b[2m(\u001b[22m\u001b[2m14 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2968\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 4 (GET /extrato)\u001b[2m > \u001b[22mR10/R13 — composição dos itens (codigo preenchido ou null)\u001b[2m > \u001b[22mR10/R13: atividade com inscrição confirmada e certificado emitido aparece com codigo preenchido; atividade elegível sem certificado aparece com codigo null \u001b[33m 517\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 4 (GET /extrato)\u001b[2m > \u001b[22mG5/R10 — extrato recalculado a cada consulta (sem snapshot)\u001b[2m > \u001b[22mR10: a emissão de um certificado entre duas consultas muda codigo de null para o código emitido na MESMA instância e banco \u001b[33m 347\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 4 (GET /extrato)\u001b[2m > \u001b[22mR15 — inscrição convocada não elegível\u001b[2m > \u001b[22mR15: atividade com inscrição convocada não aparece no extrato \u001b[33m 310\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 4 (GET /extrato)\u001b[2m > \u001b[22mR17 — inscrição expirada não elegível\u001b[2m > \u001b[22mR17: atividade com inscrição expirada não aparece no extrato \u001b[33m 416\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado.test.ts \u001b[2m(\u001b[22m\u001b[2m7 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 3033\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 1 (R1 e R2)\u001b[2m > \u001b[22mR1 - Presença mínima de 75% sem arredondamento a favor\u001b[2m > \u001b[22memite o certificado de atividade encerrada com 4 encontros quando a presença é exatamente 75% (3 de 4) \u001b[33m 515\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 1 (R1 e R2)\u001b[2m > \u001b[22mR1 - Presença mínima de 75% sem arredondamento a favor\u001b[2m > \u001b[22mrecusa com 422 PRESENCA_INSUFICIENTE presença de 3 em 5 encontros (60%; 75% de 5 é 3,75, sem arredondamento a favor) \u001b[33m 465\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 1 (R1 e R2)\u001b[2m > \u001b[22mR1 - Presença mínima de 75% sem arredondamento a favor\u001b[2m > \u001b[22memite o certificado de atividade encerrada com 5 encontros quando a presença é 80% (4 de 5) \u001b[33m 354\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 1 (R1 e R2)\u001b[2m > \u001b[22mR2 - Emissão somente após o encerramento da atividade\u001b[2m > \u001b[22mrecusa com 422 ATIVIDADE_NAO_ENCERRADA antes do término do último encontro, mesmo com presença suficiente \u001b[33m 583\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 1 (R1 e R2)\u001b[2m > \u001b[22mR2 - Emissão somente após o encerramento da atividade\u001b[2m > \u001b[22memite o certificado no instante exato do término do último encontro \u001b[33m 603\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/inscricoes-fatia3.test.ts \u001b[2m(\u001b[22m\u001b[2m9 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 3065\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mFatia 3 — pré-condição: cria inscrição em_espera para testar posicaoNaEspera \u001b[33m 561\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mR8 — calcula posicaoNaEspera sequencial (1, 2, 3...) baseada na ordem de criação \u001b[33m 397\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mR9, R10 — convoca o 1º da fila de espera quando vaga é liberada e define convocadaAte para 2h depois \u001b[33m 419\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mR10 — trunca convocadaAte no limite de encerramento quando restam menos de 2h, e não convoca após o encerramento \u001b[33m 461\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mR11 — expira convocação não confirmada ao atingir convocadaAte e convoca o próximo da fila em cascata \u001b[33m 304\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/inscricoes-fatia2.test.ts \u001b[2m(\u001b[22m\u001b[2m11 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 3123\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 2 (Validações de Negócio e Conflitos)\u001b[2m > \u001b[22mR4 (Critério 7) — recusa inscrição de participante bloqueado por faltas (2 atividades encerradas com zero presença em ambas) com 422 INSCRICAO_BLOQUEADA \u001b[33m 468\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 2 (Validações de Negócio e Conflitos)\u001b[2m > \u001b[22mR5 (Critério 8) — recusa inscrição no 4º minicurso ocupando vaga com 422 LIMITE_DE_MINICURSOS \u001b[33m 511\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 2 (Validações de Negócio e Conflitos)\u001b[2m > \u001b[22mR5 (Critério 9) — permite inscrição quando participante tem 3 minicursos em estado em_espera \u001b[33m 549\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 2 (Validações de Negócio e Conflitos)\u001b[2m > \u001b[22mR5 (Critério 10) — permite inscrição em minicurso quando participante tem 3 palestras confirmadas \u001b[33m 344\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/create-activity.test.ts \u001b[2m(\u001b[22m\u001b[2m20 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 951\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/app.test.ts \u001b[2m(\u001b[22m\u001b[2m21 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 981\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/encounter-rules.test.ts \u001b[2m(\u001b[22m\u001b[2m15 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 811\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-r8.test.ts \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 982\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 3 (R8 - Verificação pública)\u001b[2m > \u001b[22mR8 - Critério 15: verificação pública sem X-Usuario\u001b[2m > \u001b[22mretorna 200 com exatamente codigo, participante abreviado, atividade, cargaHorariaMinutos e emitidoEm \u001b[33m 675\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-listagem.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1007\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 2 (GET /certificados)\u001b[2m > \u001b[22mlistagem dos próprios certificados (contrato: GET /certificados → 200 [Certificado])\u001b[2m > \u001b[22mretorna 200 com array contendo o certificado emitido com os campos do contrato \u001b[33m 614\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 2 (GET /certificados)\u001b[2m > \u001b[22misolamento por participante\u001b[2m > \u001b[22mnão lista certificado emitido para outro participante \u001b[33m 305\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-nao-inscrito.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 865\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - NAO_INSCRITO na emissão\u001b[2m > \u001b[22mexigência de inscrição confirmada conforme o contrato\u001b[2m > \u001b[22mrecusa com 403 NAO_INSCRITO a emissão de certificado de participante sem nenhuma inscrição na atividade \u001b[33m 427\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia3.test.ts \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 680\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 3 (Offline e Sincronização Tardia)\u001b[2m > \u001b[22mcritério 8 (R5) — envio com lidoEm correspondente a 2 horas e 1 minute após o fim do encontro deve retornar 422 SINCRONIZACAO_TARDIA \u001b[33m 446\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/cancel-activity.test.ts \u001b[2m(\u001b[22m\u001b[2m9 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 671\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/capacity-conflict.test.ts \u001b[2m(\u001b[22m\u001b[2m9 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 787\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-output.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 472\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-status.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 642\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m R15 — Estados temporais da atividade\u001b[2m > \u001b[22m1. Antes do primeiro encontro, situação é prevista \u001b[33m 321\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/migration.test.ts \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 452\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/cancel-activity-effects.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 512\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-filters.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 494\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-atividade-cancelada.test.ts \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 458\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - ATIVIDADE_CANCELADA na emissão\u001b[2m > \u001b[22mATIVIDADE_CANCELADA conforme o contrato\u001b[2m > \u001b[22mrecusa com 422 ATIVIDADE_CANCELADA a emissão de certificado de atividade cancelada \u001b[33m 369\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-g3-presenca-manual.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 374\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Integracao M3 -> M4 (G3): presenca manual contabilizada na emissao\u001b[2m > \u001b[22mG3 — emite certificado 201 contabilizando presencas registradas manualmente pelo fluxo publico do M3 (3 de 4 encontros, 75% exato) \u001b[33m 370\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-contrato-http.test.ts \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 405\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/reset.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 465\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m 2. Reset exato do M1\u001b[2m > \u001b[22mreseta o M1 removendo salas/usuários extras, mantendo os 10 oficiais, sem duplicação no segundo reset, e restaurando o relógio \u001b[33m 461\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-r12.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 487\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 1 (R12 - Precedência de erros na emissão)\u001b[2m > \u001b[22mR12 (Critério 20): atividade não encerrada com 2 de 4 presenças retorna 422 ATIVIDADE_NAO_ENCERRADA e não PRESENCA_INSUFICIENTE \u001b[33m 483\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-detail.test.ts \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 504\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-g3-presenca-offline.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 588\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Integracao M3 -> M4 (G3): presenca offline contabilizada na emissao\u001b[2m > \u001b[22mG3 — emite certificado 201 contabilizando presencas registradas pelo fluxo offline do M3 com lidoEm (3 de 4 encontros, 75% exato) \u001b[33m 584\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-list-order.test.ts \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 575\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m R17 — Ordenação da listagem de atividades\u001b[2m > \u001b[22m1. Ordem pelo primeiro encontro: atividade mais cedo aparece primeiro independentemente da ordem de criação \u001b[33m 332\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-r9.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 108\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-colisao.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 120\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/gerar-codigo.test.ts \u001b[2m(\u001b[22m\u001b[2m12 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 51\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/horas-complementares.test.ts \u001b[2m(\u001b[22m\u001b[2m16 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 22\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/abreviar-nome.test.ts \u001b[2m(\u001b[22m\u001b[2m14 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 18\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/initialization.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 343\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m 1. Inicialização não destrutiva\u001b[2m > \u001b[22mcomprova que reiniciar a aplicação apontando para o mesmo banco SQLite não apaga atividades \u001b[33m 339\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-restart.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 499\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - persistencia do codigo apos reinicializacao com o mesmo banco\u001b[2m > \u001b[22mmantem o mesmo codigo e emitidoEm ao reemitir em nova instancia com o mesmo dbPath, sem reset \u001b[33m 496\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m40 passed\u001b[39m\u001b[22m\u001b[90m (40)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m273 passed\u001b[39m\u001b[22m\u001b[90m (273)\u001b[39m\n\u001b[2m   Start at \u001b[22m 10:31:14\n\u001b[2m   Duration \u001b[22m 14.46s\u001b[2m (transform 3.41s, setup 0ms, collect 46.60s, tests 41.05s, environment 37ms, prepare 24.48s)\u001b[22m\n\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "npm --prefix api test",
+      "time": {
+       "start": 1790083872857,
+       "end": 1790083889420
+      }
+     },
+     "id": "prt_0c950370b001Jq6K3ZuinSVIQm",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c9502f25001U5EN2QcpVa540F"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "ee177e295edb9a17a5ddea0e9ece4dc4fe6e4fb7",
+     "type": "step-finish",
+     "tokens": {
+      "total": 76835,
+      "input": 468,
+      "output": 79,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 76288
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c9507b47001ZfVyKn5vGJkzWa",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c9502f25001U5EN2QcpVa540F"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c94df115001mHMJFm7L1u9TNf",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 85338,
+     "input": 8428,
+     "output": 110,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 76800
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790083890601,
+     "completed": 1790083900758
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c9507da8001nCymZOtMMTxTeH",
+    "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4"
+   },
+   "parts": [
+    {
+     "snapshot": "ee177e295edb9a17a5ddea0e9ece4dc4fe6e4fb7",
+     "type": "step-start",
+     "id": "prt_0c9508685001lcgeQUsHRUFiA5",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c9507da8001nCymZOtMMTxTeH"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_05d76d6e05c6450b9052daf8",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "npx tsc --noEmit",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api",
+       "timeout": 180000
+      },
+      "output": "tests/cancel-activity-effects.test.ts(52,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\ntests/cancel-activity.test.ts(226,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\ntests/update-activity.test.ts(502,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\ntests/update-activity.test.ts(541,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\ntests/update-activity.test.ts(586,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\ntests/update-activity.test.ts(625,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\ntests/update-activity.test.ts(664,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\n",
+      "metadata": {
+       "output": "tests/cancel-activity-effects.test.ts(52,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\ntests/cancel-activity.test.ts(226,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\ntests/update-activity.test.ts(502,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\ntests/update-activity.test.ts(541,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\ntests/update-activity.test.ts(586,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\ntests/update-activity.test.ts(625,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\ntests/update-activity.test.ts(664,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\n",
+       "exit": 1,
+       "truncated": false
+      },
+      "title": "npx tsc --noEmit",
+      "time": {
+       "start": 1790083893506,
+       "end": 1790083899865
+      }
+     },
+     "id": "prt_0c9508790001ypT8UZTUhOdufx",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c9507da8001nCymZOtMMTxTeH"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "ee177e295edb9a17a5ddea0e9ece4dc4fe6e4fb7",
+     "type": "step-finish",
+     "tokens": {
+      "total": 85338,
+      "input": 8428,
+      "output": 110,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 76800
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c950a38e001OS75iYirrz7cGq",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c9507da8001nCymZOtMMTxTeH"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c94df115001mHMJFm7L1u9TNf",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 85939,
+     "input": 319,
+     "output": 372,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 85248
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790083900767,
+     "completed": 1790083914029
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c950a55f0012YRAFz8aIO1EFo",
+    "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4"
+   },
+   "parts": [
+    {
+     "snapshot": "ee177e295edb9a17a5ddea0e9ece4dc4fe6e4fb7",
+     "type": "step-start",
+     "id": "prt_0c950b2bf001Y8YxZh5c5j36Rm",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c950a55f0012YRAFz8aIO1EFo"
+    },
+    {
+     "type": "reasoning",
+     "text": "The typecheck errors are all in pre-existing test files (cancel-activity-effects.test.ts, cancel-activity.test.ts, update-activity.test.ts), not in my new test file. These are pre-existing errors in the repo (they use `app.close()` on typed Express, and those files likely declare `let app: any` or `let app: Express`). My test file types `app1/app2` as `any`, so it isn't flagged.\n\nWait — the user asked to run typecheck and report results. These errors are pre-existing and NOT introduced by me. Let me confirm my file has no errors. Let me check whether these errors exist on the current branch independent of my change — they're in test files I didn't touch, so yes pre-existing.\n\nLet me verify with git stash? No, I won't commit. But I can confirm the errors are unrelated: they reference files I didn't modify. My new file `certificado-restart.test.ts` produced no errors.\n\nI should report this honestly: typecheck has 7 pre-existing errors in other test files, none in my new test. The user said don't alter production; these are pre-existing issues in other modules' tests, and AGENTS.md says don't alter other modules' tests. So I leave them.\n\nLet me list modified files: only the new file. Verify via git status.",
+     "time": {
+      "start": 1790083904196,
+      "end": 1790083907043
+     },
+     "id": "prt_0c950b2c4001e8OiLU39ccl6IH",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c950a55f0012YRAFz8aIO1EFo"
+    },
+    {
+     "type": "text",
+     "text": "Typecheck reporta 7 erros — todos pré-existentes em testes de outros módulos que não toquei. Confirmo com `git status` que só criei o arquivo novo.",
+     "time": {
+      "start": 1790083907045,
+      "end": 1790083912814
+     },
+     "id": "prt_0c950bde50016U67x2B1OEvLOn",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c950a55f0012YRAFz8aIO1EFo"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_f40c9bb0114c4a4783a19971",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git status --short"
+      },
+      "output": "?? api/tests/certificado-restart.test.ts\n",
+      "metadata": {
+       "output": "?? api/tests/certificado-restart.test.ts\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git status --short",
+      "time": {
+       "start": 1790083912697,
+       "end": 1790083913086
+      }
+     },
+     "id": "prt_0c950d389001AoPmsrwwZKb30B",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c950a55f0012YRAFz8aIO1EFo"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "ee177e295edb9a17a5ddea0e9ece4dc4fe6e4fb7",
+     "type": "step-finish",
+     "tokens": {
+      "total": 85939,
+      "input": 319,
+      "output": 372,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 85248
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c950d77b001hFvwCU9vpcyz7j",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c950a55f0012YRAFz8aIO1EFo"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c94df115001mHMJFm7L1u9TNf",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 86444,
+     "input": 202,
+     "output": 482,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 85760
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790083914037,
+     "completed": 1790083927214
+    },
+    "finish": "stop",
+    "id": "msg_0c950d9350016dMy0NH7lu5b13",
+    "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4"
+   },
+   "parts": [
+    {
+     "snapshot": "ee177e295edb9a17a5ddea0e9ece4dc4fe6e4fb7",
+     "type": "step-start",
+     "id": "prt_0c950e108001FzQTt0XIi2R8dk",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c950d9350016dMy0NH7lu5b13"
+    },
+    {
+     "type": "reasoning",
+     "text": "Only the new file. Cleanup confirmed by the try/finally (no leftover .sqlite files in temp dir was exercised — tests passed, and the file unlink runs in finally).\n\nLet me give the summary report.",
+     "time": {
+      "start": 1790083916044,
+      "end": 1790083916707
+     },
+     "id": "prt_0c950e10c001uYakmq9vKoHoBh",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c950d9350016dMy0NH7lu5b13"
+    },
+    {
+     "type": "text",
+     "text": "Resultado:\n\n1. **`certificado-restart.test.ts` isolado:** nasceu **vermelho** na 1ª execução (`422` em vez de `201` na criação de atividade) — diagnóstico: minicurso exige 2–5 encontros (`domain/activity.ts:32`), montei a palestra com 1 encontro (`palestra` exige exatamente 1). Após ajuste do cenário (+ troca do payload, nenhuma produção tocada), o teste ficou **verde**.\n2. **Suíte completa:** `npm --prefix api test` → **40 arquivos passaram, 273 testes passaram** (incluindo o novo, 1/1).\n3. **Typecheck (`npx tsc --noEmit` em `api/`):** reporta **7 erros pré-existentes**, todos em arquivos de teste não tocados por mim (`cancel-activity-effects.test.ts:52`, `cancel-activity.test.ts:226`, `update-activity.test.ts:502/541/586/625/664` — `Property 'close' does not exist on type 'Express'`). Meu novo arquivo não gera nenhum erro; não corrigi por estarem em testes de outros módulos/integrantes (regra do AGENTS.md).\n4. **Arquivos modificados:** apenas `api/tests/certificado-restart.test.ts` (novo). Nada mais alterado; sem commit.\n\nO teste comprova pelo contrato HTTP: emissão 201 com `codigo`/`emitidoEm`, `app1.close()`, nova instância no mesmo `dbPath` **sem reset**, reemissão 200 com `codigo` e `emitidoEm` idênticos; cleanup em `try/finally` (fecha ambas as apps e remove o `.sqlite` temporário mesmo se algo falhar).\n\nPAREI aqui. Nenhuma produção, spec ou teste existente foi alterado.",
+     "time": {
+      "start": 1790083916711,
+      "end": 1790083926274
+     },
+     "id": "prt_0c950e3a6001U5qDBF6owbgHx6",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c950d9350016dMy0NH7lu5b13"
+    },
+    {
+     "reason": "stop",
+     "snapshot": "ee177e295edb9a17a5ddea0e9ece4dc4fe6e4fb7",
+     "type": "step-finish",
+     "tokens": {
+      "total": 86444,
+      "input": 202,
+      "output": 482,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 85760
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c9510aea0016viT0p454BCmGW",
+     "sessionID": "ses_f36b47aeaffeYEiiOSkONGLMB4",
+     "messageID": "msg_0c950d9350016dMy0NH7lu5b13"
+    }
+   ]
+  }
+ ]
+}

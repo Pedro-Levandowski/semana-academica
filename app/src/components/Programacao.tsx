@@ -51,14 +51,40 @@ export function Programacao({
           </p>
         </div>
 
-        {userPapel === 'organizacao' && (
+        <div className="detail-actions">
+          {userPapel === 'participante' && (
+            <>
+              <Link
+                to="/certificados"
+                className="button button--secondary meus-certificados-link"
+              >
+                Meus Certificados
+              </Link>
+              <Link
+                to="/extrato"
+                className="button button--secondary extrato-horas-link"
+              >
+                Extrato de Horas
+              </Link>
+            </>
+          )}
+
           <Link
-            to="/atividades/nova"
-            className="button button--primary criar-atividade-link"
+            to="/verificar"
+            className="button button--ghost verificar-certificado-link"
           >
-            Criar atividade
+            Verificar certificado
           </Link>
-        )}
+
+          {userPapel === 'organizacao' && (
+            <Link
+              to="/atividades/nova"
+              className="button button--primary criar-atividade-link"
+            >
+              Criar atividade
+            </Link>
+          )}
+        </div>
       </div>
 
       <div className="schedule-toolbar">

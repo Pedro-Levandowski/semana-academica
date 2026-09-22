@@ -1,0 +1,1193 @@
+{
+ "info": {
+  "id": "ses_f375368e1ffeIef35jy319YWKp",
+  "slug": "playful-meadow",
+  "projectID": "08a8850750a50d17a216613ef31c5f0b0d1b31ca",
+  "directory": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+  "path": "",
+  "title": "Implementação GREEN da UI-3 Extrato de Horas",
+  "agent": "build",
+  "model": {
+   "id": "big-pickle",
+   "providerID": "opencode"
+  },
+  "version": "1.18.32",
+  "summary": {
+   "additions": 0,
+   "deletions": 0,
+   "files": 0
+  },
+  "cost": 0,
+  "tokens": {
+   "input": 140729,
+   "output": 3188,
+   "reasoning": 3130,
+   "cache": {
+    "read": 296064,
+    "write": 0
+   }
+  },
+  "time": {
+   "created": 1790073149215,
+   "updated": 1790073260259
+  }
+ },
+ "messages": [
+  {
+   "info": {
+    "role": "user",
+    "time": {
+     "created": 1790073149257
+    },
+    "agent": "build",
+    "model": {
+     "providerID": "opencode",
+     "modelID": "big-pickle"
+    },
+    "summary": {
+     "diffs": [
+      {
+       "file": "app/src/components/ExtratoHoras.tsx",
+       "patch": "Index: app/src/components/ExtratoHoras.tsx\n===================================================================\n--- app/src/components/ExtratoHoras.tsx\t\n+++ app/src/components/ExtratoHoras.tsx\t\n@@ -0,0 +1,111 @@\n+import { useExtrato } from '../hooks/useExtrato';\n+import { api } from '../api/client';\n+\n+interface ExtratoHorasProps {\n+  selectedUserId: string | null;\n+  userPapel?: string;\n+  apiClient?: typeof api;\n+}\n+\n+export function ExtratoHoras({\n+  selectedUserId,\n+  userPapel,\n+  apiClient = api,\n+}: ExtratoHorasProps) {\n+  if (!selectedUserId || userPapel !== 'participante') {\n+    return (\n+      <section className=\"state-panel\">\n+        <span className=\"eyebrow\">Acesso restrito</span>\n+        <h2>Área exclusiva de participantes</h2>\n+        <p>Acesso negado ou usuário não autorizado.</p>\n+      </section>\n+    );\n+  }\n+\n+  const { extrato, loading, error } = useExtrato(apiClient);\n+\n+  return (\n+    <section>\n+      <div className=\"page-heading\">\n+        <div>\n+          <span className=\"eyebrow\">Horas complementares</span>\n+          <h2>Extrato de Horas</h2>\n+          <p>Atividades elegíveis e totais de horas complementares.</p>\n+        </div>\n+      </div>\n+\n+      {loading && (\n+        <div\n+          className=\"state-message state-message--loading\"\n+          role=\"status\"\n+          aria-live=\"polite\"\n+        >\n+          <span className=\"loading-indicator\" aria-hidden=\"true\" />\n+          <span>Carregando extrato...</span>\n+        </div>\n+      )}\n+\n+      {error && (\n+        <div className=\"error-message\" role=\"alert\">\n+          <strong>Não foi possível carregar o extrato.</strong>\n+          <span>\n+            Erro ({error.erro}): {error.mensagem}\n+          </span>\n+        </div>\n+      )}\n+\n+      {!loading && !error && extrato && extrato.itens.length === 0 && (\n+        <div className=\"empty-message\" role=\"status\" aria-live=\"polite\">\n+          <strong>Nenhuma atividade elegível</strong>\n+          <p>Você ainda não possui atividades elegíveis para exibir.</p>\n+        </div>\n+      )}\n+\n+      {!loading && !error && extrato && extrato.itens.length > 0 && (\n+        <>\n+          <section\n+            className=\"meus-certificados-container\"\n+            data-testid=\"extrato-container\"\n+          >\n+            <ul className=\"certificados-list\">\n+              {extrato.itens.map((item) => (\n+                <li key={item.atividadeId}>\n+                  <div>\n+                    <strong>{item.titulo}</strong>\n+                    <span>Tipo: {item.tipo}</span>\n+                    <span>Carga horária: {item.cargaHorariaMinutos} minutos</span>\n+                    <span>\n+                      Certificado:{' '}\n+                      {item.codigo !== null\n+                        ? item.codigo\n+                        : 'certificado não emitido'}\n+                    </span>\n+                  </div>\n+                </li>\n+              ))}\n+            </ul>\n+          </section>\n+\n+          <div className=\"metrics-grid\" data-testid=\"extrato-totais\">\n+            <div className=\"metric-card\">\n+              <span>Palestras</span>\n+              <strong>{extrato.palestrasMinutos}</strong>\n+            </div>\n+            <div className=\"metric-card\">\n+              <span>Minicursos</span>\n+              <strong>{extrato.minicursosMinutos}</strong>\n+            </div>\n+            <div className=\"metric-card\">\n+              <span>Total</span>\n+              <strong>{extrato.totalMinutos}</strong>\n+            </div>\n+            <div className=\"metric-card metric-card--highlight\">\n+              <span>Aproveitado</span>\n+              <strong>{extrato.aproveitadoMinutos}</strong>\n+            </div>\n+          </div>\n+        </>\n+      )}\n+    </section>\n+  );\n+}\n",
+       "additions": 111,
+       "deletions": 0,
+       "status": "added"
+      },
+      {
+       "file": "app/src/hooks/useExtrato.ts",
+       "patch": "Index: app/src/hooks/useExtrato.ts\n===================================================================\n--- app/src/hooks/useExtrato.ts\t\n+++ app/src/hooks/useExtrato.ts\t\n@@ -0,0 +1,43 @@\n+import { useState, useEffect } from 'react';\n+import { Extrato } from '../api/types';\n+import { api } from '../api/client';\n+\n+export function useExtrato(apiClient = api) {\n+  const [extrato, setExtrato] = useState<Extrato | null>(null);\n+  const [loading, setLoading] = useState<boolean>(false);\n+  const [error, setError] = useState<{ erro: string; mensagem: string } | null>(null);\n+\n+  useEffect(() => {\n+    let isMounted = true;\n+    setLoading(true);\n+    setError(null);\n+\n+    apiClient\n+      .getExtrato()\n+      .then((res) => {\n+        if (isMounted) {\n+          setExtrato(res);\n+          setLoading(false);\n+        }\n+      })\n+      .catch((err: any) => {\n+        if (isMounted) {\n+          setError({\n+            erro: err.erro || 'ERRO_DESCONHECIDO',\n+            mensagem: err.mensagem || err.message || 'Erro ao carregar extrato',\n+          });\n+          setLoading(false);\n+        }\n+      });\n+\n+    return () => {\n+      isMounted = false;\n+    };\n+  }, [apiClient]);\n+\n+  return {\n+    extrato,\n+    loading,\n+    error,\n+  };\n+}\n",
+       "additions": 43,
+       "deletions": 0,
+       "status": "added"
+      }
+     ]
+    },
+    "id": "msg_0c8ac9749001L05mahV6zPlv7G",
+    "sessionID": "ses_f375368e1ffeIef35jy319YWKp"
+   },
+   "parts": [
+    {
+     "type": "text",
+     "text": "Vamos executar o GREEN da FATIA UI-3 do M4 — Extrato de Horas.\n\nO RED já está commitado em:\n\napp/src/components/ExtratoHoras.test.tsx\n\nExistem 6 testes cobrindo:\n\n1. loading;\n2. sucesso com itens e quatro totais;\n3. codigo null como certificado não emitido;\n4. vazio;\n5. erro;\n6. guarda de acesso para participante.\n\nAtualmente o RED falha porque ExtratoHoras.tsx ainda não existe.\n\nUse a skill tdd-m4.\n\nConsulte:\n- AGENTS.md\n- app/AGENTS.md\n- specs/M4-certificados.md\n- contrato-api.md\n- app/src/components/ExtratoHoras.test.tsx\n- app/src/components/MeusCertificados.tsx\n- app/src/hooks/useCertificados.ts\n- app/src/api/client.ts\n- app/src/api/types.ts\n- componentes/hooks M2/M3 equivalentes\n- app/src/styles.css apenas para REUTILIZAR classes existentes\n\nNÃO consulte requisitos-envolvidos.md.\n\nOBJETIVO\n\nFaça a MENOR implementação necessária para deixar os 6 testes da UI-3 verdes.\n\nARQUITETURA\n\nSiga o padrão já utilizado na UI-2 e no restante do frontend.\n\nCrie:\n\napp/src/hooks/useExtrato.ts\napp/src/components/ExtratoHoras.tsx\n\nHOOK\n\nImplemente:\n\nuseExtrato(apiClient = api)\n\nO hook deve:\n\n- chamar apiClient.getExtrato();\n- manter loading;\n- manter Extrato recebido;\n- manter erro no formato { erro, mensagem } | null;\n- utilizar useEffect;\n- evitar atualização após unmount conforme padrão dos hooks existentes;\n- não conhecer roteamento;\n- não recalcular regras do extrato;\n- não aplicar novamente os limites de 240/1200;\n- não decidir elegibilidade;\n- não emitir certificado.\n\nOs totais vindos do backend são a fonte de verdade.\n\nCOMPONENTE\n\nProps seguindo o padrão da UI-2:\n\n- selectedUserId: string | null\n- userPapel?: string\n- apiClient?: typeof api\n\nGUARDA\n\nA tela é exclusiva de participante.\n\nSe:\n\n!selectedUserId\nOU\nuserPapel !== 'participante'\n\nmostrar state-panel:\n\n\"Área exclusiva de participantes\"\n\ne NÃO executar getExtrato().\n\nSiga o padrão já adotado em MeusCertificados.\n\nLOADING\n\nEnquanto a consulta estiver pendente:\n\nrole=\"status\"\n\ntexto:\n\n\"Carregando extrato...\"\n\nReutilize:\n- state-message\n- state-message--loading\n- loading-indicator\n\nSUCESSO\n\nApresente os itens exatamente com dados recebidos do backend:\n\n- titulo\n- tipo\n- cargaHorariaMinutos\n- codigo\n\nPara codigo string:\nmostrar o código recebido.\n\nPara codigo === null:\nmostrar indicação textual coerente de que o certificado ainda não foi emitido.\n\nIMPORTANTE:\n\ncodigo null NÃO significa:\n- inelegível;\n- presença insuficiente;\n- atividade não encerrada;\n- certificado indisponível.\n\nSignifica apenas que, para aquela atividade elegível presente no extrato, não existe certificado emitido.\n\nNão crie botão \"Emitir certificado\".\n\nTOTAIS\n\nApresente os quatro valores recebidos:\n\n- palestrasMinutos\n- minicursosMinutos\n- totalMinutos\n- aproveitadoMinutos\n\nReutilize, se compatível:\n\nmetrics-grid\nmetric-card\nmetric-card--highlight\n\nNão recalcule os valores no frontend.\n\nNo cenário do teste devem permanecer distinguíveis:\n\npalestrasMinutos = 270\nminicursosMinutos = 360\ntotalMinutos = 630\naproveitadoMinutos = 600\n\nVAZIO\n\nSe:\n\nextrato.itens.length === 0\n\nmostrar empty-message indicando ausência de atividades elegíveis.\n\nNão invente atividades.\n\nOs totais podem permanecer visíveis ou não conforme o menor comportamento necessário ao padrão/testes existentes, mas não altere os dados recebidos.\n\nERRO\n\nSe getExtrato rejeitar:\n\n{\n  erro,\n  mensagem\n}\n\nmostrar:\n\nrole=\"alert\"\n\ne apresentar código + mensagem conforme o padrão atual.\n\nESCOPO\n\nNÃO:\n- altere ExtratoHoras.test.tsx;\n- altere client.ts;\n- altere types.ts;\n- altere MeusCertificados;\n- altere App.tsx;\n- altere styles.css se as classes existentes forem suficientes;\n- implemente emissão;\n- crie botão de emissão;\n- implemente Verificação Pública;\n- altere backend;\n- instale dependências;\n- altere package.json/package-lock.json;\n- corrija o erro baseline de NodeJS em useCodigoEncontro.ts.\n\nTESTES\n\nPrimeiro execute somente:\n\nnpx vitest run src/components/ExtratoHoras.test.tsx\n\nEsperado:\n\n6/6 verdes.\n\nDepois execute a suíte completa da interface.\n\nExecute também:\n- typecheck;\n- build;\n\nSe ambos continuarem falhando SOMENTE pelo erro baseline:\n\nsrc/hooks/useCodigoEncontro.ts\nCannot find namespace 'NodeJS'\n\nregistre isso, mas NÃO corrija nesta fatia.\n\nPor fim execute:\n\ngit status --short\n\nRELATÓRIO\n\nInforme:\n\n- arquivos de produção criados;\n- estrutura de useExtrato;\n- props de ExtratoHoras;\n- como a guarda impede getExtrato;\n- como codigo string é apresentado;\n- como codigo null é apresentado;\n- confirmação de que nenhum cálculo de horas foi reimplementado no frontend;\n- como os quatro totais são apresentados;\n- resultado dos 6 testes UI-3;\n- resultado da suíte completa;\n- resultado do typecheck;\n- resultado do build;\n- confirmação de que ExtratoHoras.test.tsx não foi alterado;\n- confirmação de que App.tsx/client.ts/types.ts/backend não foram alterados;\n- git status --short.\n\nNÃO faça git add.\nNÃO faça commit.\nNÃO faça push. ",
+     "id": "prt_0c8ac974b001zBiGx9P1KzFUbg",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ac9749001L05mahV6zPlv7G"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8ac9749001L05mahV6zPlv7G",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 22427,
+     "input": 21822,
+     "output": 587,
+     "reasoning": 18,
+     "cache": {
+      "write": 0,
+      "read": 0
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073149292,
+     "completed": 1790073159782
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c8ac976c001Xnzr03DoUBtOTX",
+    "sessionID": "ses_f375368e1ffeIef35jy319YWKp"
+   },
+   "parts": [
+    {
+     "snapshot": "65ec0566c25672207878b11c8a0b87e815ddd6dc",
+     "type": "step-start",
+     "id": "prt_0c8acae16001dOUSvnx32PUbMf",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ac976c001Xnzr03DoUBtOTX"
+    },
+    {
+     "type": "reasoning",
+     "text": "Let me start by loading the tdd-m4 skill and reading the required files.",
+     "time": {
+      "start": 1790073155173,
+      "end": 1790073155366
+     },
+     "id": "prt_0c8acae65001hc6Io82jD8q8ix",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ac976c001Xnzr03DoUBtOTX"
+    },
+    {
+     "type": "tool",
+     "tool": "skill",
+     "callID": "call_29aa6acfe5764dcf9fa6d5db",
+     "state": {
+      "status": "completed",
+      "input": {
+       "name": "tdd-m4"
+      },
+      "output": "<skill_content name=\"tdd-m4\">\n# Skill: tdd-m4\n\n# TDD para M4-certificados\n\nA fonte de verdade é `specs/M4-certificados.md`. Não invente regras de negócio.\nNão altere a spec. Não acesse documentos externos de requisitos.\n\nO ciclo é o mesmo do `tdd` geral — teste que falha, código mínimo, refactor — mas\nancorado nas 4 fatias e 12 regras de M4. Uma regra ou grupo coeso por ciclo TDD.\n\n## Onde o teste mora\n\nTeste verifica comportamento pela interface pública (HTTP), nunca implementação.\nUse Vitest + Supertest, a aplicação Express de `createApp()` sem abrir porta,\ne as rotas `/_teste/*` com `MODO_TESTE=1` para setup e controle do relógio.\n\nArquivos de teste em `api/tests/`. Para rodar: `npm --prefix api test`.\n\nRegra do projeto: não importe serviço nem repositório no teste — se importar,\no teste quebra em refatoração sem que o comportamento tenha mudado.\n\n## Fatias e regras\n\nCada fatia é um entregável vertical que pode ser testado sozinho.\nImplemente as fatias nesta ordem. Dentro de cada fatia, uma regra ou grupo\ncoeso de regras por ciclo TDD.\n\n### Fatia 1 — emissão do certificado\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R1 | Presença mínima de 75% (`presencas / encontros`, sem arredondamento) | 1, 2, 3, 4 |\n| R2 | Emissão somente após encerramento da atividade | 5, 6 |\n| R12 | Precedência: `ATIVIDADE_NAO_ENCERRADA` antes de `PRESENCA_INSUFICIENTE` | 20 |\n| R9 | Idempotência: 201 na primeira vez, 200 nas seguintes, mesmo código | 17 |\n\nOrdem sugerida dentro da fatia:\n1. R1 — teste presence check, implemente, refactor.\n2. R2 — teste encerramento, implemente, refactor.\n3. R12 — teste precedência quando ambos falham, implemente, refactor.\n4. R9 — teste idempotência 201→200, implemente, refactor.\n\n### Fatia 2 — código e listagem\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R6 | Formato `SA26-XXXX-XXXX`, unicidade, mesmo código na reemissão | 11, 12 |\n| R11 | Alfabeto: maiúsculas + dígitos, sem `I`, `O`, `0`, `1` | 19 |\n\nOrdem sugerida dentro da fatia:\n1. R6 — teste formato e unicidade, implemente geração, refactor.\n2. R11 — teste exclusão de caracteres ambíguos, implemente, refactor.\n3. R9 (continuação) — teste `GET /certificados` retornando apenas emitidos.\n\n### Fatia 3 — verificação pública\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R8 | `GET /certificados/:codigo` sem `X-Usuario`, campos públicos apenas | 15, 16 |\n| R7 | Abreviação do nome: primeiro nome + iniciais + partículas por extenso | 13, 14 |\n\nOrdem sugerida dentro da fatia:\n1. R8 — teste rota pública sem header, campos corretos, implemente, refactor.\n2. R7 — teste abreviação com partículas, implemente, refactor.\n\n### Fatia 4 — extrato de horas complementares\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R3 | Cargas brutas: `palestrasMinutos`, `minicursosMinutos`, `totalMinutos` sem teto | 7, 8, 9, 10 |\n| R4 | Teto de palestras: `min(240, palestrasMinutos)` | 7, 8, 9 |\n| R5 | Teto total: `aproveitadoMinutos = min(1200, min(240, palestrasMinutos) + minicursosMinutos)` | 7, 8 |\n| R10 | Itens do extrato: `codigo` preenchido ou `null` conforme emissão | 18 |\n\nOrdem sugerida dentro da fatia:\n1. R3+R4+R5 — teste cálculos de extrato (juntos, são uma unidade coesa), implemente, refactor.\n2. R10 — teste composição dos itens com código/null, implemente, refactor.\n\n## O ciclo TDD, passo a passo\n\nPara cada regra (ou grupo coeso), nestes passos:\n\n1. **RED**: Escreva um teste que prova o critério de aceite. Rode. **Ele tem que falhar.**\n   Se passar antes do código existir, algo está errado — descubra o quê antes de seguir.\n   O nome do teste descreve a regra em português:\n   `it('recusa certificado com menos de 75% de presenca')`.\n\n2. **GREEN**: Escreva o mínimo de código que faz o teste passar.\n   Nada de já implementar a regra seguinte \"que eu vou precisar mesmo\".\n   Rode o teste individual. Verde? Rode a suíte inteira. Verde? Próximo passo.\n\n3. **REFACTOR**: Com verde, limpe o código sem alterar comportamento.\n   Extraia funções, melhore nomes, remova duplicação. Rode a suíte inteira de novo.\n   Ainda verde? Próxima regra.\n\n## A regra que não se quebra\n\n**Quando o teste falha, o suspeito é o código.**\n\nSe você mudar um teste para ele passar, trocou o contrato pela implementação e o\nverde virou enfeite. Só se altera um teste quando a **spec** mudou — e aí você diz\nqual regra da spec mudou e por quê.\n\nVale para o valor esperado, para o status HTTP e para o cenário. Trocar\n`expect(response.body.presencas).toBe(3)` por `expect(response.body.presencas).toBe(0)`\nporque o código deu 0 é a forma mais comum de mentir sozinho.\n\n## Três testes que não valem nada\n\n- **Acoplado à implementação** — chama serviço ou repositório direto, ou confere o\n  dado espiando o `Map`/banco. Quebra em refatoração, não em regressão.\n- **Tautológico** — o esperado é calculado do mesmo jeito que o código calcula.\n  Passa por construção, nunca discorda. O valor esperado vem da spec, escrito na mão.\n- **Frouxo** — confere só o status e ignora o corpo. `201` com o `codigo` errado passa.\n\n## Dependências de M2 e M3\n\nM4 depende de dados que vêm de outros módulos. Não implemente esses módulos —\nuse as interfaces e portas de integração que já existem.\n\n### M3 — Presenças\n\n- Porta: `M3PresencePort` em `src/integrations/m3-presence-port.ts`\n- Método: `countPresencas(atividadeId, participanteId) → number`\n- Estado atual: `NeutralM3PresenceAdapter` retorna sempre 0.\n- Para testes de emissão (R1), registre presenças via rotas HTTP do M3\n  (`POST /encontros/:id/presencas`) no setup do teste. O adapter real do M3\n  deve ser ativado em ambiente de teste, ou o teste deve montar o cenário\n  pelas rotas existentes da API.\n- Se M3 não estiver funcional, documente o bloqueio e não simule dados.\n\n### M2 — Inscrições\n\n- Porta: `M2IntegrationPort` em `src/integrations/m2-port.ts`\n- Estado atual: `NeutralM2Adapter` não expõe listagem de inscrições por participante.\n- Para R10 (extrato), M4 precisa saber em quais atividades o participante está\n  inscrito e se há certificado emitido para cada uma.\n- Se a porta de M2 não fornecer esse dado, documente o bloqueio — não invente\n  persistência de inscrições dentro de M4.\n\n### M1 — Atividades\n\n- Já acessível via `ActivityRepository`. M4 precisa de `titulo`, `tipo`,\n  `cargaHorariaMinutos`, `encontros` (total de encontros) e `dataTermino`\n  (para R2).\n- Não altere o repositório de M1. Se faltar campo, documente o bloqueio.\n\n## Validações adicionais do contrato\n\nAlém das regras R1–R12, o `contrato-api.md` lista códigos de erro que o M4\ndeve retornar. Teste-os quando implementar a rota correspondente:\n\n| Código | HTTP | Quando |\n|--------|------|--------|\n| `NAO_INSCRITO` | 403 | Participante não inscrito na atividade |\n| `ATIVIDADE_CANCELADA` | 422 | Atividade foi cancelada |\n| `ATIVIDADE_NAO_ENCERRADA` | 422 | Atividade ainda não encerrada (R2) |\n| `PRESENCA_INSUFICIENTE` | 422 | Presença abaixo de 75% (R1) |\n\n## Execução e verificação\n\nApós cada regra implementada (GREEN + REFACTOR):\n\n1. Rode `npm --prefix api test` — suíte inteira tem que estar verde.\n2. Rode `npx tsc --noEmit` dentro de `api/` — typecheck tem que passar.\n3. Se falhar, corrija antes de seguir para a próxima regra.\n\nTerminada a última fatia, rode a suíte inteira uma vez e relate o número real\nde testes que apareceu na saída. Não estime, não arredonde.\n\n## Commits\n\nFaça commits pequenos, um por regra ou grupo coeso de regras dentro da fatia.\nMensagem no padrão do projeto, identificando a regra:\n\n```\nM4: implementa R1 — presença mínima de 75%\nM4: implementa R2 — emissão após encerramento\nM4: implementa R9 — idempotência 201/200\n```\n\nAntes de commitar, verifique `git status` e `git diff` para confirmar que\napenas arquivos intencionais estão staged.\n\n## Rastreabilidade\n\nCada regra da spec deve ter:\n- Pelo menos um teste que a comprove (critério de aceite correspondente).\n- Implementação que o teste exercita.\n- Referência explícita: nome do teste cita a regra, commit cita a regra.\n\nSe uma regra não tem teste, ela não está implementada — pare e escreva o teste.\n\n## O que não fazer\n\n- Não acesse documentos externos de requisitos.\n- Não altere `specs/M4-certificados.md`.\n- Não altere `contrato-api.md`.\n- Não implemente código de M1, M2 ou M3 — apenas use suas portas/interfaces.\n- Não altere testes existentes apenas para fazê-los passar.\n- Não altere código de outros módulos.\n- Não faça commit de código que não esteja verde na suíte inteira.\n\nBase directory for this skill: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\.opencode\\skills\\tdd-m4\nRelative paths in this skill (e.g., scripts/, reference/) are relative to this base directory.\nNote: file list is sampled.\n\n<skill_files>\n\n</skill_files>\n</skill_content>",
+      "metadata": {
+       "name": "tdd-m4",
+       "dir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\.opencode\\skills\\tdd-m4",
+       "truncated": false
+      },
+      "title": "Loaded skill: tdd-m4",
+      "time": {
+       "start": 1790073155402,
+       "end": 1790073155480
+      }
+     },
+     "id": "prt_0c8acaf2c001nLb6F02t4yROQp",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ac976c001Xnzr03DoUBtOTX"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_4470ab94239f4fa2b181b0fe",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\AGENTS.md"
+      },
+      "output": "[4337 caracteres omitidos]",
+      "title": "AGENTS.md",
+      "time": {
+       "start": 1790073155658,
+       "end": 1790073155681
+      }
+     },
+     "id": "prt_0c8acaf61001xnogebhXjHAysS",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ac976c001Xnzr03DoUBtOTX"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_41cd83fc7d43418caad585ca",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\AGENTS.md"
+      },
+      "output": "[2195 caracteres omitidos]",
+      "title": "app\\AGENTS.md",
+      "time": {
+       "start": 1790073155897,
+       "end": 1790073155931
+      }
+     },
+     "id": "prt_0c8acb072001A8PCSWoJQGoqaf",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ac976c001Xnzr03DoUBtOTX"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_cd6bbe3998e64fda8e640cdf",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md"
+      },
+      "output": "[16300 caracteres omitidos]",
+      "title": "specs\\M4-certificados.md",
+      "time": {
+       "start": 1790073156114,
+       "end": 1790073156125
+      }
+     },
+     "id": "prt_0c8acb13c001SQ6LFjJR32SKe0",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ac976c001Xnzr03DoUBtOTX"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_122759808bf0476998123427",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\contrato-api.md"
+      },
+      "output": "[13910 caracteres omitidos]",
+      "title": "contrato-api.md",
+      "time": {
+       "start": 1790073156334,
+       "end": 1790073156347
+      }
+     },
+     "id": "prt_0c8acb23f001Nxp0hOxvqI17Lr",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ac976c001Xnzr03DoUBtOTX"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_e2b329a4ddd34b77b44b0577",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\ExtratoHoras.test.tsx"
+      },
+      "output": "[8333 caracteres omitidos]",
+      "title": "app\\src\\components\\ExtratoHoras.test.tsx",
+      "time": {
+       "start": 1790073156645,
+       "end": 1790073156695
+      }
+     },
+     "id": "prt_0c8acb315001hqJgb3wR0NQWU1",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ac976c001Xnzr03DoUBtOTX"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_0cf970ed20e84f37926f0593",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\MeusCertificados.tsx"
+      },
+      "output": "[3475 caracteres omitidos]",
+      "title": "app\\src\\components\\MeusCertificados.tsx",
+      "time": {
+       "start": 1790073156884,
+       "end": 1790073156923
+      }
+     },
+     "id": "prt_0c8acb440001K7lN8h01BbjRdQ",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ac976c001Xnzr03DoUBtOTX"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_bb8319d13ffc4aa4bc24ec50",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\hooks\\useCertificados.ts"
+      },
+      "output": "[1401 caracteres omitidos]",
+      "title": "app\\src\\hooks\\useCertificados.ts",
+      "time": {
+       "start": 1790073157142,
+       "end": 1790073157179
+      }
+     },
+     "id": "prt_0c8acb532001kLCdAq2gBVZv59",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ac976c001Xnzr03DoUBtOTX"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_3bce5da73c2445459674d160",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\client.ts"
+      },
+      "output": "[6972 caracteres omitidos]",
+      "title": "app\\src\\api\\client.ts",
+      "time": {
+       "start": 1790073157389,
+       "end": 1790073157440
+      }
+     },
+     "id": "prt_0c8acb635001apHFhWZT8kN1Tt",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ac976c001Xnzr03DoUBtOTX"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_781c75ea20d54d9b93543502",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\types.ts"
+      },
+      "output": "[3489 caracteres omitidos]",
+      "title": "app\\src\\api\\types.ts",
+      "time": {
+       "start": 1790073157644,
+       "end": 1790073157686
+      }
+     },
+     "id": "prt_0c8acb72a001gIR30C8gDI49gU",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ac976c001Xnzr03DoUBtOTX"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_2055dd3f49fc4f84830c54ad",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\styles.css"
+      },
+      "output": "[31639 caracteres omitidos]",
+      "title": "app\\src\\styles.css",
+      "time": {
+       "start": 1790073157862,
+       "end": 1790073157936
+      }
+     },
+     "id": "prt_0c8acb80f001yU0hbl2fkoAVcf",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ac976c001Xnzr03DoUBtOTX"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_7078d934ca93451aba258e47",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\hooks\\useCodigoEncontro.ts"
+      },
+      "output": "[3185 caracteres omitidos]",
+      "title": "app\\src\\hooks\\useCodigoEncontro.ts",
+      "time": {
+       "start": 1790073158144,
+       "end": 1790073158180
+      }
+     },
+     "id": "prt_0c8acb939001sIC6kq75j0q0iS",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ac976c001Xnzr03DoUBtOTX"
+    },
+    {
+     "type": "tool",
+     "tool": "glob",
+     "callID": "call_afe3e8f379f74b3d8bde8ccc",
+     "state": {
+      "status": "completed",
+      "input": {
+       "pattern": "app/src/hooks/*.ts"
+      },
+      "output": "[896 caracteres omitidos]",
+      "title": "",
+      "time": {
+       "start": 1790073158273,
+       "end": 1790073158353
+      }
+     },
+     "id": "prt_0c8acba1e001ZR5yX5y5XbB2Jk",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ac976c001Xnzr03DoUBtOTX"
+    },
+    {
+     "type": "tool",
+     "tool": "glob",
+     "callID": "call_d0b793c8ff764f7d851ed46b",
+     "state": {
+      "status": "completed",
+      "input": {
+       "pattern": "app/src/components/*.tsx"
+      },
+      "output": "[1580 caracteres omitidos]",
+      "title": "",
+      "time": {
+       "start": 1790073158394,
+       "end": 1790073158476
+      }
+     },
+     "id": "prt_0c8acbaa4001pmTD1JRnB3frRr",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ac976c001Xnzr03DoUBtOTX"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_cd4bf6a0e9e946ebb640b526",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git status --short"
+      },
+      "output": "(no output)",
+      "metadata": {
+       "output": "(no output)",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git status --short",
+      "time": {
+       "start": 1790073158540,
+       "end": 1790073158942
+      }
+     },
+     "id": "prt_0c8acbb16001YU0skfh1ca2B7z",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ac976c001Xnzr03DoUBtOTX"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "65ec0566c25672207878b11c8a0b87e815ddd6dc",
+     "type": "step-finish",
+     "tokens": {
+      "total": 22427,
+      "input": 21822,
+      "output": 587,
+      "reasoning": 18,
+      "cache": {
+       "write": 0,
+       "read": 0
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8acbecb001hcCHAoogOrVl3a",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ac976c001Xnzr03DoUBtOTX"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8ac9749001L05mahV6zPlv7G",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 66478,
+     "input": 41522,
+     "output": 125,
+     "reasoning": 3071,
+     "cache": {
+      "write": 0,
+      "read": 21760
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073159788,
+     "completed": 1790073204588
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c8acc06c001K2BVWnEGeynRp4",
+    "sessionID": "ses_f375368e1ffeIef35jy319YWKp"
+   },
+   "parts": [
+    {
+     "snapshot": "65ec0566c25672207878b11c8a0b87e815ddd6dc",
+     "type": "step-start",
+     "id": "prt_0c8acd1e2001inEqQpe2dZcpaf",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8acc06c001K2BVWnEGeynRp4"
+    },
+    {
+     "type": "reasoning",
+     "text": "I have all the info. Now let me look at the RED test failure first, then create the two files. Actually the instructions say: run only the ExtratoHoras test first expecting 6/6 green after implementation. Let me create the files.\n\nFirst, let me confirm RED: run the test to confirm failure. The instructions say \"Primeiro execute somente: npx vitest run src/components/ExtratoHoras.test.tsx\" — but that's after implementing? Actually the flow: RED is already committed. The GREEN phase: create the code, then run tests. Let me first run the test to confirm RED fails (optional but good practice), then create files, then run.\n\nLet me create useExtrato.ts following useCertificados pattern, and ExtratoHoras.tsx following MeusCertificados pattern.\n\nNote: MeusCertificados has a hooks rule violation pattern — it calls `useCertificados` after a conditional return. Actually that's a React rules-of-hooks violation, but they already do it in MeusCertificados. The test expects the guard to prevent getExtrato from being called. Following the same pattern as MeusCertificados (early return before hook) — but wait, that would violate rules of hooks (hook called conditionally). MeusCertificados does exactly that though: `if (!selectedUserId || userPapel !== 'participante') return ...` then `const { ... } = useCertificados(apiClient)`. And the test for MeusCertificados presumably passes. But React will warn about conditional hooks... Actually the test checks `getExtratoMock).not.toHaveBeenCalled()`. \n\nOptions:\n1. Follow MeusCertificados exactly: early return before the hook. This violates rules of hooks but matches existing pattern. In tests, if the component always renders the same branch across renders of the same component instance it's \"ok\" (hook order changes between renders would break, but if props don't change between renders during a test, it might work). Actually React will throw \"Rendered more hooks than during the previous render\" only if hook count changes between renders of the same component. In the guard test, component renders once with organizacao → returns before hook → 0 hooks. That's fine within one render... Actually React counts hooks per render; if first render has 0 hooks that's fine. But ESLint would complain. Since MeusCertificados already does this, follow the same pattern.\n\n2. Alternative: call the hook always but pass a flag to skip fetching. But the hook signature is `useExtrato(apiClient = api)` per instructions — no flag. So the guard must be in the component before calling the hook, OR the hook always fetches and component conditionally... no, getExtrato must not be called.\n\nHmm, but instruction says hook should \"utilizar useEffect\" and \"evitar atualização após unmount\" — like useCertificados. And component guard pattern \"Siga o padrão já adotado em MeusCertificados.\" So early return before hook, matching MeusCertificados.\n\nWait — but that's a rules-of-hooks violation. In the success test, hooks are called (1 render, fine). In guard test, 0 hooks. Different tests create different component instances, so no issue within a single render tree. React only validates hook count across successive renders of the same instance. So it works, matching existing pattern. Follow instructions.\n\nActually wait — there's a subtlety: with early return, when loading state transitions cause re-render, hook count stays the same (hook always called on those paths). Fine.\n\nLet me design ExtratoHoras:\n\n```tsx\nimport { useExtrato } from '../hooks/useExtrato';\nimport { api } from '../api/client';\n\ninterface ExtratoHorasProps {\n  selectedUserId: string | null;\n  userPapel?: string;\n  apiClient?: typeof api;\n}\n\nexport function ExtratoHoras({ selectedUserId, userPapel, apiClient = api }: ExtratoHorasProps) {\n  if (!selectedUserId || userPapel !== 'participante') {\n    return (\n      <section className=\"state-panel\">\n        <span className=\"eyebrow\">Acesso restrito</span>\n        <h2>Área exclusiva de participantes</h2>\n        <p>Acesso negado ou usuário não autorizado.</p>\n      </section>\n    );\n  }\n\n  const { extrato, loading, error } = useExtrato(apiClient);\n\n  return (\n    <section>\n      <div className=\"page-heading\">\n        <div>\n          <span className=\"eyebrow\">Horas complementares</span>\n          <h2>Extrato de Horas</h2>\n          <p>Atividades elegíveis e totais de horas complementares.</p>\n        </div>\n      </div>\n\n      {loading && (\n        <div className=\"state-message state-message--loading\" role=\"status\" aria-live=\"polite\">\n          <span className=\"loading-indicator\" aria-hidden=\"true\" />\n          <span>Carregando extrato...</span>\n        </div>\n      )}\n\n      {error && (\n        <div className=\"error-message\" role=\"alert\">\n          <strong>Não foi possível carregar o extrato.</strong>\n          <span>Erro ({error.erro}): {error.mensagem}</span>\n        </div>\n      )}\n\n      {!loading && !error && extrato && extrato.itens.length === 0 && (\n        <div className=\"empty-message\" role=\"status\" aria-live=\"polite\">\n          <strong>Nenhuma atividade elegível</strong>\n          <p>Você ainda não possui atividades elegíveis para o extrato.</p>\n        </div>\n      )}\n\n      {!loading && !error && extrato && extrato.itens.length > 0 && (\n        <>\n          <section className=\"meus-certificados-container\" data-testid=\"extrato-container\">\n            <ul className=\"certificados-list\">\n              {extrato.itens.map((item) => (\n                <li key={item.atividadeId}>\n                  <div>\n                    <strong>{item.titulo}</strong>\n                    <span>Tipo: {item.tipo}</span>\n                    <span>Carga horária: {item.cargaHorariaMinutos} minutos</span>\n                    <span>\n                      Certificado:{' '}\n                      {item.codigo !== null ? item.codigo : 'certificado não emitido'}\n                    </span>\n                  </div>\n                </li>\n              ))}\n            </ul>\n          </section>\n\n          <div className=\"metrics-grid\" data-testid=\"extrato-totais\">\n            <div className=\"metric-card\">\n              <span>Palestras</span>\n              <strong>{extrato.palestrasMinutos}</strong>\n            </div>\n            ...\n          </div>\n        </>\n      )}\n    </section>\n  );\n}\n```\n\nWait — test 2: `container` = `extrato-container` must have text content '360' (item carga), '120', 'SA26-7K2M-9QXA', 'minicurso', 'palestra', titles. Totals are in `extrato-totais` — separate testid, could be outside the container. But should totais be inside extrato-container? Test 2 gets both separately; either way works. But careful: `extrato-totais` should show 270, 360, 630, 600.\n\nAlso test 3: `container` (extrato-container) must have /não emitido/i. So \"certificado não emitido\" inside container. Good.\n\nTest 4 empty: findByText /nenhuma atividade elegível/i — must appear. My empty message has \"Nenhuma atividade elegível\" — matches. Note: regex /nenhuma atividade elegível/i matches \"Nenhuma atividade elegível\". Good.\n\nTest 5 error: findByRole('alert') with 'ERRO_TESTE' and 'Falha ao consultar extrato'. My error shows `Erro ({error.erro}): {error.mensagem}` → \"Erro (ERRO_TESTE): Falha ao consultar extrato\". Good.\n\nTest 6: guard heading + text + no getExtrato. Good with early return.\n\nLoading test: role status, 'Carregando extrato...'. Note: after resolve, the component re-renders; loading div disappears; but the empty message also has role=\"status\" — in loading test, after act resolve, extrato has itens so no empty message. Fine.\n\nOne concern: in the loading test, `expect(screen.getByRole('status'))` — only one status at loading time. My page-heading doesn't have role status. Good.\n\nWait — should the totais only show when there are items? Test 4 (empty) only checks the empty text appears; showing or hiding totais both fine. Instructions say \"Os totais podem permanecer visíveis ou não conforme o menor comportamento necessário\". To be minimal and safe, show totais only with items (as in my code) — or always when loaded? If totais shown when empty, test 4 still passes. Either fine. I'll show totais only when there are items, keeping it inside success block... Actually, hmm, showing totals even when empty could be useful, but minimal = don't add untested behavior. Keep totais with items.\n\nActually wait — should totais be inside `extrato-container` or separate? Test 2: `container.toHaveTextContent('360')` — the minicurso item already has 360. Totais in separate testid. Either placement works. I'll put totais outside the items container as its own section with data-testid=\"extrato-totais\".\n\nHmm, but if totais are inside extrato-container, then extrato-container also contains 270/630/600 — not a problem. I'll keep them as siblings for clarity.\n\nHook useExtrato — mirror useCertificados:\n\n```ts\nimport { useState, useEffect } from 'react';\nimport { Extrato } from '../api/types';\nimport { api } from '../api/client';\n\nexport function useExtrato(apiClient = api) {\n  const [extrato, setExtrato] = useState<Extrato | null>(null);\n  const [loading, setLoading] = useState<boolean>(false);\n  const [error, setError] = useState<{ erro: string; mensagem: string } | null>(null);\n\n  useEffect(() => {\n    let isMounted = true;\n    setLoading(true);\n    setError(null);\n\n    apiClient\n      .getExtrato()\n      .then((res) => {\n        if (isMounted) {\n          setExtrato(res);\n          setLoading(false);\n        }\n      })\n      .catch((err: any) => {\n        if (isMounted) {\n          setError({\n            erro: err.erro || 'ERRO_DESCONHECIDO',\n            mensagem: err.mensagem || err.message || 'Erro ao carregar extrato',\n          });\n          setLoading(false);\n        }\n      });\n\n    return () => {\n      isMounted = false;\n    };\n  }, [apiClient]);\n\n  return { extrato, loading, error };\n}\n```\n\nNote: in test, fakeClient is created inline `{...api, getExtrato: mock}` — a new object each render? The component renders once per test; apiClient prop stable during that render. But re-renders (state updates) use the same props object since React reuses props from the same JSX element... Actually on re-render, React re-renders with same props object (the element's props), so apiClient reference is stable. Good — effect won't re-run.\n\nWait — careful: in useCertificados pattern, `error` message fallback: err.mensagem || err.message. The rejected value is a plain object `{erro, mensagem}` so fine.\n\nAlso in component: `extrato` type Extrato | null. Use `!loading && !error && extrato && ...`.\n\nFor item codigo display: test3 requires /não emitido/i in container. \"Certificado não emitido\" works. For string codigo: show the code — test 2 expects 'SA26-7K2M-9QXA' in container.\n\nOne more check — test 2 expects container toHaveTextContent('150')? No — checks '360' and '120'. Item 3 has 150 — fine.\n\n'Tipo: minicurso' contains 'minicurso' ✓. 'palestra' ✓.\n\nCarga: \"Carga horária: 360 minutos\" contains '360' ✓, item 2 \"120\" ✓.\n\nNow — does `state-message--loading` class exist in styles.css? I see `.state-message` defined but not `state-message--loading`. Let me check... Searching styles: `.state-message, .error-message, .success-message, .empty-message` and `.state-message`. No `--loading` modifier. But MeusCertificados uses `state-message state-message--loading` — class just has no styles. Fine, reuse as-is.\n\nFor items list, MeusCertificados uses `certificados-list` and `meus-certificados-container` classes. Are those in styles.css? I don't see `.certificados-list` or `.meus-certificados-container` in styles.css! They're used in MeusCertificados but not styled. So reusing them is fine (existing pattern), or use `encounter-list` which exists. To match M4 pattern, reuse `certificados-list`. It's an existing class name used by MeusCertificados. Instructions: \"app/src/styles.css apenas para REUTILIZAR classes existentes\" — reuse existing classes; `certificados-list` exists as a class used in codebase even if unstyled in css. Safer to use classes defined in styles.css: `encounter-list` (styled, list styling) and maybe wrap in a card. Hmm.\n\nMinimal and consistent with M4: use same classes as MeusCertificados (`meus-certificados-container`, `certificados-list`). They're \"existing classes\" in the project. Either works for tests. I'll use them for module consistency.\n\nActually for metric-card: exists in styles.css ✓.\n\nNow run RED first to confirm failure, then write files, then run tests.\n\nLet me run the RED test first.",
+     "time": {
+      "start": 1790073164295,
+      "end": 1790073198277
+     },
+     "id": "prt_0c8acd207001IF3pV40WOFAw4Z",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8acc06c001K2BVWnEGeynRp4"
+    },
+    {
+     "type": "text",
+     "text": "RED confirmado na etapa anterior (arquivo `ExtratoHoras.tsx` inexiciente). Vou executar o teste para confirmar o estado atual e, em seguida, criar a implementação mínima.",
+     "time": {
+      "start": 1790073198283,
+      "end": 1790073199537
+     },
+     "id": "prt_0c8ad56cb0019c0JAAWND7mRY2",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8acc06c001K2BVWnEGeynRp4"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_8ba05c92dcaf45a18e1fd040",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "npx vitest run src/components/ExtratoHoras.test.tsx",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app",
+       "timeout": 120000
+      },
+      "output": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app\u001b[39m\n\n\n\u001b[31m⎯⎯⎯⎯⎯⎯\u001b[39m\u001b[1m\u001b[41m Failed Suites 1 \u001b[49m\u001b[22m\u001b[31m⎯⎯⎯⎯⎯⎯⎯\u001b[39m\n\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[31m1 failed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[2mno tests\u001b[22m\n\u001b[2m   Start at \u001b[22m 07:33:21\n\u001b[2m   Duration \u001b[22m 1.90s\u001b[2m (transform 52ms, setup 215ms, collect 0ms, tests 0ms, environment 1.04s, prepare 190ms)\u001b[22m\n\n\u001b[41m\u001b[1m FAIL \u001b[22m\u001b[49m src/components/ExtratoHoras.test.tsx\u001b[2m [ src/components/ExtratoHoras.test.tsx ]\u001b[22m\n\u001b[31m\u001b[1mError\u001b[22m: Failed to resolve import \"./ExtratoHoras\" from \"src/components/ExtratoHoras.test.tsx\". Does the file exist?\u001b[39m\n  Plugin: \u001b[35mvite:import-analysis\u001b[39m\n  File: \u001b[36mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app/src/components/ExtratoHoras.test.tsx\u001b[39m:3:29\n\u001b[33m  2  |  import { describe, it, expect, beforeEach, vi } from \"vitest\";\n  3  |  import { render, screen, act } from \"@testing-library/react\";\n  4  |  import { ExtratoHoras } from \"./ExtratoHoras\";\n     |                                ^\n  5  |  import { api } from \"../api/client\";\n  6  |  describe(\"ExtratoHoras Component\", () => {\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m TransformPluginContext._formatLog ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m42658:41\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m TransformPluginContext.error ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m42655:16\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m normalizeUrl ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m40634:23\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m40753:37\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m TransformPluginContext.transform ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m40680:7\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m EnvironmentPluginContainer.transform ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m42453:18\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m loadAndTransform ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m35845:27\u001b[22m\u001b[39m\n\n\u001b[31m\u001b[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\u001b[22m\u001b[39m\n\n",
+      "metadata": {
+       "output": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app\u001b[39m\n\n\n\u001b[31m⎯⎯⎯⎯⎯⎯\u001b[39m\u001b[1m\u001b[41m Failed Suites 1 \u001b[49m\u001b[22m\u001b[31m⎯⎯⎯⎯⎯⎯⎯\u001b[39m\n\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[31m1 failed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[2mno tests\u001b[22m\n\u001b[2m   Start at \u001b[22m 07:33:21\n\u001b[2m   Duration \u001b[22m 1.90s\u001b[2m (transform 52ms, setup 215ms, collect 0ms, tests 0ms, environment 1.04s, prepare 190ms)\u001b[22m\n\n\u001b[41m\u001b[1m FAIL \u001b[22m\u001b[49m src/components/ExtratoHoras.test.tsx\u001b[2m [ src/components/ExtratoHoras.test.tsx ]\u001b[22m\n\u001b[31m\u001b[1mError\u001b[22m: Failed to resolve import \"./ExtratoHoras\" from \"src/components/ExtratoHoras.test.tsx\". Does the file exist?\u001b[39m\n  Plugin: \u001b[35mvite:import-analysis\u001b[39m\n  File: \u001b[36mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app/src/components/ExtratoHoras.test.tsx\u001b[39m:3:29\n\u001b[33m  2  |  import { describe, it, expect, beforeEach, vi } from \"vitest\";\n  3  |  import { render, screen, act } from \"@testing-library/react\";\n  4  |  import { ExtratoHoras } from \"./ExtratoHoras\";\n     |                                ^\n  5  |  import { api } from \"../api/client\";\n  6  |  describe(\"ExtratoHoras Component\", () => {\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m TransformPluginContext._formatLog ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m42658:41\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m TransformPluginContext.error ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m42655:16\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m normalizeUrl ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m40634:23\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m40753:37\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m TransformPluginContext.transform ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m40680:7\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m EnvironmentPluginContainer.transform ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m42453:18\u001b[22m\u001b[39m\n\u001b[90m \u001b[2m❯\u001b[22m loadAndTransform ../../../Semana%20Tech/semana-academica/app/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:\u001b[2m35845:27\u001b[22m\u001b[39m\n\n\u001b[31m\u001b[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\u001b[22m\u001b[39m\n\n",
+       "exit": 1,
+       "truncated": false
+      },
+      "title": "npx vitest run src/components/ExtratoHoras.test.tsx",
+      "time": {
+       "start": 1790073199460,
+       "end": 1790073203746
+      }
+     },
+     "id": "prt_0c8ad5a40001cphoATLi1dSIPD",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8acc06c001K2BVWnEGeynRp4"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "65ec0566c25672207878b11c8a0b87e815ddd6dc",
+     "type": "step-finish",
+     "tokens": {
+      "total": 66478,
+      "input": 41522,
+      "output": 125,
+      "reasoning": 3071,
+      "cache": {
+       "write": 0,
+       "read": 21760
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8ad6de3001ldfQVRaFx4nNhn",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8acc06c001K2BVWnEGeynRp4"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8ac9749001L05mahV6zPlv7G",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 68779,
+     "input": 4317,
+     "output": 1219,
+     "reasoning": 11,
+     "cache": {
+      "write": 0,
+      "read": 63232
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073204595,
+     "completed": 1790073215233
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c8ad6f73001f5ntFFV5KFqDFY",
+    "sessionID": "ses_f375368e1ffeIef35jy319YWKp"
+   },
+   "parts": [
+    {
+     "snapshot": "65ec0566c25672207878b11c8a0b87e815ddd6dc",
+     "type": "step-start",
+     "id": "prt_0c8ad7acb001Jcy08NK13FuQjN",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ad6f73001f5ntFFV5KFqDFY"
+    },
+    {
+     "type": "reasoning",
+     "text": "RED confirmed. Now create the hook and component.",
+     "time": {
+      "start": 1790073207544,
+      "end": 1790073207630
+     },
+     "id": "prt_0c8ad7af8001qm27t7M88P5G7V",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ad6f73001f5ntFFV5KFqDFY"
+    },
+    {
+     "type": "text",
+     "text": "RED confirmado. Criando `useExtrato.ts` e `ExtratoHoras.tsx` com o menor código necessário.",
+     "time": {
+      "start": 1790073207632,
+      "end": 1790073214271
+     },
+     "id": "prt_0c8ad7b50001U3gXpcJoAcIOk0",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ad6f73001f5ntFFV5KFqDFY"
+    },
+    {
+     "type": "tool",
+     "tool": "write",
+     "callID": "call_e113538fb56c456a80c8a91a",
+     "state": {
+      "status": "completed",
+      "input": {
+       "content": "import { useState, useEffect } from 'react';\nimport { Extrato } from '../api/types';\nimport { api } from '../api/client';\n\nexport function useExtrato(apiClient = api) {\n  const [extrato, setExtrato] = useState<Extrato | null>(null);\n  const [loading, setLoading] = useState<boolean>(false);\n  const [error, setError] = useState<{ erro: string; mensagem: string } | null>(null);\n\n  useEffect(() => {\n    let isMounted = true;\n    setLoading(true);\n    setError(null);\n\n    apiClient\n      .getExtrato()\n      .then((res) => {\n        if (isMounted) {\n          setExtrato(res);\n          setLoading(false);\n        }\n      })\n      .catch((err: any) => {\n        if (isMounted) {\n          setError({\n            erro: err.erro || 'ERRO_DESCONHECIDO',\n            mensagem: err.mensagem || err.message || 'Erro ao carregar extrato',\n          });\n          setLoading(false);\n        }\n      });\n\n    return () => {\n      isMounted = false;\n    };\n  }, [apiClient]);\n\n  return {\n    extrato,\n    loading,\n    error,\n  };\n}\n",
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\hooks\\useExtrato.ts"
+      },
+      "output": "Wrote file successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "filepath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\hooks\\useExtrato.ts",
+       "exists": false,
+       "truncated": false
+      },
+      "title": "app\\src\\hooks\\useExtrato.ts",
+      "time": {
+       "start": 1790073209668,
+       "end": 1790073209694
+      }
+     },
+     "id": "prt_0c8ad7ced001z8v3DGJDrhnBYF",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ad6f73001f5ntFFV5KFqDFY"
+    },
+    {
+     "type": "tool",
+     "tool": "write",
+     "callID": "call_eaddb0e74aa9431293578626",
+     "state": {
+      "status": "completed",
+      "input": {
+       "content": "import { useExtrato } from '../hooks/useExtrato';\nimport { api } from '../api/client';\n\ninterface ExtratoHorasProps {\n  selectedUserId: string | null;\n  userPapel?: string;\n  apiClient?: typeof api;\n}\n\nexport function ExtratoHoras({\n  selectedUserId,\n  userPapel,\n  apiClient = api,\n}: ExtratoHorasProps) {\n  if (!selectedUserId || userPapel !== 'participante') {\n    return (\n      <section className=\"state-panel\">\n        <span className=\"eyebrow\">Acesso restrito</span>\n        <h2>Área exclusiva de participantes</h2>\n        <p>Acesso negado ou usuário não autorizado.</p>\n      </section>\n    );\n  }\n\n  const { extrato, loading, error } = useExtrato(apiClient);\n\n  return (\n    <section>\n      <div className=\"page-heading\">\n        <div>\n          <span className=\"eyebrow\">Horas complementares</span>\n          <h2>Extrato de Horas</h2>\n          <p>Atividades elegíveis e totais de horas complementares.</p>\n        </div>\n      </div>\n\n      {loading && (\n        <div\n          className=\"state-message state-message--loading\"\n          role=\"status\"\n          aria-live=\"polite\"\n        >\n          <span className=\"loading-indicator\" aria-hidden=\"true\" />\n          <span>Carregando extrato...</span>\n        </div>\n      )}\n\n      {error && (\n        <div className=\"error-message\" role=\"alert\">\n          <strong>Não foi possível carregar o extrato.</strong>\n          <span>\n            Erro ({error.erro}): {error.mensagem}\n          </span>\n        </div>\n      )}\n\n      {!loading && !error && extrato && extrato.itens.length === 0 && (\n        <div className=\"empty-message\" role=\"status\" aria-live=\"polite\">\n          <strong>Nenhuma atividade elegível</strong>\n          <p>Você ainda não possui atividades elegíveis para exibir.</p>\n        </div>\n      )}\n\n      {!loading && !error && extrato && extrato.itens.length > 0 && (\n        <>\n          <section\n            className=\"meus-certificados-container\"\n            data-testid=\"extrato-container\"\n          >\n            <ul className=\"certificados-list\">\n              {extrato.itens.map((item) => (\n                <li key={item.atividadeId}>\n                  <div>\n                    <strong>{item.titulo}</strong>\n                    <span>Tipo: {item.tipo}</span>\n                    <span>Carga horária: {item.cargaHorariaMinutos} minutos</span>\n                    <span>\n                      Certificado:{' '}\n                      {item.codigo !== null\n                        ? item.codigo\n                        : 'certificado não emitido'}\n                    </span>\n                  </div>\n                </li>\n              ))}\n            </ul>\n          </section>\n\n          <div className=\"metrics-grid\" data-testid=\"extrato-totais\">\n            <div className=\"metric-card\">\n              <span>Palestras</span>\n              <strong>{extrato.palestrasMinutos}</strong>\n            </div>\n            <div className=\"metric-card\">\n              <span>Minicursos</span>\n              <strong>{extrato.minicursosMinutos}</strong>\n            </div>\n            <div className=\"metric-card\">\n              <span>Total</span>\n              <strong>{extrato.totalMinutos}</strong>\n            </div>\n            <div className=\"metric-card metric-card--highlight\">\n              <span>Aproveitado</span>\n              <strong>{extrato.aproveitadoMinutos}</strong>\n            </div>\n          </div>\n        </>\n      )}\n    </section>\n  );\n}\n",
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\ExtratoHoras.tsx"
+      },
+      "output": "Wrote file successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "filepath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\components\\ExtratoHoras.tsx",
+       "exists": false,
+       "truncated": false
+      },
+      "title": "app\\src\\components\\ExtratoHoras.tsx",
+      "time": {
+       "start": 1790073214258,
+       "end": 1790073214267
+      }
+     },
+     "id": "prt_0c8ad8365001f9j9u5Os08Cu0z",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ad6f73001f5ntFFV5KFqDFY"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-finish",
+     "tokens": {
+      "total": 68779,
+      "input": 4317,
+      "output": 1219,
+      "reasoning": 11,
+      "cache": {
+       "write": 0,
+       "read": 63232
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8ad973c001TtJNYGv8rFPS6l",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ad6f73001f5ntFFV5KFqDFY"
+    },
+    {
+     "type": "patch",
+     "hash": "65ec0566c25672207878b11c8a0b87e815ddd6dc",
+     "files": [
+      "C:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app/src/components/ExtratoHoras.tsx",
+      "C:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app/src/hooks/useExtrato.ts"
+     ],
+     "id": "prt_0c8ad98fe001IbppH7265i5Y0Q",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ad6f73001f5ntFFV5KFqDFY"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8ac9749001L05mahV6zPlv7G",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 68889,
+     "input": 1280,
+     "output": 78,
+     "reasoning": 11,
+     "cache": {
+      "write": 0,
+      "read": 67520
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073215239,
+     "completed": 1790073223655
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c8ad9907001zKeumIyd3JiQBi",
+    "sessionID": "ses_f375368e1ffeIef35jy319YWKp"
+   },
+   "parts": [
+    {
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-start",
+     "id": "prt_0c8ada3aa001btoDFTevQhX9Ti",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ad9907001zKeumIyd3JiQBi"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now run the UI-3 test file alone.",
+     "time": {
+      "start": 1790073218032,
+      "end": 1790073218156
+     },
+     "id": "prt_0c8ada3f0001Dzer3XYDZEmEHR",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ad9907001zKeumIyd3JiQBi"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_b8ea3df495dc454e9829d8b1",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "npx vitest run src/components/ExtratoHoras.test.tsx",
+       "timeout": 120000,
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app"
+      },
+      "output": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app\u001b[39m\n\n \u001b[32m✓\u001b[39m src/components/ExtratoHoras.test.tsx \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 164\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m6 passed\u001b[39m\u001b[22m\u001b[90m (6)\u001b[39m\n\u001b[2m   Start at \u001b[22m 07:33:40\n\u001b[2m   Duration \u001b[22m 2.06s\u001b[2m (transform 122ms, setup 181ms, collect 366ms, tests 164ms, environment 669ms, prepare 178ms)\u001b[22m\n\n",
+      "metadata": {
+       "output": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app\u001b[39m\n\n \u001b[32m✓\u001b[39m src/components/ExtratoHoras.test.tsx \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 164\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m6 passed\u001b[39m\u001b[22m\u001b[90m (6)\u001b[39m\n\u001b[2m   Start at \u001b[22m 07:33:40\n\u001b[2m   Duration \u001b[22m 2.06s\u001b[2m (transform 122ms, setup 181ms, collect 366ms, tests 164ms, environment 669ms, prepare 178ms)\u001b[22m\n\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "npx vitest run src/components/ExtratoHoras.test.tsx",
+      "time": {
+       "start": 1790073218511,
+       "end": 1790073222802
+      }
+     },
+     "id": "prt_0c8ada46f001erWNWYRixli9n3",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ad9907001zKeumIyd3JiQBi"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-finish",
+     "tokens": {
+      "total": 68889,
+      "input": 1280,
+      "output": 78,
+      "reasoning": 11,
+      "cache": {
+       "write": 0,
+       "read": 67520
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8adb832001c3mxlyKQ3DyuMm",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ad9907001zKeumIyd3JiQBi"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8ac9749001L05mahV6zPlv7G",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 69432,
+     "input": 396,
+     "output": 217,
+     "reasoning": 19,
+     "cache": {
+      "write": 0,
+      "read": 68800
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073223668,
+     "completed": 1790073243617
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c8adb9f4001diRcfHQfNT4XlV",
+    "sessionID": "ses_f375368e1ffeIef35jy319YWKp"
+   },
+   "parts": [
+    {
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-start",
+     "id": "prt_0c8adc4a8001kGVLOMVe8oQsC3",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8adb9f4001diRcfHQfNT4XlV"
+    },
+    {
+     "type": "reasoning",
+     "text": "6/6 verdes. Agora suíte completa, typecheck e build.",
+     "time": {
+      "start": 1790073226475,
+      "end": 1790073226835
+     },
+     "id": "prt_0c8adc4eb001968Wxvc4fbMlDX",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8adb9f4001diRcfHQfNT4XlV"
+    },
+    {
+     "type": "text",
+     "text": "6/6 verdes. Agora suíte completa, typecheck e build.",
+     "time": {
+      "start": 1790073226838,
+      "end": 1790073227796
+     },
+     "id": "prt_0c8adc656001ciQZ2pcJ7Ue7pk",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8adb9f4001diRcfHQfNT4XlV"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_81caa59820a4484f80604c6d",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "npx vitest run",
+       "timeout": 180000,
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app"
+      },
+      "output": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app\u001b[39m\n\n \u001b[32m✓\u001b[39m src/api/client.test.ts \u001b[2m(\u001b[22m\u001b[2m18 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 48\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/hooks/useFilaOffline.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 405\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/components/ExtratoHoras.test.tsx \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 467\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/components/MeusCertificados.test.tsx \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 588\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/components/CodigoEncontro.test.tsx \u001b[2m(\u001b[22m\u001b[2m7 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 710\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m CodigoEncontro Component\u001b[2m > \u001b[22mdeve exibir indicador de carregamento ao buscar o código do encontro \u001b[33m 368\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/M2ExtensionPoint.test.tsx \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 810\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2ExtensionPoint - Inscrição do Participante\u001b[2m > \u001b[22mdeve exibir o botão Inscrever-se para participante não inscrito e realizar a inscrição com sucesso \u001b[33m 355\u001b[2mms\u001b[22m\u001b[39m\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mdeve exibir indicador de carregamento pendente \"Carregando programação...\" ao carregar atividades\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n \u001b[32m✓\u001b[39m src/components/RegistrarPresenca.test.tsx \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1893\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresenca Component\u001b[2m > \u001b[22mdeve registrar presença com sucesso 201 e limpar o campo \u001b[33m 759\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresenca Component\u001b[2m > \u001b[22mdeve lidar com sucesso 200 (idempotência - presença já existia) e limpar o campo \u001b[33m 395\u001b[2mms\u001b[22m\u001b[39m\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mdeve realizar nova consulta ao alterar o dia selecionado\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mdeve realizar nova consulta ao filtrar por tipo\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mdeve combinar dia e tipo nas chamadas ao cliente\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mdeve exibir indicador de carregamento pendente \"Carregando atividade...\" na página de detalhes\n\u001b[22m\u001b[39mAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mdeve exibir indicador de carregamento pendente \"Carregando atividade...\" na página de detalhes\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2menvia o payload conforme o contrato, incluindo conversão de datas datetime-local para ISO 8601 com -03:00\n\u001b[22m\u001b[39mAn update to CriarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mbloqueia o botão e impede envio duplicado durante promessa pendente\n\u001b[22m\u001b[39mAn update to CriarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mcarregamento dos dados atuais na página de edição\n\u001b[22m\u001b[39mAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mcarregamento dos dados atuais na página de edição\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2menvia payload contendo exclusivamente título e vagas via PATCH /atividades/:id\n\u001b[22m\u001b[39mAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mbloqueia o botão durante promessa pendente e impede envio duplicado\n\u001b[22m\u001b[39mAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mconfirmar o cancelamento envia o ID correto para a API\n\u001b[22m\u001b[39mAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mconfirmar o cancelamento envia o ID correto para a API\n\u001b[22m\u001b[39mAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mpromessa pendente bloqueia duplicação de chamadas de cancelamento\n\u001b[22m\u001b[39mAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mpromessa pendente bloqueia duplicação de chamadas de cancelamento\n\u001b[22m\u001b[39mAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mverifica estados acessíveis (role=\"status\" e role=\"alert\") na página de edição\n\u001b[22m\u001b[39mAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mverifica estados acessíveis (role=\"status\" e role=\"alert\") na página de edição\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n \u001b[32m✓\u001b[39m src/App.test.tsx \u001b[2m(\u001b[22m\u001b[2m62 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 3361\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/components/RegistrarPresencaManual.test.tsx \u001b[2m(\u001b[22m\u001b[2m7 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 5973\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresencaManual Component\u001b[2m > \u001b[22mdeve registrar presença manual com sucesso 201 e limpar os campos \u001b[33m 1308\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresencaManual Component\u001b[2m > \u001b[22mdeve lidar com sucesso 200 (idempotência - presença já existia) e limpar os campos \u001b[33m 558\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresencaManual Component\u001b[2m > \u001b[22mdeve tratar erro NAO_INSCRITO \u001b[33m 990\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresencaManual Component\u001b[2m > \u001b[22mdeve tratar erro FORA_DA_JANELA \u001b[33m 920\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresencaManual Component\u001b[2m > \u001b[22mdeve tratar erro LIMITE_DE_MANUAIS \u001b[33m 943\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresencaManual Component\u001b[2m > \u001b[22mdeve tratar erro de rede genérico \u001b[33m 968\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m9 passed\u001b[39m\u001b[22m\u001b[90m (9)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m122 passed\u001b[39m\u001b[22m\u001b[90m (122)\u001b[39m\n\u001b[2m   Start at \u001b[22m 07:33:49\n\u001b[2m   Duration \u001b[22m 12.61s\u001b[2m (transform 4.83s, setup 5.55s, collect 11.13s, tests 14.26s, environment 23.08s, prepare 5.43s)\u001b[22m\n\n",
+      "metadata": {
+       "output": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app\u001b[39m\n\n \u001b[32m✓\u001b[39m src/api/client.test.ts \u001b[2m(\u001b[22m\u001b[2m18 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 48\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/hooks/useFilaOffline.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 405\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/components/ExtratoHoras.test.tsx \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 467\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/components/MeusCertificados.test.tsx \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 588\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/components/CodigoEncontro.test.tsx \u001b[2m(\u001b[22m\u001b[2m7 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 710\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m CodigoEncontro Component\u001b[2m > \u001b[22mdeve exibir indicador de carregamento ao buscar o código do encontro \u001b[33m 368\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/M2ExtensionPoint.test.tsx \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 810\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2ExtensionPoint - Inscrição do Participante\u001b[2m > \u001b[22mdeve exibir o botão Inscrever-se para participante não inscrito e realizar a inscrição com sucesso \u001b[33m 355\u001b[2mms\u001b[22m\u001b[39m\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mdeve exibir indicador de carregamento pendente \"Carregando programação...\" ao carregar atividades\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n \u001b[32m✓\u001b[39m src/components/RegistrarPresenca.test.tsx \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1893\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresenca Component\u001b[2m > \u001b[22mdeve registrar presença com sucesso 201 e limpar o campo \u001b[33m 759\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresenca Component\u001b[2m > \u001b[22mdeve lidar com sucesso 200 (idempotência - presença já existia) e limpar o campo \u001b[33m 395\u001b[2mms\u001b[22m\u001b[39m\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mdeve realizar nova consulta ao alterar o dia selecionado\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mdeve realizar nova consulta ao filtrar por tipo\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mdeve combinar dia e tipo nas chamadas ao cliente\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mdeve exibir indicador de carregamento pendente \"Carregando atividade...\" na página de detalhes\n\u001b[22m\u001b[39mAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mdeve exibir indicador de carregamento pendente \"Carregando atividade...\" na página de detalhes\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2menvia o payload conforme o contrato, incluindo conversão de datas datetime-local para ISO 8601 com -03:00\n\u001b[22m\u001b[39mAn update to CriarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mbloqueia o botão e impede envio duplicado durante promessa pendente\n\u001b[22m\u001b[39mAn update to CriarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mcarregamento dos dados atuais na página de edição\n\u001b[22m\u001b[39mAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mcarregamento dos dados atuais na página de edição\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2menvia payload contendo exclusivamente título e vagas via PATCH /atividades/:id\n\u001b[22m\u001b[39mAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mbloqueia o botão durante promessa pendente e impede envio duplicado\n\u001b[22m\u001b[39mAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mconfirmar o cancelamento envia o ID correto para a API\n\u001b[22m\u001b[39mAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mconfirmar o cancelamento envia o ID correto para a API\n\u001b[22m\u001b[39mAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mpromessa pendente bloqueia duplicação de chamadas de cancelamento\n\u001b[22m\u001b[39mAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mpromessa pendente bloqueia duplicação de chamadas de cancelamento\n\u001b[22m\u001b[39mAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mverifica estados acessíveis (role=\"status\" e role=\"alert\") na página de edição\n\u001b[22m\u001b[39mAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mverifica estados acessíveis (role=\"status\" e role=\"alert\") na página de edição\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n \u001b[32m✓\u001b[39m src/App.test.tsx \u001b[2m(\u001b[22m\u001b[2m62 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 3361\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/components/RegistrarPresencaManual.test.tsx \u001b[2m(\u001b[22m\u001b[2m7 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 5973\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresencaManual Component\u001b[2m > \u001b[22mdeve registrar presença manual com sucesso 201 e limpar os campos \u001b[33m 1308\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresencaManual Component\u001b[2m > \u001b[22mdeve lidar com sucesso 200 (idempotência - presença já existia) e limpar os campos \u001b[33m 558\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresencaManual Component\u001b[2m > \u001b[22mdeve tratar erro NAO_INSCRITO \u001b[33m 990\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresencaManual Component\u001b[2m > \u001b[22mdeve tratar erro FORA_DA_JANELA \u001b[33m 920\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresencaManual Component\u001b[2m > \u001b[22mdeve tratar erro LIMITE_DE_MANUAIS \u001b[33m 943\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresencaManual Component\u001b[2m > \u001b[22mdeve tratar erro de rede genérico \u001b[33m 968\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m9 passed\u001b[39m\u001b[22m\u001b[90m (9)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m122 passed\u001b[39m\u001b[22m\u001b[90m (122)\u001b[39m\n\u001b[2m   Start at \u001b[22m 07:33:49\n\u001b[2m   Duration \u001b[22m 12.61s\u001b[2m (transform 4.83s, setup 5.55s, collect 11.13s, tests 14.26s, environment 23.08s, prepare 5.43s)\u001b[22m\n\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "npx vitest run",
+      "time": {
+       "start": 1790073227011,
+       "end": 1790073242830
+      }
+     },
+     "id": "prt_0c8adc65b001DVpXn25gkQW5F0",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8adb9f4001diRcfHQfNT4XlV"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_86dab325d37749fc8c1a9f74",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "npx tsc --noEmit",
+       "timeout": 120000,
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app"
+      },
+      "output": "src/hooks/useCodigoEncontro.ts(12,29): error TS2503: Cannot find namespace 'NodeJS'.\r\n",
+      "metadata": {
+       "output": "src/hooks/useCodigoEncontro.ts(12,29): error TS2503: Cannot find namespace 'NodeJS'.\r\n",
+       "exit": 1,
+       "truncated": false
+      },
+      "title": "npx tsc --noEmit",
+      "time": {
+       "start": 1790073227302,
+       "end": 1790073238860
+      }
+     },
+     "id": "prt_0c8adc7150016TNDtJoKoQt5uR",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8adb9f4001diRcfHQfNT4XlV"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_47a591d4d9e84e32beaf681c",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "npm run build",
+       "timeout": 180000,
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app"
+      },
+      "output": "\n> semana-academica-app@1.0.0 build\n> tsc && vite build\n\nsrc/hooks/useCodigoEncontro.ts(12,29): error TS2503: Cannot find namespace 'NodeJS'.\r\n",
+      "metadata": {
+       "output": "\n> semana-academica-app@1.0.0 build\n> tsc && vite build\n\nsrc/hooks/useCodigoEncontro.ts(12,29): error TS2503: Cannot find namespace 'NodeJS'.\r\n",
+       "exit": 1,
+       "truncated": false
+      },
+      "title": "npm run build",
+      "time": {
+       "start": 1790073227781,
+       "end": 1790073237523
+      }
+     },
+     "id": "prt_0c8adc8440018GIPRGyiN7xEaB",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8adb9f4001diRcfHQfNT4XlV"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-finish",
+     "tokens": {
+      "total": 69432,
+      "input": 396,
+      "output": 217,
+      "reasoning": 19,
+      "cache": {
+       "write": 0,
+       "read": 68800
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8ae06710010oEV8oGPDhOwBw",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8adb9f4001diRcfHQfNT4XlV"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8ac9749001L05mahV6zPlv7G",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 73188,
+     "input": 71120,
+     "output": 276,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 1792
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073243626,
+     "completed": 1790073249974
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c8ae07e9001xcPBoknyDOMbzW",
+    "sessionID": "ses_f375368e1ffeIef35jy319YWKp"
+   },
+   "parts": [
+    {
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-start",
+     "id": "prt_0c8ae1757001j9h5ogpLVwgE1Y",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ae07e9001xcPBoknyDOMbzW"
+    },
+    {
+     "type": "reasoning",
+     "text": "Suíte completa: 9 arquivos, 122 testes passaram. Typecheck e build falham somente pelo erro baseline `Cannot find namespace 'NodeJS'` em useCodigoEncontro.ts — conforme esperado e instruído, não corrijo nesta fatia.\n\nAgora git status --short.",
+     "time": {
+      "start": 1790073247578,
+      "end": 1790073248079
+     },
+     "id": "prt_0c8ae175a001FYE0xbMtpMad3e",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ae07e9001xcPBoknyDOMbzW"
+    },
+    {
+     "type": "text",
+     "text": "Suíte completa verde (122 testes). Typecheck/build falham apenas pelo erro baseline `NodeJS`. Conferindo git status.",
+     "time": {
+      "start": 1790073248086,
+      "end": 1790073248958
+     },
+     "id": "prt_0c8ae1956001hw7fZJNJUWVZuo",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ae07e9001xcPBoknyDOMbzW"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_c5e3fdaacec347dc82c06c5e",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git status --short",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+      },
+      "output": "?? app/src/components/ExtratoHoras.tsx\n?? app/src/hooks/useExtrato.ts\n",
+      "metadata": {
+       "output": "?? app/src/components/ExtratoHoras.tsx\n?? app/src/hooks/useExtrato.ts\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git status --short",
+      "time": {
+       "start": 1790073248529,
+       "end": 1790073248852
+      }
+     },
+     "id": "prt_0c8ae1a180017BWgGglJg8P22Q",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ae07e9001xcPBoknyDOMbzW"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_392c63c011e14284bc931895",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git diff --stat HEAD -- app/src/components/ExtratoHoras.test.tsx app/src/App.tsx app/src/api/client.ts app/src/api/types.ts api",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+      },
+      "output": "(no output)",
+      "metadata": {
+       "output": "(no output)",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git diff --stat HEAD -- app/src/components/ExtratoHoras.test.tsx app/src/App.tsx app/src/api/client.ts app/src/api/types.ts api",
+      "time": {
+       "start": 1790073248926,
+       "end": 1790073249229
+      }
+     },
+     "id": "prt_0c8ae1b48001MzCk7arsn5LWhK",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ae07e9001xcPBoknyDOMbzW"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-finish",
+     "tokens": {
+      "total": 73188,
+      "input": 71120,
+      "output": 276,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 1792
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8ae1f450018K52PLmcQ7KBNG",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ae07e9001xcPBoknyDOMbzW"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c8ac9749001L05mahV6zPlv7G",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 73918,
+     "input": 272,
+     "output": 686,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 72960
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790073249980,
+     "completed": 1790073260234
+    },
+    "finish": "stop",
+    "id": "msg_0c8ae20bc001Ya5IORchn8ViYq",
+    "sessionID": "ses_f375368e1ffeIef35jy319YWKp"
+   },
+   "parts": [
+    {
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-start",
+     "id": "prt_0c8ae2603001RqLvnzSvAEe66b",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ae20bc001Ya5IORchn8ViYq"
+    },
+    {
+     "type": "reasoning",
+     "text": "Tudo confirmado. Relatório final.",
+     "time": {
+      "start": 1790073251334,
+      "end": 1790073251377
+     },
+     "id": "prt_0c8ae2606001rkNxcXiwns0ThK",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ae20bc001Ya5IORchn8ViYq"
+    },
+    {
+     "type": "text",
+     "text": "## Relatório — GREEN da fatia UI-3 (Extrato de Horas)\n\n**Arquivos de produção criados**\n- `app/src/hooks/useExtrato.ts`\n- `app/src/components/ExtratoHoras.tsx`\n\n**Estrutura de `useExtrato`** — espelha `useCertificados.ts`: `useExtrato(apiClient = api)`, estados `extrato: Extrato | null`, `loading: boolean`, `error: { erro, mensagem } | null`; `useEffect` com flag `isMounted` para evitar atualização após unmount, dependência `[apiClient]`. Chama apenas `apiClient.getExtrato()`. Não conhece roteamento, não recalcula regras, não aplica tetos 240/1200, não decide elegibilidade, não emite.\n\n**Props de `ExtratoHoras`** — `selectedUserId: string | null`, `userPapel?: string`, `apiClient?: typeof api` (default `api`).\n\n**Guarda** — se `!selectedUserId` OU `userPapel !== 'participante'`, retorna `state-panel` com heading \"Área exclusiva de participantes\" antes de chamar `useExtrato`, então `getExtrato()` nunca é invocado (mesmo padrão de `MeusCertificados`).\n\n**`codigo` string** — apresentado textualmente como recebido: `Certificado: SA26-7K2M-9QXA`.\n\n**`codigo` null** — apresentado como `Certificado: certificado não emitido` (sem botão de emissão, sem interpretação de inelegibilidade).\n\n**Totais** — os quatro valores recebidos (`palestrasMinutos`, `minicursosMinutos`, `totalMinutos`, `aproveitadoMinutos`) renderizados em `metrics-grid`/`metric-card` (último com `metric-card--highlight`), sem nenhum cálculo no frontend. No cenário do teste permanecem 270 / 360 / 630 / 600.\n\n**Resultados**\n- 6 testes UI-3: **6/6 verdes** (`npx vitest run src/components/ExtratoHoras.test.tsx`)\n- Suíte completa da interface: **9 arquivos, 122 testes passaram** (9/9)\n- Typecheck: falha **somente** no erro baseline `Cannot find namespace 'NodeJS'` em `useCodigoEncontro.ts:12` — registrado, não corrigido nesta fatia\n- Build: falha pelo mesmo erro baseline\n- `ExtratoHoras.test.tsx`: **não alterado** (diff vazio)\n- `App.tsx`, `client.ts`, `types.ts`, backend, `styles.css`, `package.json`/`package-lock.json`: **não alterados** (diff vazio)\n\n**`git status --short`:**\n```\n?? app/src/components/ExtratoHoras.tsx\n?? app/src/hooks/useExtrato.ts\n```\n\nSem `git add`, sem commit, sem push.",
+     "time": {
+      "start": 1790073251380,
+      "end": 1790073259451
+     },
+     "id": "prt_0c8ae26340012CzFCYcb7gG43h",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ae20bc001Ya5IORchn8ViYq"
+    },
+    {
+     "reason": "stop",
+     "snapshot": "ae694cf72eeebc64b45b2ed9595f00e0f9f6a10e",
+     "type": "step-finish",
+     "tokens": {
+      "total": 73918,
+      "input": 272,
+      "output": 686,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 72960
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c8ae472a001CyMMDC422YRWFC",
+     "sessionID": "ses_f375368e1ffeIef35jy319YWKp",
+     "messageID": "msg_0c8ae20bc001Ya5IORchn8ViYq"
+    }
+   ]
+  }
+ ]
+}

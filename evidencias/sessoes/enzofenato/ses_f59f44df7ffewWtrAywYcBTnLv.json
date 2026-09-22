@@ -1,0 +1,841 @@
+{
+ "info": {
+  "id": "ses_f59f44df7ffewWtrAywYcBTnLv",
+  "slug": "nimble-wolf",
+  "projectID": "08a8850750a50d17a216613ef31c5f0b0d1b31ca",
+  "directory": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+  "path": "",
+  "title": "Atualizar spec M4-certificados conforme entrevista",
+  "agent": "build",
+  "model": {
+   "id": "big-pickle",
+   "providerID": "opencode"
+  },
+  "version": "1.18.31",
+  "summary": {
+   "additions": 0,
+   "deletions": 0,
+   "files": 0
+  },
+  "cost": 0,
+  "tokens": {
+   "input": 33266,
+   "output": 10468,
+   "reasoning": 0,
+   "cache": {
+    "read": 117248,
+    "write": 0
+   }
+  },
+  "time": {
+   "created": 1789492179465,
+   "updated": 1789492332516
+  }
+ },
+ "messages": [
+  {
+   "info": {
+    "role": "user",
+    "time": {
+     "created": 1789492179529
+    },
+    "agent": "build",
+    "model": {
+     "providerID": "opencode",
+     "modelID": "big-pickle"
+    },
+    "summary": {
+     "diffs": [
+      {
+       "file": "specs/M4-certificados.md",
+       "patch": "Index: specs/M4-certificados.md\n===================================================================\n--- specs/M4-certificados.md\t\n+++ specs/M4-certificados.md\t\n@@ -1,125 +1,135 @@\n # Spec — M4-certificados\n \n ## 1. Objetivo\n Emitir certificados de participação para quem cumpriu a presença mínima de uma atividade encerrada, listar os certificados já emitidos de cada participante, permitir a verificação pública de um certificado pelo seu código e consolidar o extrato de horas complementares aproveitadas (palestras e minicursos), na visão do participante.\n \n ## 2. Fora de escopo\n O módulo M4 **não** inclui e está estritamente proibido de implementar:\n - Regras de presença por QR code, leitura offline, chamada manual ou qualquer registro de presenças (pertencentes ao M3).\n - Regras de inscrições, lista de espera e confirmação de convocação (pertencentes ao M2).\n - Cálculo da situação temporal da atividade ou criação/alteração de atividades e encontros (pertencentes ao M1), que o M4 apenas consulta.\n - Regras do painel da organização e bloqueios de participantes (pertencentes ao M5).\n - Geração de arquivo PDF ou qualquer artefato de certificado além da representação JSON do contrato.\n - Cancelamento, revogação ou invalidação de certificados já emitidos.\n - Rotas de autenticação, cadastro de usuários ou alteração dos dados iniciais.\n - Códigos de QR de encontro (`GET /encontros/:id/codigo`), que pertencem ao M3.\n \n-### Lacunas e decisões não especificadas\n-- **Composição do extrato**: A entrevista define a fórmula de contagem e os tetos, mas não decide quais atividades entram na lista `itens` do extrato (somente atividades com certificado emitido, ou outro critério). Esta lacuna não bloqueia as regras de fórmula, verificadas em cenários com a composição dada como pré-condição do cenário.\n-- **Alfabeto dos códigos**: A regra cita \"o alfabeto definido para os códigos do sistema\", mas o conjunto exato de caracteres desse alfabeto não está registrado no repositório. A spec preserva a formulação da entrevista sem inventar o alfabeto.\n-- **Ordem entre regras do recurso**: A entrevista não define a precedência entre `PRESENCA_INSUFICIENTE` e `ATIVIDADE_NAO_ENCERRADA` quando ambas recusam a mesma solicitação de certificado. A ordem global do contrato (identificação 401 → perfil 403 → existência 404 → corpo 422 → regras do recurso) permanece valendo; a ordem entre as regras do M4 fica pendente.\n-\n ## 3. Modelo\n Entidades expostas pelo M4:\n - **Certificado**:\n   - `codigo`: string, formato `SA26-XXXX-XXXX` (gerado pelo sistema na primeira emissão)\n   - `atividadeId`: string, referência à atividade do M1 (derivado)\n   - `participanteId`: string, referência ao participante do M2 (derivado)\n   - `cargaHorariaMinutos`: número inteiro, carga horária da atividade (derivado do M1)\n   - `presencas`: número inteiro, quantidade de encontros com presença registrada do participante (derivado do M3)\n   - `encontros`: número inteiro, total de encontros da atividade (derivado do M1)\n   - `emitidoEm`: instante ISO 8601 com fuso, data de emissão (gerado pelo sistema na primeira emissão)\n - **Verificacao** (consulta pública):\n   - `codigo`: string\n   - `participante`: string, nome abreviado (derivado do nome do participante pela regra de abreviação)\n   - `atividade`: string, título da atividade (derivado do M1)\n   - `cargaHorariaMinutos`: número inteiro\n   - `emitidoEm`: instante ISO 8601 com fuso\n - **Extrato**:\n-  - `itens`: lista de `{ atividadeId, titulo, tipo, cargaHorariaMinutos, codigo }` (composição pendente — ver lacunas)\n+  - `itens`: lista de `{ atividadeId, titulo, tipo, cargaHorariaMinutos, codigo }` — uma entrada para cada atividade em que o participante está inscrito; `codigo` é o código do certificado quando já emitido para a atividade e `null` caso contrário (R10)\n   - `palestrasMinutos`: número inteiro, soma bruta das cargas horárias das palestras, sem teto (calculado)\n   - `minicursosMinutos`: número inteiro, soma bruta das cargas horárias dos minicursos, sem teto (calculado)\n   - `totalMinutos`: número inteiro, `palestrasMinutos + minicursosMinutos` (calculado)\n   - `aproveitadoMinutos`: número inteiro, aplicando a regra de aproveitamento (calculado)\n \n ## 4. Endpoints\n Métodos, caminhos, papéis e códigos de sucesso conforme `contrato-api.md`:\n - `POST /atividades/:id/certificado` (participante) → 201 `Certificado` na primeira vez; 200 `Certificado` depois (sem corpo de entrada definido no contrato)\n - `GET /certificados` (participante) → 200 `[Certificado]` — somente os já emitidos\n - `GET /certificados/:codigo` (público, sem `X-Usuario`) → 200 `Verificacao`\n - `GET /extrato` (participante) → 200 `Extrato`\n \n ## 5. Regras\n - **R1** (Presença mínima de 75%): O participante tem direito ao certificado somente com presença registrada em pelo menos 75% dos encontros da atividade. O cálculo compara a fração exata `presencas / encontros` contra o limite de 75%, sem arredondamento a favor do participante. Presença insuficiente gera 422 `PRESENCA_INSUFICIENTE`. *(Origem: P-01; RN-404; código no `contrato-api.md`)*\n - **R2** (Emissão somente após o encerramento): O certificado só pode ser emitido depois do instante de término do último encontro da atividade. Antes desse momento a emissão é recusada com 422 `ATIVIDADE_NAO_ENCERRADA`. *(Origem: P-02; RN-401; código no `contrato-api.md`)*\n - **R3** (Carga horária integral no bruto): No extrato, minicursos e palestras contam pela carga horária integral: `palestrasMinutos` e `minicursosMinutos` são as somas brutas das cargas das atividades de cada tipo, sem aplicação de teto, e `totalMinutos` é a soma bruta das duas. *(Origem: P-03; RN-411)*\n - **R4** (Teto de aproveitamento de palestras): Das palestras, aproveita-se no máximo 240 minutos (4 horas). O valor aproveitado das palestras é `min(240, palestrasMinutos)`, enquanto o campo bruto `palestrasMinutos` permanece sem teto. *(Origem: P-03; RN-411)*\n - **R5** (Teto total e fórmula do aproveitado): Depois de aplicar o limite das palestras, o total de horas complementares aproveitadas (palestras + minicursos) fica limitado a 1200 minutos (20 horas). Fórmula: `aproveitadoMinutos = min(1200, min(240, palestrasMinutos) + minicursosMinutos)`. *(Origem: P-03; RN-412)*\n - **R6** (Formato, alfabeto e unicidade do código): O código do certificado tem formato fixo `SA26-XXXX-XXXX`, usando os caracteres do alfabeto definido para os códigos do sistema; cada certificado tem código único; o código é criado na primeira emissão e permanece o mesmo nas reemissões. *(Origem: P-04; RN-407)*\n - **R7** (Abreviação do nome): Na verificação pública, o nome do participante aparece com o primeiro nome por extenso e as iniciais dos demais nomes, cada uma seguida de ponto. As partículas `de`, `da`, `do`, `das` e `dos` permanecem por extenso e em minúsculas. *(Origem: P-05; RN-408, RN-409)*\n - **R8** (Verificação pública sem X-Usuario): `GET /certificados/:codigo` é público e não exige o cabeçalho `X-Usuario`, retornando somente código, nome abreviado do participante, título da atividade, carga horária e data de emissão. *(Origem: P-05; RN-408, RN-409)*\n - **R9** (Idempotência da emissão): A emissão é idempotente para o par atividade e participante: na primeira solicitação o certificado é criado e retorna 201; nas solicitações seguintes, para a mesma atividade e o mesmo participante, retorna 200 com o mesmo certificado e o mesmo código, sem criar nova emissão. *(Origem: P-06; RN-407)*\n+- **R10** (Composição dos itens do extrato): O extrato lista todas as atividades em que o participante está inscrito. Em cada item, `codigo` contém o código do certificado quando ele já tiver sido emitido para aquela atividade; se ainda não houver certificado emitido para a atividade, `codigo` é `null`. *(Origem: P-07; RN-410)*\n+- **R11** (Alfabeto do código): O código do certificado usa letras maiúsculas e dígitos, excluindo os caracteres `I`, `O`, `0` e `1` para evitar ambiguidades — o mesmo alfabeto utilizado pelos códigos de presença. *(Origem: P-08; RN-407, RN-302)*\n+- **R12** (Precedência de erros na emissão): Quando, na mesma solicitação, ambos os erros se aplicam, `ATIVIDADE_NAO_ENCERRADA` tem precedência sobre `PRESENCA_INSUFICIENTE`: a validação de encerramento da atividade ocorre antes da validação da frequência. *(Origem: P-09; RN-413)*\n \n ## 6. Critérios de aceite\n 1. (R1) Atividade encerrada com 4 encontros; participante com presenças em exatamente 3 (75% exato) → `POST /atividades/:id/certificado` → 201 com `presencas: 3` e `encontros: 4`.\n 2. (R1) Atividade encerrada com 4 encontros; participante com presenças em 2 (50%) → 422 `PRESENCA_INSUFICIENTE`.\n 3. (R1) Atividade encerrada com 5 encontros; participante com presenças em 3 (60%; 75% de 5 = 3,75, sem arredondamento a favor) → 422 `PRESENCA_INSUFICIENTE`.\n 4. (R1) Atividade encerrada com 5 encontros; participante com presenças em 4 (80%) → 201.\n 5. (R2) Relógio antes do término do último encontro, com participante já elegível por presença → 422 `ATIVIDADE_NAO_ENCERRADA`.\n 6. (R2) Relógio no instante exato do término do último encontro → 201.\n 7. (R3, R4, R5) Extrato com palestras brutas de 300 minutos e minicursos brutos de 500 minutos → `palestrasMinutos: 300`, `minicursosMinutos: 500`, `totalMinutos: 800` e `aproveitadoMinutos: 740` (min(1200, min(300, 240) + 500)).\n 8. (R3, R4, R5) Extrato com palestras de 120 minutos e minicursos de 1300 minutos → `totalMinutos: 1420` e `aproveitadoMinutos: 1200` (teto total de 1200).\n 9. (R3, R4) Extrato com palestras de 250 minutos e nenhum minicurso → `palestrasMinutos: 250` (bruto sem teto) e `aproveitadoMinutos: 240` (teto de palestras).\n 10. (R3) Extrato com palestras de 90 minutos e nenhum minicurso → `aproveitadoMinutos: 90` (integral, sem teto atingido).\n 11. (R6) Certificado emitido → `codigo` no formato `SA26-XXXX-XXXX` (bloco fixo `SA26-` mais 4 + 4 caracteres).\n 12. (R6) Dois certificados emitidos para participantes distintos → códigos diferentes entre si.\n 13. (R7) Verificação pública do certificado de `p-carla` (Carla Mendes Souza) → `participante: \"Carla M. S.\"`.\n 14. (R7) Verificação pública de `p-elisa` (Elisa Fernandes da Rocha) → `participante: \"Elisa F. da Rocha\"`; de `p-isadora` (Isadora Ribeiro dos Santos) → `participante: \"Isadora R. dos Santos\"`.\n 15. (R8) `GET /certificados/:codigo` sem o cabeçalho `X-Usuario` → 200 com exatamente `codigo`, `participante` (abreviado), `atividade`, `cargaHorariaMinutos` e `emitidoEm`.\n 16. (R8) A resposta de verificação pública não expõe `participanteId`, `presencas` nem `encontros`.\n 17. (R9) Primeira solicitação de `POST /atividades/:id/certificado` → 201; segunda solicitação para a mesma atividade e o mesmo participante → 200 com o mesmo `codigo` e o mesmo `emitidoEm`, sem nova emissão.\n+18. (R10) Participante inscrito em duas atividades, uma com certificado emitido e outra sem → `GET /extrato` retorna `itens` com as duas atividades; o item da atividade com certificado tem `codigo` preenchido e o da outra tem `codigo: null`.\n+19. (R11) Certificado emitido → todos os caracteres do `codigo` pertencem a letras maiúsculas e dígitos, exceto `I`, `O`, `0` e `1`.\n+20. (R12) Atividade não encerrada com participante com 50% de presença (abaixo do mínimo de 75%) → `POST /atividades/:id/certificado` → 422 `ATIVIDADE_NAO_ENCERRADA` (e não `PRESENCA_INSUFICIENTE`).\n \n ## 7. Como será verificado\n A verificação será realizada externamente (sem leitura de código), pela camada HTTP:\n - Utilizando testes automatizados (Supertest/Vitest) com `MODO_TESTE=1`, `POST /_teste/reset` e `PUT /_teste/relogio`, exercitando a emissão (`POST /atividades/:id/certificado`), a listagem de próprios certificados (`GET /certificados`), a verificação pública sem `X-Usuario` (`GET /certificados/:codigo`) e o extrato (`GET /extrato`).\n - Os cenários de contorno são montados com as rotas existentes da API (criação de atividade e encontros via rotas do M1, registro de presenças via rotas do M3) e com o avanço do relógio controlado; a dependência de presenças do M3 é exercitada com dados conhecidos nos testes do módulo.\n - Cada regra da spec tem pelo menos um cenário automatizado correspondente, e a demonstração pode ser repetida após `POST /_teste/reset`, sem depender da leitura do código de produção.\n \n ## 8. Fatias de entrega\n 1. **Fatia 1 — emissão do certificado**\n-   - `POST /atividades/:id/certificado` com presença mínima (R1), emissão somente após o encerramento (R2) e idempotência 201/200 (R9).\n+   - `POST /atividades/:id/certificado` com presença mínima (R1), emissão somente após o encerramento (R2), precedência de `ATIVIDADE_NAO_ENCERRADA` sobre `PRESENCA_INSUFICIENTE` (R12) e idempotência 201/200 (R9).\n 2. **Fatia 2 — código e listagem**\n-   - Geração do código no formato `SA26-XXXX-XXXX` com unicidade (R6) e `GET /certificados` listando somente os emitidos do participante.\n+   - Geração do código no formato `SA26-XXXX-XXXX` com unicidade (R6) e alfabeto permitido (R11), e `GET /certificados` listando somente os emitidos do participante.\n 3. **Fatia 3 — verificação pública**\n    - `GET /certificados/:codigo` sem `X-Usuario` (R8), com a abreviação do nome (R7) e a projeção somente dos campos públicos.\n 4. **Fatia 4 — extrato de horas complementares**\n-   - `GET /extrato` com cargas brutas (R3), teto de palestras (R4), teto total e fórmula de `aproveitadoMinutos` (R5).\n+   - `GET /extrato` com cargas brutas (R3), teto de palestras (R4), teto total e fórmula de `aproveitadoMinutos` (R5) e composição dos itens (R10).\n \n ---\n \n ## Apêndice A: Matriz Regra → Critério de aceite\n - R1 → Critérios 1, 2, 3, 4\n - R2 → Critérios 5, 6\n - R3 → Critérios 7, 8, 9, 10\n - R4 → Critérios 7, 8, 9\n - R5 → Critérios 7, 8\n - R6 → Critérios 11, 12\n - R7 → Critérios 13, 14\n - R8 → Critérios 15, 16\n - R9 → Critério 17\n+- R10 → Critério 18\n+- R11 → Critério 19\n+- R12 → Critério 20\n \n ## Apêndice B: Matriz Origem → Regra/Seção\n - P-01 → R1\n - P-02 → R2\n - P-03 → R3, R4, R5\n - P-04 → R6\n - P-05 → R7, R8\n - P-06 → R9\n+- P-07 → R10\n+- P-08 → R11\n+- P-09 → R12\n+- RN-302 → R11\n - RN-401 → R2\n - RN-404 → R1\n-- RN-407 → R6, R9\n+- RN-407 → R6, R9, R11\n - RN-408 → R7, R8\n - RN-409 → R7, R8\n+- RN-410 → R10\n - RN-411 → R3, R4\n - RN-412 → R5\n+- RN-413 → R12\n - contrato-api.md → Modelo, Endpoints, R1 (código `PRESENCA_INSUFICIENTE`), R2 (código `ATIVIDADE_NAO_ENCERRADA`)\n\\ No newline at end of file\n",
+       "additions": 20,
+       "deletions": 10,
+       "status": "modified"
+      }
+     ]
+    },
+    "id": "msg_0a60bb249001s9EqgeY3JGPYAv",
+    "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv"
+   },
+   "parts": [
+    {
+     "type": "text",
+     "text": "Use a skill to-spec.\n\nRevise e atualize specs/M4-certificados.md usando exclusivamente entrevistas/M4-certificados.md.\n\nA entrevista agora contém P1 a P9 respondidas, incluindo as Rodadas Complementares.\n\nResolva na spec as três lacunas anteriormente identificadas:\n- composição dos itens do extrato;\n- alfabeto do código do certificado;\n- precedência dos erros na emissão.\n\nCada regra deve permanecer numerada como R1, R2, R3... e citar a pergunta P-xx que a originou e a RN correspondente quando registrada na entrevista.\n\nRemova da seção de lacunas aquilo que agora foi decidido pelas perguntas P7, P8 e P9.\n\nNão implemente código.\nNão altere entrevistas/M4-certificados.md.\nNão invente regras que não estejam registradas na entrevista. ",
+     "id": "prt_0a60bb24f001DnfEHzk0FhVcEg",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60bb249001s9EqgeY3JGPYAv"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0a60bb249001s9EqgeY3JGPYAv",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 21154,
+     "input": 19300,
+     "output": 62,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 1792
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789492179579,
+     "completed": 1789492191569
+    },
+    "finish": "tool-calls",
+    "id": "msg_0a60bb27b001aC08MQ0Bx2vzlF",
+    "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv"
+   },
+   "parts": [
+    {
+     "snapshot": "c71b949d34fd031dcffbcc41ff66ad4c0b2c36b9",
+     "type": "step-start",
+     "id": "prt_0a60bd947001e2iAid23Qs5r4g",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60bb27b001aC08MQ0Bx2vzlF"
+    },
+    {
+     "type": "reasoning",
+     "text": "Let me start by loading the to-spec skill and reading the relevant files.",
+     "time": {
+      "start": 1789492189525,
+      "end": 1789492189833
+     },
+     "id": "prt_0a60bd954001X52b8rjQfULx8f",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60bb27b001aC08MQ0Bx2vzlF"
+    },
+    {
+     "type": "text",
+     "text": "\n\n",
+     "time": {
+      "start": 1789492189854,
+      "end": 1789492190092
+     },
+     "id": "prt_0a60bda9e001t3ePOdaXag71I7",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60bb27b001aC08MQ0Bx2vzlF"
+    },
+    {
+     "type": "tool",
+     "tool": "skill",
+     "callID": "call_1c3abea6dc9445fc860b409a",
+     "state": {
+      "status": "completed",
+      "input": {
+       "name": "to-spec"
+      },
+      "output": "<skill_content name=\"to-spec\">\n# Skill: to-spec\n\n# A conversa vira contrato\r\n\r\nVocê já tem tudo o que precisa: está na conversa. **Não entreviste de novo.** Sua\r\ntarefa é escrever, num arquivo, o que já foi decidido — e nada além.\r\n\r\nRegra que ninguém decidiu **não entra**. Se faltar alguma coisa para a spec ficar de pé,\r\npare e pergunte só aquilo. Não preencha buraco com \"geralmente é assim\".\r\n\r\n## Onde escrever\r\n\r\n`spec-<recurso>.md`, na raiz do projeto. Um arquivo por recurso.\r\n\r\n## Antes de escrever\r\n\r\nLeia o repositório: convenções, vocabulário, nomes que já existem. A spec fala a língua\r\ndo projeto — se o código chama de `leitor`, a spec não inventa `usuário`.\r\n\r\nDecida também **onde isto vai ser verificado**. Prefira a costura mais externa que já\r\nexistir (aqui: HTTP, pelo `criarServidor()`). Quanto menos pontos de teste novos, melhor.\r\n\r\n## Modelo\r\n\r\n```markdown\r\n# Spec — <recurso>\r\n\r\n## 1. Objetivo\r\nUm parágrafo: que problema isto resolve, na visão de quem usa.\r\n\r\n## 2. Fora de escopo\r\nLista do que este recurso NÃO faz. Isto é tão contrato quanto o resto — é aqui que\r\nse recusa código que ninguém pediu.\r\n\r\n## 3. Modelo\r\nOs campos da entidade, com tipo e origem (informado pelo cliente / calculado / derivado).\r\nCampo derivado nunca é guardado.\r\n\r\n## 4. Endpoints\r\nMétodo, caminho, corpo esperado, status de sucesso.\r\n\r\n## 5. Regras\r\nNumeradas: R1, R2, R3… Uma regra por linha de decisão, cada uma com o número, o limite\r\nou o valor exato que foi decidido, e o status HTTP de recusa quando houver.\r\n\r\nToda regra precisa ser observável de fora. \"O sistema deve ser rápido\" não é regra.\r\n\"Devolver depois da data prevista cobra 1,50 por dia inteiro de atraso, teto de 30\" é.\r\n\r\nQuando duas regras podem recusar a mesma operação, diga qual vale primeiro.\r\n\r\n## 6. Critérios de aceite\r\nLista numerada de cenários concretos, cada um apontando a regra que ele prova:\r\n\r\n1. (R1, R3) POST /x com dados válidos → 201, campo `y` igual a Z.\r\n\r\nRegra sem pelo menos um critério é regra sem prova. Volte e escreva o critério.\r\n\r\n## 7. Como isto será verificado\r\nA costura (interface) usada nos testes e por quê.\r\n\r\n## 8. Fatias de entrega\r\nA ordem de implementação, em fatias verticais. Cada fatia é um conjunto pequeno de\r\nregras que já dá para rodar e verificar sozinho.\r\n```\r\n\r\n## Depois de escrever\r\n\r\nMostre ao usuário a lista das regras numeradas — só os números e uma linha cada — e\r\npergunte se falta alguma. É a última chance de corrigir barato.\n\nBase directory for this skill: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\.opencode\\skills\\to-spec\nRelative paths in this skill (e.g., scripts/, reference/) are relative to this base directory.\nNote: file list is sampled.\n\n<skill_files>\n\n</skill_files>\n</skill_content>",
+      "metadata": {
+       "name": "to-spec",
+       "dir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\.opencode\\skills\\to-spec",
+       "truncated": false
+      },
+      "title": "Loaded skill: to-spec",
+      "time": {
+       "start": 1789492190063,
+       "end": 1789492190258
+      }
+     },
+     "id": "prt_0a60bdafa001nwxeOfbLcfli17",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60bb27b001aC08MQ0Bx2vzlF"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "c71b949d34fd031dcffbcc41ff66ad4c0b2c36b9",
+     "type": "step-finish",
+     "tokens": {
+      "total": 21154,
+      "input": 19300,
+      "output": 62,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 1792
+      }
+     },
+     "cost": 0,
+     "id": "prt_0a60bdea2001L8b33VbL8q20J2",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60bb27b001aC08MQ0Bx2vzlF"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0a60bb249001s9EqgeY3JGPYAv",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 22232,
+     "input": 1102,
+     "output": 138,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 20992
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789492191585,
+     "completed": 1789492198341
+    },
+    "finish": "tool-calls",
+    "id": "msg_0a60be16100131oMzyDTJW3UYi",
+    "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv"
+   },
+   "parts": [
+    {
+     "snapshot": "c71b949d34fd031dcffbcc41ff66ad4c0b2c36b9",
+     "type": "step-start",
+     "id": "prt_0a60bf332001KQIc4lBBRirMLv",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60be16100131oMzyDTJW3UYi"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_b23aa779c4564adb87ff6f26",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\entrevistas\\M4-certificados.md"
+      },
+      "output": "[4127 caracteres omitidos]",
+      "title": "entrevistas\\M4-certificados.md",
+      "time": {
+       "start": 1789492196474,
+       "end": 1789492196865
+      }
+     },
+     "id": "prt_0a60bf340001wo6UpAtdo17rj5",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60be16100131oMzyDTJW3UYi"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_a379b94684be4f3f8c918705",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md"
+      },
+      "output": "[12354 caracteres omitidos]",
+      "title": "specs\\M4-certificados.md",
+      "time": {
+       "start": 1789492196777,
+       "end": 1789492197146
+      }
+     },
+     "id": "prt_0a60bf48e001nstghkETZ451K9",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60be16100131oMzyDTJW3UYi"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "c71b949d34fd031dcffbcc41ff66ad4c0b2c36b9",
+     "type": "step-finish",
+     "tokens": {
+      "total": 22232,
+      "input": 1102,
+      "output": 138,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 20992
+      }
+     },
+     "cost": 0,
+     "id": "prt_0a60bf963001jTBRdO7z5h0vUK",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60be16100131oMzyDTJW3UYi"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0a60bb249001s9EqgeY3JGPYAv",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 37376,
+     "input": 5716,
+     "output": 9644,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 22016
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789492198361,
+     "completed": 1789492314865
+    },
+    "finish": "tool-calls",
+    "id": "msg_0a60bfbd8001ELEDL2fFsNsf1H",
+    "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv"
+   },
+   "parts": [
+    {
+     "snapshot": "c71b949d34fd031dcffbcc41ff66ad4c0b2c36b9",
+     "type": "step-start",
+     "id": "prt_0a60c0412001D3bKpjW7gJoVXE",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60bfbd8001ELEDL2fFsNsf1H"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now let me understand the task. I need to update specs/M4-certificados.md using the interview entrevistas/M4-certificados.md.\n\nThe interview now has P1-P9 answered, including the Complementary Rounds (Rodada Complementar and Rodada Complementar 2).\n\nKey updates needed:\n1. P7 (RN-410): The extract should list all activities the participant is enrolled in. In each item, `codigo` should contain the certificate code when it has been issued for that activity. If not yet issued, `codigo` is null.\n2. P8 (RN-407, RN-302): The certificate code alphabet uses uppercase letters and digits, excluding I, O, 0, and 1. This is the same alphabet used by presence codes.\n3. P9 (RN-413): When both errors can occur at the same time, ATIVIDADE_NAO_ENCERRADA takes precedence over PRESENCA_INSUFICIENTE. The closure validation happens before frequency validation.\n\nChanges needed in the spec:\n1. Resolve the three gaps in the \"Lacunas e decisões não especificadas\" section:\n   - Composição do extrato → now decided by P7 (RN-410)\n   - Alfabeto do código → now decided by P8 (RN-407, RN-302)\n   - Precedência dos erros → now decided by P9 (RN-413)\n   - So this section should be removed (the three items).\n\n2. Update rules to add:\n   - New rule R10 for composição do extrato (P7, RN-410)\n   - Update R6 to include the alphabet definition (P8) or add new rule. Let me think about numbering. The instruction says \"Cada regra deve permanecer numerada como R1, R2, R3...\". I could either modify R6 to add the alphabet detail, or add new rules. Since each rule should cite the P-xx, and R6 was R6 for format/alphab/unicidade. Let me consider: I think it's cleaner to update R6 to include the alphabet detail (P-04 origin, and P-08 for the alphabet). Or add R10 for alphabet. Let me think how to keep things clean.\n\nActually, let me re-read: \"Resolva na spec as três lacunas anteriormente identificadas: composição dos itens do extrato; alfabeto do código do certificado; precedência dos erros na emissão. Cada regra deve permanecer numerada como R1, R2, R3... e citar a pergunta P-xx que a originou e a RN correspondente quando registrada na entrevista.\"\n\nSo I should:\n- Add rules addressing the three gaps. The new rules could be R10, R11, R12 (keeping existing R1-R9 intact), then update the appendices.\n\nLet me structure:\n- R10 (Composição do extrato): The extract lists all activities in which the participant is enrolled. In each item, `codigo` contains the certificate code when a certificate has been issued for that activity; otherwise `codigo` is null. *(Origem: P-07; RN-410)*\n- Alphabet: modify R6 to reference the alphabet, OR add a new rule R11. Actually R6 already says \"usando os caracteres do alfabeto definido para os códigos do sistema\". Now P8 defines that alphabet. I could update R6 to include the specific characters: uppercase letters and digits excluding I, O, 0 and 1 (same as presence codes). But R6's origin is P-04. The alphabet is now specified by P-08. I think it's better to add a new rule R11 for the alphabet to keep the P-xx origin traceability clean. But wait, R6 mentions formatting and uniqueness. Alphabet is part of the code generation. Hmm.\n\nActually, let me reconsider. The existing R6: \"Formato, alfabeto e unicidade do código\": The code has fixed format SA26-XXXX-XXXX, using chars from the alphabet defined for system codes; each certificate has unique code; created on first issuance, same on re-issuance.\n\nNow the alphabet is defined. I could keep R6 as is and add R11 covering the alphabet specifically (P-08, RN-407, RN-302). Or update R6. I think adding a separate rule is cleaner and preserves traceability, since the alphabet decision came from a new question (P8). But it might be redundant. Let me think about what's best.\n\nThe instruction says each rule must remain numbered R1, R2, R3... and cite the P-xx that originated it plus the RN when recorded. I can add new rules R10, R11, R12. Let me do:\n\n- R10 (Composição dos itens do extrato): enumerates all enrolled activities, codigo = certificate code if issued else null. (P-07; RN-410)\n- R11 (Alfabeto do código): use uppercase letters and digits excluding I, O, 0 and 1; same alphabet as presence codes. (P-08; RN-407, RN-302)\n- R12 (Precedência dos erros na emissão): ATIVIDADE_NAO_ENCERRADA precedes PRESENCA_INSUFICIENTE; closure validation happens before frequency validation. (P-09; RN-413)\n\nThen update the Modelo section: `itens` composition been resolved. Change \"composição pendente — ver lacunas\" to description.\n\nUpdate the lacunas section: remove the three items since now decided. But should I keep the section header with something? The instruction says \"Remova da seção de lacunas aquilo que agora foi decidido pelas perguntas P7, P8 e P9.\" So remove those items. All three items are now decided, so the entire \"Lacunas e decisões não especificadas\" subsection can be removed, or left empty? I think I should remove the entire section since all three gaps are resolved. Let me remove the whole subsection. Actually, could there be other things not decided? No, the section only contains those three items. So the whole subsection is removed.\n\nWait - but should I remove the header entirely? The instruction says remove from the gap section what's now decided by P7, P8, P9. Since those three are all items, the entire subsection goes away. I'll remove it.\n\nUpdate the criteria de aceite to add scenarios for R10, R11, R12:\n- R10: extrato lists enrolled activities; item with issued certificate has codigo, item without has null.\n- R11: certificate code uses only allowed chars (no I, O, 0, 1); presumably check the code chars. And presence code uses same alphabet.\n- R12: both errors apply → 422 ATIVIDADE_NAO_ENCERRADA (precedence).\n\nLet me craft criteria:\n18. (R10) Extrato de participante inscrito em duas atividades, uma com certificado emitido e outra sem → `itens` contém as duas; a primeira tem `codigo` preenchido e a segunda `codigo: null`.\n19. (R11) Certificado emitido → todos os caracteres do `codigo` (além de `SA26-`) pertencem ao alfabeto `0-9A-Z` exceto `I`, `O`, `0` e `1`.\n20. (R11) O alfabeto do código do certificado é o mesmo dos códigos de presença (RN-302).\n21. (R12) Atividade não encerrada com participante em 50% de presença → 422 `ATIVIDADE_NAO_ENCERRADA` (não `PRESENCA_INSUFICIENTE`).\n\nHmm, criterion 20 is about the same alphabet as presence, that's a bit internal/QA. Let me keep it simpler. Actually maybe I'll combine. Let me write:\n\n18. (R10) ... \n19. (R11) código with allowed characters only.\n20. (R12) when both apply → ATIVIDADE_NAO_ENCERRADA.\n\nFor R11's RN-302 (same alphabet as presence codes) — I could add a criterion that the certificate code uses the same alphabet as presence code. Maybe combine into criterion 19.\n\nUpdate the slice section to include the new rules in the relevant slices:\n- Fatia 1 (emissão): add precedence R12.\n- Fatia 2 (código e listagem): add alphabet R11.\n- Fatia 4 (extrato): add composição R10.\n\nUpdate appendices:\n- Matriz Regra → Critério: add R10 → 18, R11 → 19, R12 → 20.\n- Matriz Origem → Regra: add P-07 → R10, P-08 → R11, P-09 → R12; RN-410 → R10; RN-302 → R11; RN-413 → R12. Also update RN-407 → R6, R9, R11 (since RN-407 cited in P8 too).\n\nLet me also double check the model section for Extrato: `itens` currently says \"composição pendente — ver lacunas\". Now it's decided. Let me update to describe.\n\nAlso should I update R6 to reference R11? Maybe not necessary. But maybe I should clarify R6's sentence \"usando os caracteres do alfabeto definido para os códigos do sistema\" now can stay but point to R11. I'll keep R6 primarily, and R11 is a separate rule. Hmm, but then R6's \"alfabeto\" mention is a bit dangling. Actually it's fine—R6 covers formato and unicidade, R11 defines the alphabet. To avoid redundancy, I could adjust R6 wording slightly. But changing existing rule text might be risky. I think I'll keep R6 unchanged and add R11. That preserves existing tests/traceability.\n\nActually, wait. Let me reconsider — should the alphabet become part of R6 instead of a new rule? The user says \"Cada regra deve permanecer numerada como R1, R2, R3...\". That doesn't forbid adding. Given P8 is a new source, adding R11 with origin P-08 and RN-407/RN-302 is the most traceable. I'll add new rules.\n\nLet me also verify: P8 says \"O código do certificado deve usar letras maiúsculas e dígitos, excluindo os caracteres I, O, 0 e 1 para evitar ambiguidades. Esse é o mesmo alfabeto utilizado pelos códigos de presença.\" RN-407 e RN-302.\n\nSo the alphabet = uppercase letters and digits, excluding I, O, 0, 1. That means allowed set = A-Z minus I, O, plus 2-9 (0 and 1 excluded). So 24 letters + 8 digits = 32 chars. Let me state as: letras maiúsculas e dígitos, exceto `I`, `O`, `0` e `1`; mesmo alfabeto dos códigos de presença.\n\nP9: \"Quando os dois erros puderem ocorrer ao mesmo tempo, ATIVIDADE_NAO_ENCERRADA deve ter precedência sobre PRESENCA_INSUFICIENTE. A validação de encerramento da atividade ocorre antes da validação da frequência.\" RN-413.\n\nP7: \"O extrato deve listar todas as atividades em que o participante está inscrito. Em cada item, o campo codigo deve conter o código do certificado quando ele já tiver sido emitido para aquela atividade. Se ainda não houver certificado emitido, o campo codigo deve ser null.\" RN-410.\n\nAlso, the extrato model includes `{ atividadeId, titulo, tipo, cargaHorariaMinutos, codigo }`. Good.\n\nNow, note: the extrato now also implicitly involves enrollment (M2). Is that in scope already? The extrato is M4's. Fine.\n\nLet me write the updated spec. I'll make edits.\n\nEdit 1: Remove the \"Lacunas e decisões não especificadas\" subsection entirely.\n\nEdit 2: Update Extrato model `itens` line.\n\nEdit 3: Add R10, R11, R12 after R9.\n\nEdit 4: Add criteria 18-20.\n\nEdit 5: Update slices.\n\nEdit 6: Update appendices.\n\nLet me craft the edits carefully.\n\nFor the Modelo Extrato itens:\nold: `- `itens`: lista de `{ atividadeId, titulo, tipo, cargaHorariaMinutos, codigo }` (composição pendente — ver lacunas)`\nnew: `- `itens`: lista de `{ atividadeId, titulo, tipo, cargaHorariaMinutos, codigo }` — uma entrada para cada atividade em que o participante está inscrito; `codigo` é o código do certificado quando já emitido para a atividade e `null` caso contrário (R10)`\n\nFor rules, after R9 line:\n```\n- **R10** (Composição dos itens do extrato): O extrato lista todas as atividades em que o participante está inscrito. Em cada item, `codigo` contém o código do certificado quando ele já tiver sido emitido para aquela atividade; se ainda não houver certificado emitido, `codigo` é `null`. *(Origem: P-07; RN-410)*\n- **R11** (Alfabeto do código): O código do certificado usa letras maiúsculas e dígitos, excluindo os caracteres `I`, `O`, `0` e `1` para evitar ambiguidades — o mesmo alfabeto dos códigos de presença. *(Origem: P-08; RN-407, RN-302)*\n- **R12** (Precedência de erros na emissão): Quando, na mesma solicitação, ambos os erros se aplicam, `ATIVIDADE_NAO_ENCERRADA` tem precedência sobre `PRESENCA_INSUFICIENTE`: a validação de encerramento da atividade ocorre antes da validação da frequência. *(Origem: P-09; RN-413)*\n```\n\nFor criteria, after 17:\n```\n18. (R10) Participante inscrito em duas atividades, uma com certificado emitido e outra sem → `GET /extrato` retorna `itens` com as duas atividades; o item da atividade com certificado tem `codigo` preenchido e o da outra tem `codigo: null`.\n19. (R11) Certificado emitido → todos os caracteres do `codigo` pertencem a letras maiúsculas e dígitos, exceto `I`, `O`, `0` e `1`.\n20. (R12) Atividade não encerrada com participante em 50% (abaixo de 75%) de presença → 422 `ATIVIDADE_NAO_ENCERRADA` (nunca `PRESENCA_INSUFICIENTE`, dado o mesmo pedido).\n```\n\nHmm criterion 20 says \"dado o mesmo pedido\" — A single POST where both errors apply returns ATIVIDADE_NAO_ENCERRADA. Good.\n\nSlices:\n- Fatia 1: add R12.\n- Fatia 2: add alphabet R11.\n- Fatia 4: add composição R10.\n\nAppendices:\nMatriz Regra → Critério:\n- R1 → 1,2,3,4\n- ...\n- R9 → 17\n- R10 → 18\n- R11 → 19\n- R12 → 20\n\nMatriz Origem → Regra/Seção:\n- P-01 → R1\n- P-02 → R2\n- P-03 → R3, R4, R5\n- P-04 → R6\n- P-05 → R7, R8\n- P-06 → R9\n- P-07 → R10\n- P-08 → R11\n- P-09 → R12\n- RN-302 → R11\n- RN-401 → R2\n- RN-404 → R1\n- RN-407 → R6, R9, R11\n- RN-408 → R7, R8\n- RN-409 → R7, R8\n- RN-410 → R10\n- RN-411 → R3, R4\n- RN-412 → R5\n- RN-413 → R12\n- contrato-api.md → ...\n\nNow, one more consideration: the \"Lacunas\" section removal. The header is `### Lacunas e decisões não especificadas` followed by three bullet items. I'll remove the whole subsection.\n\nAlso update the Fazia 2 text to mention alphabet R11. Let me make the edits now.\n\nLet me check the exact text in the file for each edit.\n\nFor section 2, lines 17-20:\n```\n### Lacunas e decisões não especificadas\n- **Composição do extrato**: ...\n- **Alfabeto dos códigos**: ...\n- **Ordem entre regras do recurso**: ...\n```\nI'll remove lines 17-20 including the blank line after (line 21 is blank). Actually line 16 is \"## Perdeu? ...\"? No, line 16 is \"- Códigos de QR...\" and line 17 blank? Let me re-check: line 16 `- Códigos de QR de encontro...` then line 17 blank, then line 18 `### Lacunas...`. Wait no.\n\nLooking at file: \n15: `- Rotas de autenticação...`\n16: `- Códigos de QR de encontro (...), que pertencem ao M3.`\n17: (blank)\n18: `### Lacunas e decisões não especificadas`\n19: `- **Composição do extrato**: ...`\n20: `- **Alfabeto dos códigos**: ...`\n21: `- **Ordem entre regras do recurso**: ...`\n22: (blank)\n23: `## 3. Modelo`\n\nSo I remove 18-21, i.e., the header and three bullets. Edit oldString from `### Lacunas e decisões não especificadas\\n- **Composição...` ... `...ficha pendente.` to empty. Let me do it precisely.\n\nThe oldString:\n```\n### Lacunas e decisões não especificadas\n- **Composição do extrato**: A entrevista define a fórmula de contagem e os tetos, mas não decide quais atividades entram na lista `itens` do extrato (somente atividades com certificado emitido, ou outro critério). Esta lacuna não bloqueia as regras de fórmula, verificadas em cenários com a composição dada como pré-condição do cenário.\n- **Alfabeto dos códigos**: A regra cita \"o alfabeto definido para os códigos do sistema\", mas o conjunto exato de caracteres desse alfabeto não está registrado no repositório. A spec preserva a formulação da entrevista sem inventar o alfabeto.\n- **Ordem entre regras do recurso**: A entrevista não define a precedência entre `PRESENCA_INSUFICIENTE` e `ATIVIDADE_NAO_ENCERRADA` quando ambas recusam a mesma solicitação de certificado. A ordem global do contrato (identificação 401 → perfil 403 → existência 404 → corpo 422 → regras do recurso) permanece valendo; a ordem entre as regras do M4 fica pendente.\n```\nnewString: (empty) — but there's a blank line before `## 3. Modelo` and a blank line after line 16. If I remove lines 18-21 including the trailing newline... Let me structure the edit to remove exactly and leave clean formatting. I'll set oldString to include the preceding blank line and header block, replacing with just nothing but keep one blank line. Actually simpler: oldString = the header + 3 bullets + following blank line? The edit tool does exact string replacement.\n\nLet me set:\noldString:\n```\n\\n### Lacunas e decisões não especificadas\n- **Composição do extrato**: A entrevista define a fórmula de contagem e os tetos, mas não decide quais atividades entram na lista `itens` do extrato (somente atividades com certificado emitido, ou outro critério). Esta lacuna não bloqueia as regras de fórmula, verificadas em cenários com a composição dada como pré-condição do cenário.\n- **Alfabeto dos códigos**: A regra cita \"o alfabeto definido para os códigos do sistema\", mas o conjunto exato de caracteres desse alfabeto não está registrado no repositório. A spec preserva a formulação da entrevista sem inventar o alfabeto.\n- **Ordem entre regras do recurso**: A entrevista não define a precedência entre `PRESENCA_INSUFICIENTE` e `ATIVIDADE_NAO_ENCERRADA` quando ambas recusam a mesma solicitação de certificado. A ordem global do contrato (identificação 401 → perfil 403 → existência 404 → corpo 422 → regras do recurso) permanece valendo; a ordem entre as regras do M4 fica pendente.\n```\nHmm, the edit tool matches exact strings. Rather than include line-number artifacts, I need to reproduce exactly what's in the file. Let me just do the edit with oldString being the three lines plus header, and newString being empty. But there will be leftover blank lines: after line 16 there's a blank (17), and before \"## 3. Modelo\" there's blank (22). If I remove 18-21, we'll have blank line 17 and blank line 22 → two consecutive blanks. That's acceptable but slightly ugly. Let me include the leading blank line in oldString and trailing part.\n\nI'll set oldString to start at the newline following line 16's content. Actually the edit tool: I provide oldString exactly as it appears. Let me include from `### Lacunas` through the last bullet, and replace with empty. Then lines 17 and 22 are two blank lines. I might instead include one of the blanks. \n\nAlternatively I could replace the whole block including surrounding blanks:\noldString = \"- Códigos de QR de encontro (`GET /encontros/:id/codigo`), que pertencem ao M3.\\n\\n### Lacunas e decisões não especificadas\\n- ...3 bullets...\\n\\n## 3. Modelo\"\nnewString = \"- Códigos de QR de encontro (`GET /encontros/:id/codigo`), que pertencem ao M3.\\n\\n## 3. Modelo\"\n\nThat's clean and unambiguous. Good.\n\nNow let me perform edits. I'll do them one at a time since they're on the same file (must be sequential to avoid conflicting? The edit tool applies to the file; parallel edits to the same file could conflict. I'll do them sequentially, but multiple tool calls in one message run in parallel... The instructions say if independent, batch. But edits to the same file are dependent (each needs the file state). Actually each edit is a distinct unique string replacement; they don't overlap. Parallel edits on the same file might still be risky if the tool reads the file fresh each time. To be safe, I'll do them sequentially in separate messages? The tool processes calls in order within a message I believe. But to be safe about ordering, I'll do them one batch at a time. Actually the guidance: \"If the commands are independent and can run in parallel, make multiple bash tool calls in a single message.\" For edits on the same file, they're applied sequentially; as long as oldStrings are unique and non-overlapping, it should be fine. I'll batch edits to the same file but ensure uniqueness.\n\nLet me carefully craft each edit.\n\nEdit A — remove lacunas section.\n\nEdit B — Modelo itens line:\nold: `  - `itens`: lista de `{ atividadeId, titulo, tipo, cargaHorariaMinutos, codigo }` (composição pendente — ver lacunas)`\nnew: `  - `itens`: lista de `{ atividadeId, titulo, tipo, cargaHorariaMinutos, codigo }` — todas as atividades em que o participante está inscrito; `codigo` é o código do certificado quando já emitido para a atividade e `null` caso contrário (R10)`\n\nEdit C — add rules after R9:\nold: `- **R9** (Idempotência da emissão): A emissão é idempotente para o par atividade e participante: na primeira solicitação o certificado é criado e retorna 201; nas solicitações seguintes, para a mesma atividade e o mesmo participante, retorna 200 com o mesmo certificado e o mesmo código, sem criar nova emissão. *(Origem: P-06; RN-407)*`\nnew: same + R10, R11, R12 lines.\n\nEdit D — add criteria after 17:\nold: `17. (R9) Primeira solicitação de `POST /atividades/:id/certificado` → 201; segunda solicitação para a mesma atividade e o mesmo participante → 200 com o mesmo `codigo` e o mesmo `emitidoEm`, sem nova emissão.`\nnew: same + criteria 18-20.\n\nEdit E — slices:\nold:\n```\n1. **Fatia 1 — emissão do certificado**\n   - `POST /atividades/:id/certificado` com presença mínima (R1), emissão somente após o encerramento (R2) e idempotência 201/200 (R9).\n```\nnew:\n```\n1. **Fatia 1 — emissão do certificado**\n   - `POST /atividades/:id/certificado` com presença mínima (R1), emissão somente após o encerramento (R2), precedência de `ATIVIDADE_NAO_ENCERRADA` sobre `PRESENCA_INSUFICIENTE` (R12) e idempotência 201/200 (R9).\n```\n\nold:\n```\n2. **Fatia 2 — código e listagem**\n   - Geração do código no formato `SA26-XXXX-XXXX` com unicidade (R6) e `GET /certificados` listando somente os emitidos do participante.\n```\nnew:\n```\n2. **Fatia 2 — código e listagem**\n   - Geração do código no formato `SA26-XXXX-XXXX` com unicidade (R6) e alfabeto permitido (R11), e `GET /certificados` listando somente os emitidos do participante.\n```\n\nold:\n```\n4. **Fatia 4 — extrato de horas complementares**\n   - `GET /extrato` com cargas brutas (R3), teto de palestras (R4), teto total e fórmula de `aproveitadoMinutos` (R5).\n```\nnew:\n```\n4. **Fatia 4 — extrato de horas complementares**\n   - `GET /extrato` com cargas brutas (R3), teto de palestras (R4), teto total e fórmula de `aproveitadoMinutos` (R5) e composição dos itens (R10).\n```\n\nEdit F — Appendix A:\nold:\n```\n- R9 → Critério 17\n```\nnew:\n```\n- R9 → Critério 17\n- R10 → Critério 18\n- R11 → Critério 19\n- R12 → Critério 20\n```\n\nEdit G — Appendix B:\nold:\n```\n- P-06 → R9\n- RN-401 → R2\n- RN-404 → R1\n- RN-407 → R6, R9\n- RN-408 → R7, R8\n- RN-409 → R7, R8\n- RN-411 → R3, R4\n- RN-412 → R5\n```\nnew:\n```\n- P-06 → R9\n- P-07 → R10\n- P-08 → R11\n- P-09 → R12\n- RN-302 → R11\n- RN-401 → R2\n- RN-404 → R1\n- RN-407 → R6, R9, R11\n- RN-408 → R7, R8\n- RN-409 → R7, R8\n- RN-410 → R10\n- RN-411 → R3, R4\n- RN-412 → R5\n- RN-413 → R12\n```\n\nNow, one concern about R6: it mentions \"alfabeto definido para os códigos do sistema\" (origin P-04, RN-407). Now R11 defines the alphabet. Should R6 be updated to reference R11 to avoid dangling? The user said each rule should cite the P-xx that originated it. R6's origin is still P-04. But R6's \"alfabeto\" phrase is now fully specified by R11. I could refine R6's wording to say \"usando o alfabeto definido em R11\" or keep as-is. I think a small update improves coherence without breaking the origin. Let me adjust R6 to reference the alphabet defined in R11. Actually, modifying R6 could break tests that quote it, but specs aren't code; fine. Let me update R6's sentence: \"...usando os caracteres do alfabeto do R11; cada certificado tem código único; ...\". Hmm, but that changes P-04 origin? No, origin stays P-04/RN-407. The alphabet detail now comes from P-08. Let me keep R6 focused on formato + unicidade and add a note pointing to R11 for the alphabet.\n\nActually, to minimize disruption, I'll keep R6 text but the \"alfabeto\" mention now resolves via R11. I could just leave it. But there's a subtle redundancy: R6 says \"usando os caracteres do alfabeto definido para os códigos do sistema\" and R11 defines that alphabet. That's fine and consistent — R11 says \"mesmo alfabeto utilizado pelos códigos de presença\", which confirms \"alfabeto definido para os códigos do sistema\". So leaving R6 as is is perfectly consistent. Good, no change to R6 needed.\n\nNow let me also update the intro? No.\n\nLet me verify the criteria numbering and matrix references are consistent. Criteria 18,19,20 added. R10→18, R11→19, R12→20. Good.\n\nLet me now also double-check the extrato itens description matches P7 wording: \"O extrato deve listar todas as atividades em que o participante está inscrito. Em cada item, o campo codigo deve conter o código do certificado quando ele já tiver sido emitido para aquela atividade. Se ainda não houver certificado emitido, o campo codigo deve ser null.\" — Good, my R10 covers it with origin P-07, RN-410.\n\nNow let me perform the edits. I'll batch them. Since they're all on the same file with unique non-overlapping strings, I'll send them in one message.\n\nWait, the edit tool requires having read the file first — I did read it. Good.\n\nLet me write the edits.",
+     "time": {
+      "start": 1789492200478,
+      "end": 1789492286180
+     },
+     "id": "prt_0a60c041e001LF5KDAKvZUBFUy",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60bfbd8001ELEDL2fFsNsf1H"
+    },
+    {
+     "type": "text",
+     "text": "Li a entrevista (P1–P9 respondidas) e a spec atual. Vou aplicar as edições: remover as lacunas resolvidas, acrescentar R10–R12, atualizar modelo, critérios, fatias e matrizes.",
+     "time": {
+      "start": 1789492286204,
+      "end": 1789492313539
+     },
+     "id": "prt_0a60d52fc001mArBwg415o03Uz",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60bfbd8001ELEDL2fFsNsf1H"
+    },
+    {
+     "type": "tool",
+     "tool": "edit",
+     "callID": "call_db4c96c051aa403d9f118b20",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md",
+       "oldString": "- Códigos de QR de encontro (`GET /encontros/:id/codigo`), que pertencem ao M3.\n\n### Lacunas e decisões não especificadas\n- **Composição do extrato**: A entrevista define a fórmula de contagem e os tetos, mas não decide quais atividades entram na lista `itens` do extrato (somente atividades com certificado emitido, ou outro critério). Esta lacuna não bloqueia as regras de fórmula, verificadas em cenários com a composição dada como pré-condição do cenário.\n- **Alfabeto dos códigos**: A regra cita \"o alfabeto definido para os códigos do sistema\", mas o conjunto exato de caracteres desse alfabeto não está registrado no repositório. A spec preserva a formulação da entrevista sem inventar o alfabeto.\n- **Ordem entre regras do recurso**: A entrevista não define a precedência entre `PRESENCA_INSUFICIENTE` e `ATIVIDADE_NAO_ENCERRADA` quando ambas recusam a mesma solicitação de certificado. A ordem global do contrato (identificação 401 → perfil 403 → existência 404 → corpo 422 → regras do recurso) permanece valendo; a ordem entre as regras do M4 fica pendente.\n\n## 3. Modelo",
+       "newString": "- Códigos de QR de encontro (`GET /encontros/:id/codigo`), que pertencem ao M3.\n\n## 3. Modelo"
+      },
+      "output": "Edit applied successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "diff": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n@@ -13,13 +13,8 @@\n - Cancelamento, revogação ou invalidação de certificados já emitidos.\n - Rotas de autenticação, cadastro de usuários ou alteração dos dados iniciais.\n - Códigos de QR de encontro (`GET /encontros/:id/codigo`), que pertencem ao M3.\n \n-### Lacunas e decisões não especificadas\n-- **Composição do extrato**: A entrevista define a fórmula de contagem e os tetos, mas não decide quais atividades entram na lista `itens` do extrato (somente atividades com certificado emitido, ou outro critério). Esta lacuna não bloqueia as regras de fórmula, verificadas em cenários com a composição dada como pré-condição do cenário.\n-- **Alfabeto dos códigos**: A regra cita \"o alfabeto definido para os códigos do sistema\", mas o conjunto exato de caracteres desse alfabeto não está registrado no repositório. A spec preserva a formulação da entrevista sem inventar o alfabeto.\n-- **Ordem entre regras do recurso**: A entrevista não define a precedência entre `PRESENCA_INSUFICIENTE` e `ATIVIDADE_NAO_ENCERRADA` quando ambas recusam a mesma solicitação de certificado. A ordem global do contrato (identificação 401 → perfil 403 → existência 404 → corpo 422 → regras do recurso) permanece valendo; a ordem entre as regras do M4 fica pendente.\n-\n ## 3. Modelo\n Entidades expostas pelo M4:\n - **Certificado**:\n   - `codigo`: string, formato `SA26-XXXX-XXXX` (gerado pelo sistema na primeira emissão)\n",
+       "filediff": {
+        "file": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md",
+        "patch": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n@@ -13,13 +13,8 @@\n - Cancelamento, revogação ou invalidação de certificados já emitidos.\n - Rotas de autenticação, cadastro de usuários ou alteração dos dados iniciais.\n - Códigos de QR de encontro (`GET /encontros/:id/codigo`), que pertencem ao M3.\n \n-### Lacunas e decisões não especificadas\n-- **Composição do extrato**: A entrevista define a fórmula de contagem e os tetos, mas não decide quais atividades entram na lista `itens` do extrato (somente atividades com certificado emitido, ou outro critério). Esta lacuna não bloqueia as regras de fórmula, verificadas em cenários com a composição dada como pré-condição do cenário.\n-- **Alfabeto dos códigos**: A regra cita \"o alfabeto definido para os códigos do sistema\", mas o conjunto exato de caracteres desse alfabeto não está registrado no repositório. A spec preserva a formulação da entrevista sem inventar o alfabeto.\n-- **Ordem entre regras do recurso**: A entrevista não define a precedência entre `PRESENCA_INSUFICIENTE` e `ATIVIDADE_NAO_ENCERRADA` quando ambas recusam a mesma solicitação de certificado. A ordem global do contrato (identificação 401 → perfil 403 → existência 404 → corpo 422 → regras do recurso) permanece valendo; a ordem entre as regras do M4 fica pendente.\n-\n ## 3. Modelo\n Entidades expostas pelo M4:\n - **Certificado**:\n   - `codigo`: string, formato `SA26-XXXX-XXXX` (gerado pelo sistema na primeira emissão)\n",
+        "additions": 0,
+        "deletions": 5
+       },
+       "truncated": false
+      },
+      "title": "specs\\M4-certificados.md",
+      "time": {
+       "start": 1789492290222,
+       "end": 1789492290285
+      }
+     },
+     "id": "prt_0a60d54c70010Vz9O8VmPEcqeq",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60bfbd8001ELEDL2fFsNsf1H"
+    },
+    {
+     "type": "tool",
+     "tool": "edit",
+     "callID": "call_31786025fe0b4111afe4b811",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md",
+       "oldString": "- `itens`: lista de `{ atividadeId, titulo, tipo, cargaHorariaMinutos, codigo }` (composição pendente — ver lacunas)",
+       "newString": "- `itens`: lista de `{ atividadeId, titulo, tipo, cargaHorariaMinutos, codigo }` — uma entrada para cada atividade em que o participante está inscrito; `codigo` é o código do certificado quando já emitido para a atividade e `null` caso contrário (R10)"
+      },
+      "output": "Edit applied successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "diff": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n@@ -30,9 +30,9 @@\n   - `atividade`: string, título da atividade (derivado do M1)\n   - `cargaHorariaMinutos`: número inteiro\n   - `emitidoEm`: instante ISO 8601 com fuso\n - **Extrato**:\n-  - `itens`: lista de `{ atividadeId, titulo, tipo, cargaHorariaMinutos, codigo }` (composição pendente — ver lacunas)\n+  - `itens`: lista de `{ atividadeId, titulo, tipo, cargaHorariaMinutos, codigo }` — uma entrada para cada atividade em que o participante está inscrito; `codigo` é o código do certificado quando já emitido para a atividade e `null` caso contrário (R10)\n   - `palestrasMinutos`: número inteiro, soma bruta das cargas horárias das palestras, sem teto (calculado)\n   - `minicursosMinutos`: número inteiro, soma bruta das cargas horárias dos minicursos, sem teto (calculado)\n   - `totalMinutos`: número inteiro, `palestrasMinutos + minicursosMinutos` (calculado)\n   - `aproveitadoMinutos`: número inteiro, aplicando a regra de aproveitamento (calculado)\n",
+       "filediff": {
+        "file": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md",
+        "patch": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n@@ -30,9 +30,9 @@\n   - `atividade`: string, título da atividade (derivado do M1)\n   - `cargaHorariaMinutos`: número inteiro\n   - `emitidoEm`: instante ISO 8601 com fuso\n - **Extrato**:\n-  - `itens`: lista de `{ atividadeId, titulo, tipo, cargaHorariaMinutos, codigo }` (composição pendente — ver lacunas)\n+  - `itens`: lista de `{ atividadeId, titulo, tipo, cargaHorariaMinutos, codigo }` — uma entrada para cada atividade em que o participante está inscrito; `codigo` é o código do certificado quando já emitido para a atividade e `null` caso contrário (R10)\n   - `palestrasMinutos`: número inteiro, soma bruta das cargas horárias das palestras, sem teto (calculado)\n   - `minicursosMinutos`: número inteiro, soma bruta das cargas horárias dos minicursos, sem teto (calculado)\n   - `totalMinutos`: número inteiro, `palestrasMinutos + minicursosMinutos` (calculado)\n   - `aproveitadoMinutos`: número inteiro, aplicando a regra de aproveitamento (calculado)\n",
+        "additions": 1,
+        "deletions": 1
+       },
+       "truncated": false
+      },
+      "title": "specs\\M4-certificados.md",
+      "time": {
+       "start": 1789492293227,
+       "end": 1789492293262
+      }
+     },
+     "id": "prt_0a60d62b5001oxpi3s1Uu6Z6mm",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60bfbd8001ELEDL2fFsNsf1H"
+    },
+    {
+     "type": "tool",
+     "tool": "edit",
+     "callID": "call_c5b103b2622d4a95959e76f6",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md",
+       "oldString": "- **R9** (Idempotência da emissão): A emissão é idempotente para o par atividade e participante: na primeira solicitação o certificado é criado e retorna 201; nas solicitações seguintes, para a mesma atividade e o mesmo participante, retorna 200 com o mesmo certificado e o mesmo código, sem criar nova emissão. *(Origem: P-06; RN-407)*",
+       "newString": "- **R9** (Idempotência da emissão): A emissão é idempotente para o par atividade e participante: na primeira solicitação o certificado é criado e retorna 201; nas solicitações seguintes, para a mesma atividade e o mesmo participante, retorna 200 com o mesmo certificado e o mesmo código, sem criar nova emissão. *(Origem: P-06; RN-407)*\n- **R10** (Composição dos itens do extrato): O extrato lista todas as atividades em que o participante está inscrito. Em cada item, `codigo` contém o código do certificado quando ele já tiver sido emitido para aquela atividade; se ainda não houver certificado emitido para a atividade, `codigo` é `null`. *(Origem: P-07; RN-410)*\n- **R11** (Alfabeto do código): O código do certificado usa letras maiúsculas e dígitos, excluindo os caracteres `I`, `O`, `0` e `1` para evitar ambiguidades — o mesmo alfabeto utilizado pelos códigos de presença. *(Origem: P-08; RN-407, RN-302)*\n- **R12** (Precedência de erros na emissão): Quando, na mesma solicitação, ambos os erros se aplicam, `ATIVIDADE_NAO_ENCERRADA` tem precedência sobre `PRESENCA_INSUFICIENTE`: a validação de encerramento da atividade ocorre antes da validação da frequência. *(Origem: P-09; RN-413)*"
+      },
+      "output": "Edit applied successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "diff": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n@@ -53,8 +53,11 @@\n - **R6** (Formato, alfabeto e unicidade do código): O código do certificado tem formato fixo `SA26-XXXX-XXXX`, usando os caracteres do alfabeto definido para os códigos do sistema; cada certificado tem código único; o código é criado na primeira emissão e permanece o mesmo nas reemissões. *(Origem: P-04; RN-407)*\n - **R7** (Abreviação do nome): Na verificação pública, o nome do participante aparece com o primeiro nome por extenso e as iniciais dos demais nomes, cada uma seguida de ponto. As partículas `de`, `da`, `do`, `das` e `dos` permanecem por extenso e em minúsculas. *(Origem: P-05; RN-408, RN-409)*\n - **R8** (Verificação pública sem X-Usuario): `GET /certificados/:codigo` é público e não exige o cabeçalho `X-Usuario`, retornando somente código, nome abreviado do participante, título da atividade, carga horária e data de emissão. *(Origem: P-05; RN-408, RN-409)*\n - **R9** (Idempotência da emissão): A emissão é idempotente para o par atividade e participante: na primeira solicitação o certificado é criado e retorna 201; nas solicitações seguintes, para a mesma atividade e o mesmo participante, retorna 200 com o mesmo certificado e o mesmo código, sem criar nova emissão. *(Origem: P-06; RN-407)*\n+- **R10** (Composição dos itens do extrato): O extrato lista todas as atividades em que o participante está inscrito. Em cada item, `codigo` contém o código do certificado quando ele já tiver sido emitido para aquela atividade; se ainda não houver certificado emitido para a atividade, `codigo` é `null`. *(Origem: P-07; RN-410)*\n+- **R11** (Alfabeto do código): O código do certificado usa letras maiúsculas e dígitos, excluindo os caracteres `I`, `O`, `0` e `1` para evitar ambiguidades — o mesmo alfabeto utilizado pelos códigos de presença. *(Origem: P-08; RN-407, RN-302)*\n+- **R12** (Precedência de erros na emissão): Quando, na mesma solicitação, ambos os erros se aplicam, `ATIVIDADE_NAO_ENCERRADA` tem precedência sobre `PRESENCA_INSUFICIENTE`: a validação de encerramento da atividade ocorre antes da validação da frequência. *(Origem: P-09; RN-413)*\n \n ## 6. Critérios de aceite\n 1. (R1) Atividade encerrada com 4 encontros; participante com presenças em exatamente 3 (75% exato) → `POST /atividades/:id/certificado` → 201 com `presencas: 3` e `encontros: 4`.\n 2. (R1) Atividade encerrada com 4 encontros; participante com presenças em 2 (50%) → 422 `PRESENCA_INSUFICIENTE`.\n",
+       "filediff": {
+        "file": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md",
+        "patch": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n@@ -53,8 +53,11 @@\n - **R6** (Formato, alfabeto e unicidade do código): O código do certificado tem formato fixo `SA26-XXXX-XXXX`, usando os caracteres do alfabeto definido para os códigos do sistema; cada certificado tem código único; o código é criado na primeira emissão e permanece o mesmo nas reemissões. *(Origem: P-04; RN-407)*\n - **R7** (Abreviação do nome): Na verificação pública, o nome do participante aparece com o primeiro nome por extenso e as iniciais dos demais nomes, cada uma seguida de ponto. As partículas `de`, `da`, `do`, `das` e `dos` permanecem por extenso e em minúsculas. *(Origem: P-05; RN-408, RN-409)*\n - **R8** (Verificação pública sem X-Usuario): `GET /certificados/:codigo` é público e não exige o cabeçalho `X-Usuario`, retornando somente código, nome abreviado do participante, título da atividade, carga horária e data de emissão. *(Origem: P-05; RN-408, RN-409)*\n - **R9** (Idempotência da emissão): A emissão é idempotente para o par atividade e participante: na primeira solicitação o certificado é criado e retorna 201; nas solicitações seguintes, para a mesma atividade e o mesmo participante, retorna 200 com o mesmo certificado e o mesmo código, sem criar nova emissão. *(Origem: P-06; RN-407)*\n+- **R10** (Composição dos itens do extrato): O extrato lista todas as atividades em que o participante está inscrito. Em cada item, `codigo` contém o código do certificado quando ele já tiver sido emitido para aquela atividade; se ainda não houver certificado emitido para a atividade, `codigo` é `null`. *(Origem: P-07; RN-410)*\n+- **R11** (Alfabeto do código): O código do certificado usa letras maiúsculas e dígitos, excluindo os caracteres `I`, `O`, `0` e `1` para evitar ambiguidades — o mesmo alfabeto utilizado pelos códigos de presença. *(Origem: P-08; RN-407, RN-302)*\n+- **R12** (Precedência de erros na emissão): Quando, na mesma solicitação, ambos os erros se aplicam, `ATIVIDADE_NAO_ENCERRADA` tem precedência sobre `PRESENCA_INSUFICIENTE`: a validação de encerramento da atividade ocorre antes da validação da frequência. *(Origem: P-09; RN-413)*\n \n ## 6. Critérios de aceite\n 1. (R1) Atividade encerrada com 4 encontros; participante com presenças em exatamente 3 (75% exato) → `POST /atividades/:id/certificado` → 201 com `presencas: 3` e `encontros: 4`.\n 2. (R1) Atividade encerrada com 4 encontros; participante com presenças em 2 (50%) → 422 `PRESENCA_INSUFICIENTE`.\n",
+        "additions": 3,
+        "deletions": 0
+       },
+       "truncated": false
+      },
+      "title": "specs\\M4-certificados.md",
+      "time": {
+       "start": 1789492299665,
+       "end": 1789492299694
+      }
+     },
+     "id": "prt_0a60d6f97001c72lIIWwVRxxR9",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60bfbd8001ELEDL2fFsNsf1H"
+    },
+    {
+     "type": "tool",
+     "tool": "edit",
+     "callID": "call_8bc982c349364de5b01f5d73",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md",
+       "oldString": "17. (R9) Primeira solicitação de `POST /atividades/:id/certificado` → 201; segunda solicitação para a mesma atividade e o mesmo participante → 200 com o mesmo `codigo` e o mesmo `emitidoEm`, sem nova emissão.",
+       "newString": "17. (R9) Primeira solicitação de `POST /atividades/:id/certificado` → 201; segunda solicitação para a mesma atividade e o mesmo participante → 200 com o mesmo `codigo` e o mesmo `emitidoEm`, sem nova emissão.\n18. (R10) Participante inscrito em duas atividades, uma com certificado emitido e outra sem → `GET /extrato` retorna `itens` com as duas atividades; o item da atividade com certificado tem `codigo` preenchido e o da outra tem `codigo: null`.\n19. (R11) Certificado emitido → todos os caracteres do `codigo` pertencem a letras maiúsculas e dígitos, exceto `I`, `O`, `0` e `1`.\n20. (R12) Atividade não encerrada com participante com 50% de presença (abaixo do mínimo de 75%) → `POST /atividades/:id/certificado` → 422 `ATIVIDADE_NAO_ENCERRADA` (e não `PRESENCA_INSUFICIENTE`)."
+      },
+      "output": "Edit applied successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "diff": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n@@ -75,8 +75,11 @@\n 14. (R7) Verificação pública de `p-elisa` (Elisa Fernandes da Rocha) → `participante: \"Elisa F. da Rocha\"`; de `p-isadora` (Isadora Ribeiro dos Santos) → `participante: \"Isadora R. dos Santos\"`.\n 15. (R8) `GET /certificados/:codigo` sem o cabeçalho `X-Usuario` → 200 com exatamente `codigo`, `participante` (abreviado), `atividade`, `cargaHorariaMinutos` e `emitidoEm`.\n 16. (R8) A resposta de verificação pública não expõe `participanteId`, `presencas` nem `encontros`.\n 17. (R9) Primeira solicitação de `POST /atividades/:id/certificado` → 201; segunda solicitação para a mesma atividade e o mesmo participante → 200 com o mesmo `codigo` e o mesmo `emitidoEm`, sem nova emissão.\n+18. (R10) Participante inscrito em duas atividades, uma com certificado emitido e outra sem → `GET /extrato` retorna `itens` com as duas atividades; o item da atividade com certificado tem `codigo` preenchido e o da outra tem `codigo: null`.\n+19. (R11) Certificado emitido → todos os caracteres do `codigo` pertencem a letras maiúsculas e dígitos, exceto `I`, `O`, `0` e `1`.\n+20. (R12) Atividade não encerrada com participante com 50% de presença (abaixo do mínimo de 75%) → `POST /atividades/:id/certificado` → 422 `ATIVIDADE_NAO_ENCERRADA` (e não `PRESENCA_INSUFICIENTE`).\n \n ## 7. Como será verificado\n A verificação será realizada externamente (sem leitura de código), pela camada HTTP:\n - Utilizando testes automatizados (Supertest/Vitest) com `MODO_TESTE=1`, `POST /_teste/reset` e `PUT /_teste/relogio`, exercitando a emissão (`POST /atividades/:id/certificado`), a listagem de próprios certificados (`GET /certificados`), a verificação pública sem `X-Usuario` (`GET /certificados/:codigo`) e o extrato (`GET /extrato`).\n",
+       "filediff": {
+        "file": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md",
+        "patch": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n@@ -75,8 +75,11 @@\n 14. (R7) Verificação pública de `p-elisa` (Elisa Fernandes da Rocha) → `participante: \"Elisa F. da Rocha\"`; de `p-isadora` (Isadora Ribeiro dos Santos) → `participante: \"Isadora R. dos Santos\"`.\n 15. (R8) `GET /certificados/:codigo` sem o cabeçalho `X-Usuario` → 200 com exatamente `codigo`, `participante` (abreviado), `atividade`, `cargaHorariaMinutos` e `emitidoEm`.\n 16. (R8) A resposta de verificação pública não expõe `participanteId`, `presencas` nem `encontros`.\n 17. (R9) Primeira solicitação de `POST /atividades/:id/certificado` → 201; segunda solicitação para a mesma atividade e o mesmo participante → 200 com o mesmo `codigo` e o mesmo `emitidoEm`, sem nova emissão.\n+18. (R10) Participante inscrito em duas atividades, uma com certificado emitido e outra sem → `GET /extrato` retorna `itens` com as duas atividades; o item da atividade com certificado tem `codigo` preenchido e o da outra tem `codigo: null`.\n+19. (R11) Certificado emitido → todos os caracteres do `codigo` pertencem a letras maiúsculas e dígitos, exceto `I`, `O`, `0` e `1`.\n+20. (R12) Atividade não encerrada com participante com 50% de presença (abaixo do mínimo de 75%) → `POST /atividades/:id/certificado` → 422 `ATIVIDADE_NAO_ENCERRADA` (e não `PRESENCA_INSUFICIENTE`).\n \n ## 7. Como será verificado\n A verificação será realizada externamente (sem leitura de código), pela camada HTTP:\n - Utilizando testes automatizados (Supertest/Vitest) com `MODO_TESTE=1`, `POST /_teste/reset` e `PUT /_teste/relogio`, exercitando a emissão (`POST /atividades/:id/certificado`), a listagem de próprios certificados (`GET /certificados`), a verificação pública sem `X-Usuario` (`GET /certificados/:codigo`) e o extrato (`GET /extrato`).\n",
+        "additions": 3,
+        "deletions": 0
+       },
+       "truncated": false
+      },
+      "title": "specs\\M4-certificados.md",
+      "time": {
+       "start": 1789492303785,
+       "end": 1789492303835
+      }
+     },
+     "id": "prt_0a60d8799001X32A4R84xUhCwT",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60bfbd8001ELEDL2fFsNsf1H"
+    },
+    {
+     "type": "tool",
+     "tool": "edit",
+     "callID": "call_b353471e60504dc68192a75d",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md",
+       "oldString": "- `POST /atividades/:id/certificado` com presença mínima (R1), emissão somente após o encerramento (R2) e idempotência 201/200 (R9).",
+       "newString": "- `POST /atividades/:id/certificado` com presença mínima (R1), emissão somente após o encerramento (R2), precedência de `ATIVIDADE_NAO_ENCERRADA` sobre `PRESENCA_INSUFICIENTE` (R12) e idempotência 201/200 (R9)."
+      },
+      "output": "Edit applied successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "diff": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n@@ -87,9 +87,9 @@\n - Cada regra da spec tem pelo menos um cenário automatizado correspondente, e a demonstração pode ser repetida após `POST /_teste/reset`, sem depender da leitura do código de produção.\n \n ## 8. Fatias de entrega\n 1. **Fatia 1 — emissão do certificado**\n-   - `POST /atividades/:id/certificado` com presença mínima (R1), emissão somente após o encerramento (R2) e idempotência 201/200 (R9).\n+   - `POST /atividades/:id/certificado` com presença mínima (R1), emissão somente após o encerramento (R2), precedência de `ATIVIDADE_NAO_ENCERRADA` sobre `PRESENCA_INSUFICIENTE` (R12) e idempotência 201/200 (R9).\n 2. **Fatia 2 — código e listagem**\n    - Geração do código no formato `SA26-XXXX-XXXX` com unicidade (R6) e `GET /certificados` listando somente os emitidos do participante.\n 3. **Fatia 3 — verificação pública**\n    - `GET /certificados/:codigo` sem `X-Usuario` (R8), com a abreviação do nome (R7) e a projeção somente dos campos públicos.\n",
+       "filediff": {
+        "file": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md",
+        "patch": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n@@ -87,9 +87,9 @@\n - Cada regra da spec tem pelo menos um cenário automatizado correspondente, e a demonstração pode ser repetida após `POST /_teste/reset`, sem depender da leitura do código de produção.\n \n ## 8. Fatias de entrega\n 1. **Fatia 1 — emissão do certificado**\n-   - `POST /atividades/:id/certificado` com presença mínima (R1), emissão somente após o encerramento (R2) e idempotência 201/200 (R9).\n+   - `POST /atividades/:id/certificado` com presença mínima (R1), emissão somente após o encerramento (R2), precedência de `ATIVIDADE_NAO_ENCERRADA` sobre `PRESENCA_INSUFICIENTE` (R12) e idempotência 201/200 (R9).\n 2. **Fatia 2 — código e listagem**\n    - Geração do código no formato `SA26-XXXX-XXXX` com unicidade (R6) e `GET /certificados` listando somente os emitidos do participante.\n 3. **Fatia 3 — verificação pública**\n    - `GET /certificados/:codigo` sem `X-Usuario` (R8), com a abreviação do nome (R7) e a projeção somente dos campos públicos.\n",
+        "additions": 1,
+        "deletions": 1
+       },
+       "truncated": false
+      },
+      "title": "specs\\M4-certificados.md",
+      "time": {
+       "start": 1789492306378,
+       "end": 1789492306424
+      }
+     },
+     "id": "prt_0a60d9af8001Yj0LEHJ52yclql",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60bfbd8001ELEDL2fFsNsf1H"
+    },
+    {
+     "type": "tool",
+     "tool": "edit",
+     "callID": "call_537de4d7e6d8487396618bef",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md",
+       "oldString": "- Geração do código no formato `SA26-XXXX-XXXX` com unicidade (R6) e `GET /certificados` listando somente os emitidos do participante.",
+       "newString": "- Geração do código no formato `SA26-XXXX-XXXX` com unicidade (R6) e alfabeto permitido (R11), e `GET /certificados` listando somente os emitidos do participante."
+      },
+      "output": "Edit applied successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "diff": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n@@ -89,9 +89,9 @@\n ## 8. Fatias de entrega\n 1. **Fatia 1 — emissão do certificado**\n    - `POST /atividades/:id/certificado` com presença mínima (R1), emissão somente após o encerramento (R2), precedência de `ATIVIDADE_NAO_ENCERRADA` sobre `PRESENCA_INSUFICIENTE` (R12) e idempotência 201/200 (R9).\n 2. **Fatia 2 — código e listagem**\n-   - Geração do código no formato `SA26-XXXX-XXXX` com unicidade (R6) e `GET /certificados` listando somente os emitidos do participante.\n+   - Geração do código no formato `SA26-XXXX-XXXX` com unicidade (R6) e alfabeto permitido (R11), e `GET /certificados` listando somente os emitidos do participante.\n 3. **Fatia 3 — verificação pública**\n    - `GET /certificados/:codigo` sem `X-Usuario` (R8), com a abreviação do nome (R7) e a projeção somente dos campos públicos.\n 4. **Fatia 4 — extrato de horas complementares**\n    - `GET /extrato` com cargas brutas (R3), teto de palestras (R4), teto total e fórmula de `aproveitadoMinutos` (R5).\n",
+       "filediff": {
+        "file": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md",
+        "patch": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n@@ -89,9 +89,9 @@\n ## 8. Fatias de entrega\n 1. **Fatia 1 — emissão do certificado**\n    - `POST /atividades/:id/certificado` com presença mínima (R1), emissão somente após o encerramento (R2), precedência de `ATIVIDADE_NAO_ENCERRADA` sobre `PRESENCA_INSUFICIENTE` (R12) e idempotência 201/200 (R9).\n 2. **Fatia 2 — código e listagem**\n-   - Geração do código no formato `SA26-XXXX-XXXX` com unicidade (R6) e `GET /certificados` listando somente os emitidos do participante.\n+   - Geração do código no formato `SA26-XXXX-XXXX` com unicidade (R6) e alfabeto permitido (R11), e `GET /certificados` listando somente os emitidos do participante.\n 3. **Fatia 3 — verificação pública**\n    - `GET /certificados/:codigo` sem `X-Usuario` (R8), com a abreviação do nome (R7) e a projeção somente dos campos públicos.\n 4. **Fatia 4 — extrato de horas complementares**\n    - `GET /extrato` com cargas brutas (R3), teto de palestras (R4), teto total e fórmula de `aproveitadoMinutos` (R5).\n",
+        "additions": 1,
+        "deletions": 1
+       },
+       "truncated": false
+      },
+      "title": "specs\\M4-certificados.md",
+      "time": {
+       "start": 1789492307538,
+       "end": 1789492307583
+      }
+     },
+     "id": "prt_0a60da1d10016tmDe5Ty4C0wD2",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60bfbd8001ELEDL2fFsNsf1H"
+    },
+    {
+     "type": "tool",
+     "tool": "edit",
+     "callID": "call_14b62a5747e34029b6ebe1bc",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md",
+       "oldString": "- `GET /extrato` com cargas brutas (R3), teto de palestras (R4), teto total e fórmula de `aproveitadoMinutos` (R5).",
+       "newString": "- `GET /extrato` com cargas brutas (R3), teto de palestras (R4), teto total e fórmula de `aproveitadoMinutos` (R5) e composição dos itens (R10)."
+      },
+      "output": "Edit applied successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "diff": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n@@ -93,9 +93,9 @@\n    - Geração do código no formato `SA26-XXXX-XXXX` com unicidade (R6) e alfabeto permitido (R11), e `GET /certificados` listando somente os emitidos do participante.\n 3. **Fatia 3 — verificação pública**\n    - `GET /certificados/:codigo` sem `X-Usuario` (R8), com a abreviação do nome (R7) e a projeção somente dos campos públicos.\n 4. **Fatia 4 — extrato de horas complementares**\n-   - `GET /extrato` com cargas brutas (R3), teto de palestras (R4), teto total e fórmula de `aproveitadoMinutos` (R5).\n+   - `GET /extrato` com cargas brutas (R3), teto de palestras (R4), teto total e fórmula de `aproveitadoMinutos` (R5) e composição dos itens (R10).\n \n ---\n \n ## Apêndice A: Matriz Regra → Critério de aceite\n",
+       "filediff": {
+        "file": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md",
+        "patch": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n@@ -93,9 +93,9 @@\n    - Geração do código no formato `SA26-XXXX-XXXX` com unicidade (R6) e alfabeto permitido (R11), e `GET /certificados` listando somente os emitidos do participante.\n 3. **Fatia 3 — verificação pública**\n    - `GET /certificados/:codigo` sem `X-Usuario` (R8), com a abreviação do nome (R7) e a projeção somente dos campos públicos.\n 4. **Fatia 4 — extrato de horas complementares**\n-   - `GET /extrato` com cargas brutas (R3), teto de palestras (R4), teto total e fórmula de `aproveitadoMinutos` (R5).\n+   - `GET /extrato` com cargas brutas (R3), teto de palestras (R4), teto total e fórmula de `aproveitadoMinutos` (R5) e composição dos itens (R10).\n \n ---\n \n ## Apêndice A: Matriz Regra → Critério de aceite\n",
+        "additions": 1,
+        "deletions": 1
+       },
+       "truncated": false
+      },
+      "title": "specs\\M4-certificados.md",
+      "time": {
+       "start": 1789492309719,
+       "end": 1789492309805
+      }
+     },
+     "id": "prt_0a60da65b0015X32LK79PFiWX3",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60bfbd8001ELEDL2fFsNsf1H"
+    },
+    {
+     "type": "tool",
+     "tool": "edit",
+     "callID": "call_d0e879a2188c402c89c6b458",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md",
+       "oldString": "- R9 → Critério 17",
+       "newString": "- R9 → Critério 17\n- R10 → Critério 18\n- R11 → Critério 19\n- R12 → Critério 20"
+      },
+      "output": "Edit applied successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "diff": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n@@ -107,8 +107,11 @@\n - R6 → Critérios 11, 12\n - R7 → Critérios 13, 14\n - R8 → Critérios 15, 16\n - R9 → Critério 17\n+- R10 → Critério 18\n+- R11 → Critério 19\n+- R12 → Critério 20\n \n ## Apêndice B: Matriz Origem → Regra/Seção\n - P-01 → R1\n - P-02 → R2\n",
+       "filediff": {
+        "file": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md",
+        "patch": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n@@ -107,8 +107,11 @@\n - R6 → Critérios 11, 12\n - R7 → Critérios 13, 14\n - R8 → Critérios 15, 16\n - R9 → Critério 17\n+- R10 → Critério 18\n+- R11 → Critério 19\n+- R12 → Critério 20\n \n ## Apêndice B: Matriz Origem → Regra/Seção\n - P-01 → R1\n - P-02 → R2\n",
+        "additions": 3,
+        "deletions": 0
+       },
+       "truncated": false
+      },
+      "title": "specs\\M4-certificados.md",
+      "time": {
+       "start": 1789492310181,
+       "end": 1789492310238
+      }
+     },
+     "id": "prt_0a60daee7001ECr1jyZOlM9YCK",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60bfbd8001ELEDL2fFsNsf1H"
+    },
+    {
+     "type": "tool",
+     "tool": "edit",
+     "callID": "call_7f4c99dcb347424b81e0ef6f",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md",
+       "oldString": "- P-06 → R9\n- RN-401 → R2\n- RN-404 → R1\n- RN-407 → R6, R9\n- RN-408 → R7, R8\n- RN-409 → R7, R8\n- RN-411 → R3, R4\n- RN-412 → R5",
+       "newString": "- P-06 → R9\n- P-07 → R10\n- P-08 → R11\n- P-09 → R12\n- RN-302 → R11\n- RN-401 → R2\n- RN-404 → R1\n- RN-407 → R6, R9, R11\n- RN-408 → R7, R8\n- RN-409 → R7, R8\n- RN-410 → R10\n- RN-411 → R3, R4\n- RN-412 → R5\n- RN-413 → R12"
+      },
+      "output": "Edit applied successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "diff": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n@@ -118,12 +118,18 @@\n - P-03 → R3, R4, R5\n - P-04 → R6\n - P-05 → R7, R8\n - P-06 → R9\n+- P-07 → R10\n+- P-08 → R11\n+- P-09 → R12\n+- RN-302 → R11\n - RN-401 → R2\n - RN-404 → R1\n-- RN-407 → R6, R9\n+- RN-407 → R6, R9, R11\n - RN-408 → R7, R8\n - RN-409 → R7, R8\n+- RN-410 → R10\n - RN-411 → R3, R4\n - RN-412 → R5\n+- RN-413 → R12\n - contrato-api.md → Modelo, Endpoints, R1 (código `PRESENCA_INSUFICIENTE`), R2 (código `ATIVIDADE_NAO_ENCERRADA`)\n\\ No newline at end of file\n",
+       "filediff": {
+        "file": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md",
+        "patch": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md\n@@ -118,12 +118,18 @@\n - P-03 → R3, R4, R5\n - P-04 → R6\n - P-05 → R7, R8\n - P-06 → R9\n+- P-07 → R10\n+- P-08 → R11\n+- P-09 → R12\n+- RN-302 → R11\n - RN-401 → R2\n - RN-404 → R1\n-- RN-407 → R6, R9\n+- RN-407 → R6, R9, R11\n - RN-408 → R7, R8\n - RN-409 → R7, R8\n+- RN-410 → R10\n - RN-411 → R3, R4\n - RN-412 → R5\n+- RN-413 → R12\n - contrato-api.md → Modelo, Endpoints, R1 (código `PRESENCA_INSUFICIENTE`), R2 (código `ATIVIDADE_NAO_ENCERRADA`)\n\\ No newline at end of file\n",
+        "additions": 7,
+        "deletions": 1
+       },
+       "truncated": false
+      },
+      "title": "specs\\M4-certificados.md",
+      "time": {
+       "start": 1789492313425,
+       "end": 1789492313486
+      }
+     },
+     "id": "prt_0a60db0ab001PTeqJlElHwDUvn",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60bfbd8001ELEDL2fFsNsf1H"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "2fc77c78d0223ff9ca3a2a0f59afe21c7c0b95de",
+     "type": "step-finish",
+     "tokens": {
+      "total": 37376,
+      "input": 5716,
+      "output": 9644,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 22016
+      }
+     },
+     "cost": 0,
+     "id": "prt_0a60dc0b7001z47sFNANX3VOJu",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60bfbd8001ELEDL2fFsNsf1H"
+    },
+    {
+     "type": "patch",
+     "hash": "c71b949d34fd031dcffbcc41ff66ad4c0b2c36b9",
+     "files": [
+      "C:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/specs/M4-certificados.md"
+     ],
+     "id": "prt_0a60dc2e9001EThL6OngKAsrLH",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60bfbd8001ELEDL2fFsNsf1H"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0a60bb249001s9EqgeY3JGPYAv",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 37553,
+     "input": 2398,
+     "output": 83,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 35072
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789492314876,
+     "completed": 1789492322029
+    },
+    "finish": "tool-calls",
+    "id": "msg_0a60dc2fc00172tkJHu67CpXFb",
+    "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv"
+   },
+   "parts": [
+    {
+     "snapshot": "2fc77c78d0223ff9ca3a2a0f59afe21c7c0b95de",
+     "type": "step-start",
+     "id": "prt_0a60dc98e001rP6Tgvanj8wB3F",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60dc2fc00172tkJHu67CpXFb"
+    },
+    {
+     "type": "reasoning",
+     "text": "Let me verify the final file.",
+     "time": {
+      "start": 1789492316565,
+      "end": 1789492316725
+     },
+     "id": "prt_0a60dc995001qGKenXD6XmPG0B",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60dc2fc00172tkJHu67CpXFb"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_c30b663fb17848aba84e136f",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md"
+      },
+      "output": "[13268 caracteres omitidos]",
+      "title": "specs\\M4-certificados.md",
+      "time": {
+       "start": 1789492317163,
+       "end": 1789492317234
+      }
+     },
+     "id": "prt_0a60dca390012B5zbhezkWWpVq",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60dc2fc00172tkJHu67CpXFb"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "2fc77c78d0223ff9ca3a2a0f59afe21c7c0b95de",
+     "type": "step-finish",
+     "tokens": {
+      "total": 37553,
+      "input": 2398,
+      "output": 83,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 35072
+      }
+     },
+     "cost": 0,
+     "id": "prt_0a60ddd0b001oq8zA7zIesOl61",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60dc2fc00172tkJHu67CpXFb"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0a60bb249001s9EqgeY3JGPYAv",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 42667,
+     "input": 4750,
+     "output": 541,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 37376
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789492322038,
+     "completed": 1789492332471
+    },
+    "finish": "stop",
+    "id": "msg_0a60ddef6001grJjpaogK1RERx",
+    "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv"
+   },
+   "parts": [
+    {
+     "snapshot": "2fc77c78d0223ff9ca3a2a0f59afe21c7c0b95de",
+     "type": "step-start",
+     "id": "prt_0a60de4f60015vcE0bH2rOO1p0",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60ddef6001grJjpaogK1RERx"
+    },
+    {
+     "type": "reasoning",
+     "text": "The spec has been updated. Let me present the numbered rules summary as the skill suggests, and ask if anything is missing. Actually the skill says \"Mostre ao usuário a lista das regras numeradas — só os números e uma linha cada — e pergunte se falta alguma.\"\n\nBut the user's request was to just revise and update. The skill's \"depois de escrever\" step is a good practice. However the instruction says be concise. I'll provide the rules list briefly and ask if anything is missing. Given the user explicitly asked to use to-spec skill, following its final step is appropriate.\n\nLet me present the R1-R12 list concisely.",
+     "time": {
+      "start": 1789492323578,
+      "end": 1789492325025
+     },
+     "id": "prt_0a60de4fa0015NnWu4O8yys7pc",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60ddef6001grJjpaogK1RERx"
+    },
+    {
+     "type": "text",
+     "text": "Spec atualizada. Lista de regras:\n\n- **R1** Presença mínima de 75%, sem arredondamento a favor (P-01, RN-404)\n- **R2** Emissão somente após o encerramento (P-02, RN-401)\n- **R3** Cargas brutas integrais no extrato (P-03, RN-411)\n- **R4** Teto de 240 min nas palestras (P-03, RN-411)\n- **R5** Teto total de 1200 min no aproveitado (P-03, RN-412)\n- **R6** Formato `SA26-XXXX-XXXX`, unicidade e reemissão (P-04, RN-407)\n- **R7** Abreviação do nome (P-05, RN-408/409)\n- **R8** Verificação pública sem `X-Usuario` (P-05, RN-408/409)\n- **R9** Idempotência 201/200 (P-06, RN-407)\n- **R10** Extrato lista todas as inscrições; `codigo` = cert. emitido ou `null` (P-07, RN-410)\n- **R11** Alfabeto: maiúsculas + dígitos exceto `I`, `O`, `0`, `1` (P-08, RN-407/302)\n- **R12** `ATIVIDADE_NAO_ENCERRADA` precede `PRESENCA_INSUFICIENTE` (P-09, RN-413)\n\nLacunas de composição, alfabeto e precedência removidas da seção 2; modelo, critérios (18–20), fatias e matrizes atualizados. Falta alguma regra?",
+     "time": {
+      "start": 1789492325033,
+      "end": 1789492331758
+     },
+     "id": "prt_0a60deaa90012ioxlI6nYCUnqJ",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60ddef6001grJjpaogK1RERx"
+    },
+    {
+     "reason": "stop",
+     "snapshot": "2fc77c78d0223ff9ca3a2a0f59afe21c7c0b95de",
+     "type": "step-finish",
+     "tokens": {
+      "total": 42667,
+      "input": 4750,
+      "output": 541,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 37376
+      }
+     },
+     "cost": 0,
+     "id": "prt_0a60e065a001V6vme7efG4kMKn",
+     "sessionID": "ses_f59f44df7ffewWtrAywYcBTnLv",
+     "messageID": "msg_0a60ddef6001grJjpaogK1RERx"
+    }
+   ]
+  }
+ ]
+}

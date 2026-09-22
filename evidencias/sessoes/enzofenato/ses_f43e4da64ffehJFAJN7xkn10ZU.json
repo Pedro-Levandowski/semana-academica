@@ -1,0 +1,2401 @@
+{
+ "info": {
+  "id": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+  "slug": "clever-cactus",
+  "projectID": "08a8850750a50d17a216613ef31c5f0b0d1b31ca",
+  "directory": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+  "path": "",
+  "title": "Revisão de cobertura da API M4 antes das telas",
+  "agent": "build",
+  "model": {
+   "id": "big-pickle",
+   "providerID": "opencode"
+  },
+  "version": "1.18.31",
+  "summary": {
+   "additions": 0,
+   "deletions": 0,
+   "files": 0
+  },
+  "cost": 0,
+  "tokens": {
+   "input": 88478,
+   "output": 18791,
+   "reasoning": 0,
+   "cache": {
+    "read": 1257216,
+    "write": 0
+   }
+  },
+  "time": {
+   "created": 1789862290843,
+   "updated": 1789862687526
+  }
+ },
+ "messages": [
+  {
+   "info": {
+    "role": "user",
+    "time": {
+     "created": 1789862290894
+    },
+    "agent": "build",
+    "model": {
+     "providerID": "opencode",
+     "modelID": "big-pickle"
+    },
+    "summary": {
+     "diffs": []
+    },
+    "id": "msg_0bc1b25ce001A2ZnDCEg9ztgt8",
+    "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU"
+   },
+   "parts": [
+    {
+     "type": "text",
+     "text": "Vamos fazer uma REVISÃO DE COBERTURA da API do M4 antes de iniciar as interfaces.\n\nEsta sessão é SOMENTE análise.\nNÃO implemente nada.\nNÃO crie testes.\nNÃO altere arquivos.\n\nUse a skill tdd-m4.\n\nConsulte:\n- specs/M4-certificados.md\n- contrato-api.md\n- AGENTS.md\n- todos os testes relacionados ao M4\n- toda a implementação atual de certificate/\n- rotas M4 em api/src/app.ts\n- integrações M2 e M3 utilizadas pelo M4\n\nNÃO consulte requisitos-envolvidos.md.\n\nEstado conhecido:\n- emissão de certificado implementada;\n- ATIVIDADE_CANCELADA implementado;\n- NAO_INSCRITO implementado;\n- precedência implementada:\n  inexistente\n  → cancelada\n  → não inscrito\n  → não encerrada\n  → presença insuficiente;\n- idempotência HTTP implementada;\n- GET /certificados implementado;\n- GET /certificados/:codigo público implementado;\n- GET /extrato implementado;\n- suíte atual: 260/260 testes verdes em 34 arquivos;\n- typecheck possui somente 7 erros TS2339 de baseline.\n\nObjetivo:\ncomparar REGRA POR REGRA a spec M4 e o contrato da API com:\n1. implementação atual;\n2. testes atuais;\n3. cobertura efetivamente demonstrada.\n\nAnalise R1 até R18 individualmente.\n\nVerifique especialmente:\n\nA. Emissão\n- R1 / frequência mínima de 75% sem arredondamento favorável;\n- R2 / atividade encerrada;\n- atividade cancelada;\n- inscrição confirmada;\n- precedência completa dos erros;\n- idempotência 201 → 200;\n- mesmo código na reemissão;\n- somente um certificado persistido;\n- carga horária integral da atividade no certificado;\n- presença manual/offline proveniente do M3.\n\nB. Código do certificado\n- formato SA26-XXXX-XXXX;\n- alfabeto permitido;\n- exclusão de I, O, 0 e 1;\n- estabilidade;\n- unicidade;\n- comportamento em eventual colisão, se spec/contrato exigir.\n\nC. GET /certificados\n- autenticação;\n- somente participante;\n- lista vazia;\n- conteúdo retornado;\n- isolamento: participante não pode receber certificados de outro participante.\n\nD. GET /certificados/:codigo\n- público, sem X-Usuario obrigatório;\n- código válido;\n- código inexistente;\n- código em lowercase, se contrato/spec exigir;\n- abreviação do nome;\n- somente campos públicos permitidos;\n- ausência de vazamento de participanteId, presença, encontros ou outros campos privados.\n\nE. GET /extrato\n- autenticação;\n- somente participante;\n- vazio;\n- atividades elegíveis;\n- somente inscrição confirmada;\n- exclusão de em_espera;\n- exclusão de convocada;\n- exclusão de cancelada;\n- exclusão de expirada;\n- exclusão de atividade cancelada;\n- certificado emitido → código;\n- não emitido → null;\n- cargas brutas;\n- teto de palestras em 240 minutos;\n- teto global em 1200 minutos;\n- cálculo em tempo de consulta.\n\nF. Contrato HTTP\nPara cada endpoint M4, confira:\n- método;\n- path;\n- autenticação;\n- status de sucesso;\n- status de erro;\n- payload;\n- mensagens/códigos;\n- precedência.\n\nMonte uma matriz final com:\n\nREGRA | EXIGÊNCIA | IMPLEMENTAÇÃO | TESTE | SITUAÇÃO\n\nUse para SITUAÇÃO somente:\n- COBERTO\n- IMPLEMENTADO SEM TESTE SUFICIENTE\n- TESTADO MAS IMPLEMENTAÇÃO INCOMPLETA\n- AUSENTE\n- NÃO APLICÁVEL\n\nDepois crie uma seção:\n\nLACUNAS REAIS ANTES DAS TELAS\n\nListe SOMENTE lacunas comprovadas pela comparação.\nNão proponha funcionalidades que não estejam na spec/contrato.\n\nPara cada lacuna, informe:\n- regra relacionada;\n- por que é uma lacuna;\n- menor teste TDD que provaria a regra;\n- prioridade sugerida pela dependência entre regras, sem alterar arquivos.\n\nTambém informe se alguma regra da spec está implementada incidentalmente, mas ainda sem teste explícito.\n\nAo final execute:\n\ngit status --short\n\nNão faça git add.\nNão faça commit.\nNão faça push. ",
+     "id": "prt_0bc1b25d2001AYedmQp2tfbBPV",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b25ce001A2ZnDCEg9ztgt8"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bc1b25ce001A2ZnDCEg9ztgt8",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 22190,
+     "input": 20311,
+     "output": 87,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 1792
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789862290938,
+     "completed": 1789862296712
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bc1b25fa001PhwSYMg1RiNzpY",
+    "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU"
+   },
+   "parts": [
+    {
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-start",
+     "id": "prt_0bc1b3789001sJHPNuWKnxfNkA",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b25fa001PhwSYMg1RiNzpY"
+    },
+    {
+     "type": "reasoning",
+     "text": "Let me start by loading the tdd-m4 skill as instructed, and then explore the relevant files.",
+     "time": {
+      "start": 1789862295438,
+      "end": 1789862295505
+     },
+     "id": "prt_0bc1b378e001HA8AzxaLjQT76s",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b25fa001PhwSYMg1RiNzpY"
+    },
+    {
+     "type": "text",
+     "text": "Vou carregar a skill tdd-m4 e explorar os arquivos relevantes.\n\n",
+     "time": {
+      "start": 1789862295509,
+      "end": 1789862295684
+     },
+     "id": "prt_0bc1b37d5001Sx1GysX90ZYNK1",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b25fa001PhwSYMg1RiNzpY"
+    },
+    {
+     "type": "tool",
+     "tool": "skill",
+     "callID": "call_cf261b878d7a4c249a5a03d7",
+     "state": {
+      "status": "completed",
+      "input": {
+       "name": "tdd-m4"
+      },
+      "output": "<skill_content name=\"tdd-m4\">\n# Skill: tdd-m4\n\n# TDD para M4-certificados\n\nA fonte de verdade é `specs/M4-certificados.md`. Não invente regras de negócio.\nNão altere a spec. Não acesse documentos externos de requisitos.\n\nO ciclo é o mesmo do `tdd` geral — teste que falha, código mínimo, refactor — mas\nancorado nas 4 fatias e 12 regras de M4. Uma regra ou grupo coeso por ciclo TDD.\n\n## Onde o teste mora\n\nTeste verifica comportamento pela interface pública (HTTP), nunca implementação.\nUse Vitest + Supertest, a aplicação Express de `createApp()` sem abrir porta,\ne as rotas `/_teste/*` com `MODO_TESTE=1` para setup e controle do relógio.\n\nArquivos de teste em `api/tests/`. Para rodar: `npm --prefix api test`.\n\nRegra do projeto: não importe serviço nem repositório no teste — se importar,\no teste quebra em refatoração sem que o comportamento tenha mudado.\n\n## Fatias e regras\n\nCada fatia é um entregável vertical que pode ser testado sozinho.\nImplemente as fatias nesta ordem. Dentro de cada fatia, uma regra ou grupo\ncoeso de regras por ciclo TDD.\n\n### Fatia 1 — emissão do certificado\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R1 | Presença mínima de 75% (`presencas / encontros`, sem arredondamento) | 1, 2, 3, 4 |\n| R2 | Emissão somente após encerramento da atividade | 5, 6 |\n| R12 | Precedência: `ATIVIDADE_NAO_ENCERRADA` antes de `PRESENCA_INSUFICIENTE` | 20 |\n| R9 | Idempotência: 201 na primeira vez, 200 nas seguintes, mesmo código | 17 |\n\nOrdem sugerida dentro da fatia:\n1. R1 — teste presence check, implemente, refactor.\n2. R2 — teste encerramento, implemente, refactor.\n3. R12 — teste precedência quando ambos falham, implemente, refactor.\n4. R9 — teste idempotência 201→200, implemente, refactor.\n\n### Fatia 2 — código e listagem\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R6 | Formato `SA26-XXXX-XXXX`, unicidade, mesmo código na reemissão | 11, 12 |\n| R11 | Alfabeto: maiúsculas + dígitos, sem `I`, `O`, `0`, `1` | 19 |\n\nOrdem sugerida dentro da fatia:\n1. R6 — teste formato e unicidade, implemente geração, refactor.\n2. R11 — teste exclusão de caracteres ambíguos, implemente, refactor.\n3. R9 (continuação) — teste `GET /certificados` retornando apenas emitidos.\n\n### Fatia 3 — verificação pública\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R8 | `GET /certificados/:codigo` sem `X-Usuario`, campos públicos apenas | 15, 16 |\n| R7 | Abreviação do nome: primeiro nome + iniciais + partículas por extenso | 13, 14 |\n\nOrdem sugerida dentro da fatia:\n1. R8 — teste rota pública sem header, campos corretos, implemente, refactor.\n2. R7 — teste abreviação com partículas, implemente, refactor.\n\n### Fatia 4 — extrato de horas complementares\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R3 | Cargas brutas: `palestrasMinutos`, `minicursosMinutos`, `totalMinutos` sem teto | 7, 8, 9, 10 |\n| R4 | Teto de palestras: `min(240, palestrasMinutos)` | 7, 8, 9 |\n| R5 | Teto total: `aproveitadoMinutos = min(1200, min(240, palestrasMinutos) + minicursosMinutos)` | 7, 8 |\n| R10 | Itens do extrato: `codigo` preenchido ou `null` conforme emissão | 18 |\n\nOrdem sugerida dentro da fatia:\n1. R3+R4+R5 — teste cálculos de extrato (juntos, são uma unidade coesa), implemente, refactor.\n2. R10 — teste composição dos itens com código/null, implemente, refactor.\n\n## O ciclo TDD, passo a passo\n\nPara cada regra (ou grupo coeso), nestes passos:\n\n1. **RED**: Escreva um teste que prova o critério de aceite. Rode. **Ele tem que falhar.**\n   Se passar antes do código existir, algo está errado — descubra o quê antes de seguir.\n   O nome do teste descreve a regra em português:\n   `it('recusa certificado com menos de 75% de presenca')`.\n\n2. **GREEN**: Escreva o mínimo de código que faz o teste passar.\n   Nada de já implementar a regra seguinte \"que eu vou precisar mesmo\".\n   Rode o teste individual. Verde? Rode a suíte inteira. Verde? Próximo passo.\n\n3. **REFACTOR**: Com verde, limpe o código sem alterar comportamento.\n   Extraia funções, melhore nomes, remova duplicação. Rode a suíte inteira de novo.\n   Ainda verde? Próxima regra.\n\n## A regra que não se quebra\n\n**Quando o teste falha, o suspeito é o código.**\n\nSe você mudar um teste para ele passar, trocou o contrato pela implementação e o\nverde virou enfeite. Só se altera um teste quando a **spec** mudou — e aí você diz\nqual regra da spec mudou e por quê.\n\nVale para o valor esperado, para o status HTTP e para o cenário. Trocar\n`expect(response.body.presencas).toBe(3)` por `expect(response.body.presencas).toBe(0)`\nporque o código deu 0 é a forma mais comum de mentir sozinho.\n\n## Três testes que não valem nada\n\n- **Acoplado à implementação** — chama serviço ou repositório direto, ou confere o\n  dado espiando o `Map`/banco. Quebra em refatoração, não em regressão.\n- **Tautológico** — o esperado é calculado do mesmo jeito que o código calcula.\n  Passa por construção, nunca discorda. O valor esperado vem da spec, escrito na mão.\n- **Frouxo** — confere só o status e ignora o corpo. `201` com o `codigo` errado passa.\n\n## Dependências de M2 e M3\n\nM4 depende de dados que vêm de outros módulos. Não implemente esses módulos —\nuse as interfaces e portas de integração que já existem.\n\n### M3 — Presenças\n\n- Porta: `M3PresencePort` em `src/integrations/m3-presence-port.ts`\n- Método: `countPresencas(atividadeId, participanteId) → number`\n- Estado atual: `NeutralM3PresenceAdapter` retorna sempre 0.\n- Para testes de emissão (R1), registre presenças via rotas HTTP do M3\n  (`POST /encontros/:id/presencas`) no setup do teste. O adapter real do M3\n  deve ser ativado em ambiente de teste, ou o teste deve montar o cenário\n  pelas rotas existentes da API.\n- Se M3 não estiver funcional, documente o bloqueio e não simule dados.\n\n### M2 — Inscrições\n\n- Porta: `M2IntegrationPort` em `src/integrations/m2-port.ts`\n- Estado atual: `NeutralM2Adapter` não expõe listagem de inscrições por participante.\n- Para R10 (extrato), M4 precisa saber em quais atividades o participante está\n  inscrito e se há certificado emitido para cada uma.\n- Se a porta de M2 não fornecer esse dado, documente o bloqueio — não invente\n  persistência de inscrições dentro de M4.\n\n### M1 — Atividades\n\n- Já acessível via `ActivityRepository`. M4 precisa de `titulo`, `tipo`,\n  `cargaHorariaMinutos`, `encontros` (total de encontros) e `dataTermino`\n  (para R2).\n- Não altere o repositório de M1. Se faltar campo, documente o bloqueio.\n\n## Validações adicionais do contrato\n\nAlém das regras R1–R12, o `contrato-api.md` lista códigos de erro que o M4\ndeve retornar. Teste-os quando implementar a rota correspondente:\n\n| Código | HTTP | Quando |\n|--------|------|--------|\n| `NAO_INSCRITO` | 403 | Participante não inscrito na atividade |\n| `ATIVIDADE_CANCELADA` | 422 | Atividade foi cancelada |\n| `ATIVIDADE_NAO_ENCERRADA` | 422 | Atividade ainda não encerrada (R2) |\n| `PRESENCA_INSUFICIENTE` | 422 | Presença abaixo de 75% (R1) |\n\n## Execução e verificação\n\nApós cada regra implementada (GREEN + REFACTOR):\n\n1. Rode `npm --prefix api test` — suíte inteira tem que estar verde.\n2. Rode `npx tsc --noEmit` dentro de `api/` — typecheck tem que passar.\n3. Se falhar, corrija antes de seguir para a próxima regra.\n\nTerminada a última fatia, rode a suíte inteira uma vez e relate o número real\nde testes que apareceu na saída. Não estime, não arredonde.\n\n## Commits\n\nFaça commits pequenos, um por regra ou grupo coeso de regras dentro da fatia.\nMensagem no padrão do projeto, identificando a regra:\n\n```\nM4: implementa R1 — presença mínima de 75%\nM4: implementa R2 — emissão após encerramento\nM4: implementa R9 — idempotência 201/200\n```\n\nAntes de commitar, verifique `git status` e `git diff` para confirmar que\napenas arquivos intencionais estão staged.\n\n## Rastreabilidade\n\nCada regra da spec deve ter:\n- Pelo menos um teste que a comprove (critério de aceite correspondente).\n- Implementação que o teste exercita.\n- Referência explícita: nome do teste cita a regra, commit cita a regra.\n\nSe uma regra não tem teste, ela não está implementada — pare e escreva o teste.\n\n## O que não fazer\n\n- Não acesse documentos externos de requisitos.\n- Não altere `specs/M4-certificados.md`.\n- Não altere `contrato-api.md`.\n- Não implemente código de M1, M2 ou M3 — apenas use suas portas/interfaces.\n- Não altere testes existentes apenas para fazê-los passar.\n- Não altere código de outros módulos.\n- Não faça commit de código que não esteja verde na suíte inteira.\n\nBase directory for this skill: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\.opencode\\skills\\tdd-m4\nRelative paths in this skill (e.g., scripts/, reference/) are relative to this base directory.\nNote: file list is sampled.\n\n<skill_files>\n\n</skill_files>\n</skill_content>",
+      "metadata": {
+       "name": "tdd-m4",
+       "dir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\.opencode\\skills\\tdd-m4",
+       "truncated": false
+      },
+      "title": "Loaded skill: tdd-m4",
+      "time": {
+       "start": 1789862295663,
+       "end": 1789862295774
+      }
+     },
+     "id": "prt_0bc1b3826001zYQ2lH1n6ylSCZ",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b25fa001PhwSYMg1RiNzpY"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-finish",
+     "tokens": {
+      "total": 22190,
+      "input": 20311,
+      "output": 87,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 1792
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bc1b3ac40017E5RCoibmEZXyo",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b25fa001PhwSYMg1RiNzpY"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bc1b25ce001A2ZnDCEg9ztgt8",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 25171,
+     "input": 2949,
+     "output": 206,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 22016
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789862296721,
+     "completed": 1789862299954
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bc1b3c90001LPW0llKJVJAKD8",
+    "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU"
+   },
+   "parts": [
+    {
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-start",
+     "id": "prt_0bc1b436b001GmjkdA59JJs4Jb",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b3c90001LPW0llKJVJAKD8"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now let me explore the relevant files. Let me start by reading the spec, the contract, and understanding the structure.",
+     "time": {
+      "start": 1789862298480,
+      "end": 1789862298490
+     },
+     "id": "prt_0bc1b43700017N1BNkhwG42NbG",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b3c90001LPW0llKJVJAKD8"
+    },
+    {
+     "type": "text",
+     "text": "Skill carregada. Esta é uma sessão de auditoria (somente análise). Vou explorar a spec, o contrato e a implementação/tests do M4.",
+     "time": {
+      "start": 1789862298493,
+      "end": 1789862298950
+     },
+     "id": "prt_0bc1b437d001gBsClZbFSdcged",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b3c90001LPW0llKJVJAKD8"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_d4bb0b20756c410fb8ab35e0",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md"
+      },
+      "output": "[16300 caracteres omitidos]",
+      "title": "specs\\M4-certificados.md",
+      "time": {
+       "start": 1789862298754,
+       "end": 1789862299051
+      }
+     },
+     "id": "prt_0bc1b43f7001YIFw01WEY9YSCW",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b3c90001LPW0llKJVJAKD8"
+    },
+    {
+     "type": "tool",
+     "tool": "glob",
+     "callID": "call_7c263c0835c040ce9546bc42",
+     "state": {
+      "status": "completed",
+      "input": {
+       "pattern": "api/src/**/*.ts"
+      },
+      "output": "[3801 caracteres omitidos]",
+      "title": "",
+      "time": {
+       "start": 1789862298829,
+       "end": 1789862298940
+      }
+     },
+     "id": "prt_0bc1b448c001tiHs790A7YTkSv",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b3c90001LPW0llKJVJAKD8"
+    },
+    {
+     "type": "tool",
+     "tool": "glob",
+     "callID": "call_76bed8fd82f54f99983d44a5",
+     "state": {
+      "status": "completed",
+      "input": {
+       "pattern": "api/tests/**/*.ts"
+      },
+      "output": "[3341 caracteres omitidos]",
+      "title": "",
+      "time": {
+       "start": 1789862298914,
+       "end": 1789862298990
+      }
+     },
+     "id": "prt_0bc1b44e3001kk394GgQuOxyaO",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b3c90001LPW0llKJVJAKD8"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-finish",
+     "tokens": {
+      "total": 25171,
+      "input": 2949,
+      "output": 206,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 22016
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bc1b4770001Xr4QQFpJsNQ4cF",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b3c90001LPW0llKJVJAKD8"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bc1b25ce001A2ZnDCEg9ztgt8",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 33889,
+     "input": 8214,
+     "output": 587,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 25088
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789862299966,
+     "completed": 1789862304000
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bc1b493e001Ghr0tp0oy4U7Pv",
+    "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU"
+   },
+   "parts": [
+    {
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-start",
+     "id": "prt_0bc1b4efb001S3gr6OvpaVjriK",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b493e001Ghr0tp0oy4U7Pv"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now let me read the implementation files for the certificate module, the contract API, and the M4-related tests.",
+     "time": {
+      "start": 1789862301442,
+      "end": 1789862301630
+     },
+     "id": "prt_0bc1b4f010012NURuu8tUcOhf3",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b493e001Ghr0tp0oy4U7Pv"
+    },
+    {
+     "type": "text",
+     "text": "Agora vou ler a implementação do módulo certificate, o contrato (seções M4) e os testes relacionados.",
+     "time": {
+      "start": 1789862301636,
+      "end": 1789862302912
+     },
+     "id": "prt_0bc1b4fc4001IZwfoQLzY4IKF9",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b493e001Ghr0tp0oy4U7Pv"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_196635f4b5d546cf858137f2",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\certificate\\emissao-certificado.ts"
+      },
+      "output": "[6136 caracteres omitidos]",
+      "title": "api\\src\\certificate\\emissao-certificado.ts",
+      "time": {
+       "start": 1789862301840,
+       "end": 1789862302116
+      }
+     },
+     "id": "prt_0bc1b5000001pchppBNJ67w8Cd",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b493e001Ghr0tp0oy4U7Pv"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_df5b090c5cb64755a287f6fa",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\certificate\\gerar-codigo.ts"
+      },
+      "output": "[523 caracteres omitidos]",
+      "title": "api\\src\\certificate\\gerar-codigo.ts",
+      "time": {
+       "start": 1789862301992,
+       "end": 1789862302201
+      }
+     },
+     "id": "prt_0bc1b509500194Sv8EpeiCJmYS",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b493e001Ghr0tp0oy4U7Pv"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_910c5df4b36249379cb8f5d3",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\certificate\\horas-complementares.ts"
+      },
+      "output": "[1191 caracteres omitidos]",
+      "title": "api\\src\\certificate\\horas-complementares.ts",
+      "time": {
+       "start": 1789862302153,
+       "end": 1789862302273
+      }
+     },
+     "id": "prt_0bc1b512f0010Hd89RgRXLkeu6",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b493e001Ghr0tp0oy4U7Pv"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_44c9276294cd43d6935897af",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\certificate\\extrato.ts"
+      },
+      "output": "[2416 caracteres omitidos]",
+      "title": "api\\src\\certificate\\extrato.ts",
+      "time": {
+       "start": 1789862302283,
+       "end": 1789862302394
+      }
+     },
+     "id": "prt_0bc1b51cf001tkfA1K665kly3e",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b493e001Ghr0tp0oy4U7Pv"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_971829322af04ac9914f08b4",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\certificate\\abreviar-nome.ts"
+      },
+      "output": "[1209 caracteres omitidos]",
+      "title": "api\\src\\certificate\\abreviar-nome.ts",
+      "time": {
+       "start": 1789862302424,
+       "end": 1789862302527
+      }
+     },
+     "id": "prt_0bc1b5251001ShGXdM5xV3Wivk",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b493e001Ghr0tp0oy4U7Pv"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_0ba73b20cbcf439198282150",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\repositories\\certificate-repository.ts"
+      },
+      "output": "[3978 caracteres omitidos]",
+      "title": "api\\src\\repositories\\certificate-repository.ts",
+      "time": {
+       "start": 1789862302595,
+       "end": 1789862302694
+      }
+     },
+     "id": "prt_0bc1b52fe001hmJ2YXG1Tfg1F7",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b493e001Ghr0tp0oy4U7Pv"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_bd589779ecb546eba948b0cb",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\integrations\\m2-port.ts"
+      },
+      "output": "[3600 caracteres omitidos]",
+      "title": "api\\src\\integrations\\m2-port.ts",
+      "time": {
+       "start": 1789862302735,
+       "end": 1789862302794
+      }
+     },
+     "id": "prt_0bc1b538b001nkKRMZMi57Lix1",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b493e001Ghr0tp0oy4U7Pv"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_389d46073990446cb10614ee",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\integrations\\m3-presence-port.ts"
+      },
+      "output": "[1212 caracteres omitidos]",
+      "title": "api\\src\\integrations\\m3-presence-port.ts",
+      "time": {
+       "start": 1789862302907,
+       "end": 1789862302961
+      }
+     },
+     "id": "prt_0bc1b5425001JEemhQzxKGRBSW",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b493e001Ghr0tp0oy4U7Pv"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-finish",
+     "tokens": {
+      "total": 33889,
+      "input": 8214,
+      "output": 587,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 25088
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bc1b56ee001p1rRGF8LPnjbJm",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b493e001Ghr0tp0oy4U7Pv"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bc1b25ce001A2ZnDCEg9ztgt8",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 40391,
+     "input": 6409,
+     "output": 190,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 33792
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789862304010,
+     "completed": 1789862309388
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bc1b590a001U35Fvd42YwNhh6",
+    "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU"
+   },
+   "parts": [
+    {
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-start",
+     "id": "prt_0bc1b5fa9001xJhMrXADXQfPgV",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b590a001U35Fvd42YwNhh6"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now let me read the app.ts to see the M4 routes, and the contract API sections, and then the tests. Let me read app.ts and contrato-api.md.",
+     "time": {
+      "start": 1789862305712,
+      "end": 1789862305725
+     },
+     "id": "prt_0bc1b5fb0001KYaDvmk4bdBYmU",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b590a001U35Fvd42YwNhh6"
+    },
+    {
+     "type": "text",
+     "text": "Agora vou ler o app.ts (rotas M4), o contrato e os testes do M4.",
+     "time": {
+      "start": 1789862305729,
+      "end": 1789862308473
+     },
+     "id": "prt_0bc1b5fc10010yfpr88X1fiEjh",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b590a001U35Fvd42YwNhh6"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_d5435ce156584825bf0e0cba",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\app.ts"
+      },
+      "output": "[22457 caracteres omitidos]",
+      "title": "api\\src\\app.ts",
+      "time": {
+       "start": 1789862308241,
+       "end": 1789862308256
+      }
+     },
+     "id": "prt_0bc1b691f001dNXtVVNDcGk6k0",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b590a001U35Fvd42YwNhh6"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_ce710eb219224114ba3150d9",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\contrato-api.md"
+      },
+      "output": "[13910 caracteres omitidos]",
+      "title": "contrato-api.md",
+      "time": {
+       "start": 1789862308416,
+       "end": 1789862308428
+      }
+     },
+     "id": "prt_0bc1b69bc001DMAvtQOusjt8Rj",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b590a001U35Fvd42YwNhh6"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-finish",
+     "tokens": {
+      "total": 40391,
+      "input": 6409,
+      "output": 190,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 33792
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bc1b6c1b001to6U47jObOuEpg",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b590a001U35Fvd42YwNhh6"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bc1b25ce001A2ZnDCEg9ztgt8",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 52356,
+     "input": 11868,
+     "output": 296,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 40192
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789862309397,
+     "completed": 1789862312804
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bc1b6e15001qsZ4fhykNi8eXQ",
+    "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU"
+   },
+   "parts": [
+    {
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-start",
+     "id": "prt_0bc1b746e001V1ESbJyhu41eVc",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b6e15001qsZ4fhykNi8eXQ"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now let me read the M4 tests. Let me read all the certificate test files.",
+     "time": {
+      "start": 1789862311028,
+      "end": 1789862311101
+     },
+     "id": "prt_0bc1b7474001fsQBE4Tdc4mdJ1",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b6e15001qsZ4fhykNi8eXQ"
+    },
+    {
+     "type": "text",
+     "text": "Agora vou ler os testes do M4.",
+     "time": {
+      "start": 1789862311110,
+      "end": 1789862311880
+     },
+     "id": "prt_0bc1b74c6001F3l64fkXKGN2Uz",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b6e15001qsZ4fhykNi8eXQ"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_d448b87b8a46456ab3b28cbb",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\certificado.test.ts"
+      },
+      "output": "[7669 caracteres omitidos]",
+      "title": "api\\tests\\certificado.test.ts",
+      "time": {
+       "start": 1789862311315,
+       "end": 1789862311331
+      }
+     },
+     "id": "prt_0bc1b74ea001QwZ1nUzehVqcgP",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b6e15001qsZ4fhykNi8eXQ"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_c3d4f2304a9a472d8e2a2933",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\certificado-r9.test.ts"
+      },
+      "output": "[4177 caracteres omitidos]",
+      "title": "api\\tests\\certificado-r9.test.ts",
+      "time": {
+       "start": 1789862311476,
+       "end": 1789862311498
+      }
+     },
+     "id": "prt_0bc1b75b80016mqSWdI2vB6hnW",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b6e15001qsZ4fhykNi8eXQ"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_2b4fca1095064b76ac538a2d",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\certificado-r8.test.ts"
+      },
+      "output": "[5421 caracteres omitidos]",
+      "title": "api\\tests\\certificado-r8.test.ts",
+      "time": {
+       "start": 1789862311639,
+       "end": 1789862311653
+      }
+     },
+     "id": "prt_0bc1b765d001XOIlEPGON2tBpR",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b6e15001qsZ4fhykNi8eXQ"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_ca9d79205ab24a61b000f622",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\certificado-nao-inscrito.test.ts"
+      },
+      "output": "[7325 caracteres omitidos]",
+      "title": "api\\tests\\certificado-nao-inscrito.test.ts",
+      "time": {
+       "start": 1789862311821,
+       "end": 1789862311835
+      }
+     },
+     "id": "prt_0bc1b7703001dLihHiYussbsOa",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b6e15001qsZ4fhykNi8eXQ"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-finish",
+     "tokens": {
+      "total": 52356,
+      "input": 11868,
+      "output": 296,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 40192
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bc1b79ad001bFN5IpuznM6Q6J",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b6e15001qsZ4fhykNi8eXQ"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bc1b25ce001A2ZnDCEg9ztgt8",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 60952,
+     "input": 8287,
+     "output": 441,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 52224
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789862312810,
+     "completed": 1789862316563
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bc1b7b6a001sQNHsgKLqyo67C",
+    "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU"
+   },
+   "parts": [
+    {
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-start",
+     "id": "prt_0bc1b80f8001OQ3FpUhERJPeR2",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b7b6a001sQNHsgKLqyo67C"
+    },
+    {
+     "type": "reasoning",
+     "text": "Let me continue reading the other M4 tests: certificado-atividade-cancelada, certificado-listagem, extrato, horas-complementares, gerar-codigo, abreviar-nome.",
+     "time": {
+      "start": 1789862314238,
+      "end": 1789862314316
+     },
+     "id": "prt_0bc1b80fe0013925jn5P6JYA1x",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b7b6a001sQNHsgKLqyo67C"
+    },
+    {
+     "type": "text",
+     "text": "\n\n",
+     "time": {
+      "start": 1789862314320,
+      "end": 1789862315651
+     },
+     "id": "prt_0bc1b8150001HU8BZmN6cRKy2c",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b7b6a001sQNHsgKLqyo67C"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_6fa08455614c47948536a884",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\certificado-atividade-cancelada.test.ts"
+      },
+      "output": "[3439 caracteres omitidos]",
+      "title": "api\\tests\\certificado-atividade-cancelada.test.ts",
+      "time": {
+       "start": 1789862314536,
+       "end": 1789862314583
+      }
+     },
+     "id": "prt_0bc1b818c001gvVNp849fDD5cY",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b7b6a001sQNHsgKLqyo67C"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_6a4607cdc8bd490482d02644",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\certificado-listagem.test.ts"
+      },
+      "output": "[6330 caracteres omitidos]",
+      "title": "api\\tests\\certificado-listagem.test.ts",
+      "time": {
+       "start": 1789862314896,
+       "end": 1789862314957
+      }
+     },
+     "id": "prt_0bc1b8239001s1eJ6xtMrtoPXt",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b7b6a001sQNHsgKLqyo67C"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_938d8a054eca4a7f8c3a539e",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\extrato.test.ts"
+      },
+      "output": "[21137 caracteres omitidos]",
+      "title": "api\\tests\\extrato.test.ts",
+      "time": {
+       "start": 1789862315074,
+       "end": 1789862315133
+      }
+     },
+     "id": "prt_0bc1b83aa0019TP0IMbZGdzpHG",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b7b6a001sQNHsgKLqyo67C"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_93fe72b41a5241d79e526fa8",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\horas-complementares.test.ts"
+      },
+      "output": "[4334 caracteres omitidos]",
+      "title": "api\\tests\\horas-complementares.test.ts",
+      "time": {
+       "start": 1789862315254,
+       "end": 1789862315311
+      }
+     },
+     "id": "prt_0bc1b8455001ofBqnavWmTrIB6",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b7b6a001sQNHsgKLqyo67C"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_0fd56b44140544e5899a7b3b",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\gerar-codigo.test.ts"
+      },
+      "output": "[3672 caracteres omitidos]",
+      "title": "api\\tests\\gerar-codigo.test.ts",
+      "time": {
+       "start": 1789862315418,
+       "end": 1789862315453
+      }
+     },
+     "id": "prt_0bc1b850a001aTTIObwUk7gsmM",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b7b6a001sQNHsgKLqyo67C"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_fcc11c43e48948ffb838bcf9",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\abreviar-nome.test.ts"
+      },
+      "output": "[2954 caracteres omitidos]",
+      "title": "api\\tests\\abreviar-nome.test.ts",
+      "time": {
+       "start": 1789862315594,
+       "end": 1789862315623
+      }
+     },
+     "id": "prt_0bc1b85c4001e35rfISeHTIuk1",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b7b6a001sQNHsgKLqyo67C"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-finish",
+     "tokens": {
+      "total": 60952,
+      "input": 8287,
+      "output": 441,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 52224
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bc1b882f001UNh5NFkQCAtREG",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b7b6a001sQNHsgKLqyo67C"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bc1b25ce001A2ZnDCEg9ztgt8",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 77985,
+     "input": 14341,
+     "output": 3228,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 60416
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789862316572,
+     "completed": 1789862333672
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bc1b8a1c0013AKzkiw7apkV2p",
+    "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU"
+   },
+   "parts": [
+    {
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-start",
+     "id": "prt_0bc1b9166001gv5Zh3I9LVe5hp",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b8a1c0013AKzkiw7apkV2p"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now I have most of the picture. Let me now verify the R12 test (precedência ATIVIDADE_NAO_ENCERRADA before PRESENCA_INSUFICIENTE). Let me check whether there's a test for R12. Let me search for R12 in the tests. Also let me check for \"precedência\" tests.\n\nIn certificado.test.ts, I saw:\n- R1 tests (3 criticérios 3 of 4 = 75%, 2 of 4 = 50%, 3 of 5 = 60%, 4 of 5 = 80%)\n- R2 tests (antes do término, no instante exato)\n- R9 test (201→200 same code, emitidoEm)\n\nIn certificado-r9.test.ts — a unit-level idempotency test that uses EmitirCertificado directly (violates project rule \"não importe serviço nem repositório no teste\"? Actually it imports repository, port classes... it does import the service and repository directly. But that test is extra; the HTTP-level test exists in certificado.test.ts. However this test also checks \"somente um certificado persistido\" via COUNT query. Good.)\n\ncertificado-r8.test.ts:\n- critério 15 (fields exactly), critério 16 (no private fields), 404 para código inexistente.\n\ncertificado-nao-inscrito.test.ts:\n- NAO_INSCRITO sem inscrição, cancelled, em_espera\n- precedência de NAO_INSCRITO sobre ATIVIDADE_NAO_ENCERRADA and PRESENCA_INSUFICIENTE\n\ncertificado-atividade-cancelada.test.ts:\n- ATIVIDADE_CANCELADA na emissão; precedência sobre ATIVIDADE_NAO_ENCERRADA\n\ncertificado-listagem.test.ts:\n- listagem própria; vazio; 401 sem header; 403 org; isolamento.\n\nextrato.test.ts:\n- R10/R13: codigo preenchido / null\n- R14 em_espera, R15 convocada, R16 cancelada, R17 expirada, R18 atividade cancelada\n- R3 brutas (300/500 → 800 → aproveitado 740)\n- R4 teto 240\n- R5 teto total 1200\n- participante sem atividades elegíveis → vazio/zeros\n- autorização: 200 shape, 401 sem header, 403 org\n\nhoras-complementares.test.ts: unit tests for R3, R4, R5.\n\ngerar-codigo.test.ts: unit tests for R6, R11.\n\nabreviar-nome.test.ts: unit tests for R7.\n\nNow let me think about what's missing:\n\nR12 — precedência de ATIVIDADE_NAO_ENCERRADA sobre PRESENCA_INSUFICIENTE (critério 20). Is there a specific test for R12? Let me search. In certificado.test.ts, R2 has a test \"before termini mesmo com presença suficiente\" — that's not R12. R12 requires both: not ended AND insufficient presence → must return ATIVIDADE_NAO_ENCERRADA. Let me search for a test where activity not ended AND presence < 75%. \n\nIn certificado-nao-inscrito.test.ts, there is \"retorna 403 NAO_INSCRITO e não ATIVIDADE_NAO_ENCERRADA quando a atividade ainda não teria terminado\" — for a non-inscrito participant. This tests precedence NAO_INSCRITO over ATIVIDADE_NAO_ENCERRADA, not R12.\n\nR12 test needs: inscrito confirmado, atividade não encerrada, presença < 75% → ATIVIDADE_NAO_ENCERRADA (not PRESENCA_INSUFICIENTE). Let me grep for \"R12\" and \"3,75\" and precedence tests across tests.\n\nLet me also check the criterio 1 case: exact 75% (3 of 4) → 201. Tested. Criterio 4: 80% (4/5) → 201. Tested.\n\nAlso let me verify the following \"especially\" items:\n\nA. Emissão:\n- R1 frequência 75% sem arredondamento: tested (critérios 1-4).\n- R2 atividade encerrada: tested.\n- atividade cancelada: tested (422 ATIVIDADE_CANCELADA).\n- inscrição confirmada: tested (NAO_INSCRITO for no inscription, cancelled, em_espera).\n- precedência completa dos erros: \n  - inexistente → 404 (atividade não encontrada). Is that tested? Let me search. GET path. For POST /atividades/:id/certificado with non-existent id, the route does `activityRepository.findAll().find(...)` → 404 NAO_ENCONTRADO. Is there a test? Let me grep for \"certificado\" 404 with POST. Need to check.\n  - cancelada tested first (precedence over ATIVIDADE_NAO_ENCERRADA). But is ATIVIDADE_CANCELADA precedence over NAO_INSCRITO tested? The order in code: cancelada first, then NAO_INSCRITO. Which is correct per contract/spec? The spec doesn't define precedence among cancelada/nao_inscrito. The state known says precedence implemented: inexistente → cancelada → não inscrito → não encerrada → presença insuficiente. Is there a test for cancelada over NAO_INSCRITO? Or NAO_INSCRITO over ATIVIDADE_NAO_ENCERRADA (tested) and over PRESENCA_INSUFICIENTE (tested).\n  - R12 precedence test missing? Need to verify.\n- idempotência 201 → 200: tested HTTP.\n- mesmo código na reemissão: tested.\n- somente um certificado persistido: tested at HTTP level? certificado.test.ts idempotency doesn't count rows. certificado-r9.test.ts counts rows but calls the use-case directly (unit). This counts as test evidence that only one row persists. Good enough? It imports repository/service directly though, which is against project testing rule but it does test the effect persisted. Hmm. The HTTP-level test (certificado.test.ts) verifies 201→200 same code but doesn't verify single row. There is the unit test verifying COUNT=1. Combined coverage exists.\n- carga horária integral da atividade no certificado: certificado.test.ts asserts atividadeId and participanteId, presencas, encontros. Does it assert cargaHorariaMinutos? In the first test (criterio 1) it checks presencas/encontros/atividadeId/participanteId but not cargaHorariaMinutos. In certificado-listagem.test.ts it checks cargaHorariaMinutos = 720. So carga horária integral é verificada na listagem, não na emissão. The emission returns the certificate object directly which includes cargaHorariaMinutos. In the first test of certificado.test.ts, they don't check it. Is that gap? It's demonstrated in listagem test that persists/returns the field. Hmm, actually the listagem test asserts cargaHorariaMinutos = 720 for a 4-day minicurso (4×180=720). So the field is demonstrated. But for emission response itself, the test doesn't check cargaHorariaMinutos. Marginal.\n- presença manual/offline proveniente do M3: The M3Presente port counts presences via PresencaRepository findByEncontroAndParticipante for each encontro. Does M3 count manual/offline presences? Let me check the M3 tests and the presence repository. The presencia repository findByEncontroAndParticipante — does it filter by origem? Let me check. The question: does the emission count manual and offline presences? Test scenario uses QR presences. Is there a test with manual presence counted toward certificate? Let me search.\n\nB. Código:\n- formato SA26-XXXX-XXXX: tested.\n- alfabeto permitido: tested.\n- exclusão de I,O,0,1: tested.\n- estabilidade (mesmo código na reemissão): tested.\n- unicidade: tested (same participant distinct activities? Actually gerar-codigo test checks uniqueness across calls; certificado test checks reemission same code). Do we have a test for distinct codes for two different certificates (criterio 12)? gerar-codigo does two consecutive calls — that's unit-level generation uniqueness but doesn't prove two persisted certificates get distinct codes. Criterio 12 in spec: \"Dois certificados emitidos para participantes distintos → códigos diferentes entre si.\" Is there a test emitting two certificates in the HTTP level and comparing codes? The listagem test emits one for Diego, and p-carla lists... doesn't compare. Let me search.\n- comportamento em eventual colisão, se spec/contrato exigir: spec doesn't require collision handling explicitly. The code doesn't handle collision either (randomBytes, no retry). Spec R6 says \"cada certificado tem código único; o código é criado na primeira emissão e permanece o mesmo nas reemissões.\" Uniqueness of each certificate. The implementation relies on random generation; repo has no unique index? Let me check migrate. Actually let me check whether the certificados table has a UNIQUE constraint on codigo and on (atividade_id, participante_id). If there is a UNIQUE constraint on codigo, and generate collides, insert would throw → 500. But collision probability tiny. Not required by spec/contract to handle. So N/A.\n\nC. GET /certificados:\n- autenticação: tested (401 no header, 403 org).\n- somente participante: tested.\n- lista vazia: tested.\n- conteúdo retornado: tested.\n- isolamento: tested.\n\nD. GET /certificados/:codigo:\n- público sem X-Usuario: tested (no header → 200). \n- código válido: tested.\n- código inexistente: tested.\n- código lowercase? Contract says codes uppercase. Does GET with lowercase return the code? findByCodigo is exact match on codigo. If the judge passes lowercase, it returns 404. Does spec/contract require lowercase handling? Not stated. The user asked \"se contrato/spec exigir\". It doesn't. So N/A.\n- abreviação do nome: tested (Carla M. S.).\n- somente campos públicos: tested.\n- ausência de vazamento de participanteId, presencas, encontros: tested.\n\nE. GET /extrato:\n- autenticação: tested (200/401/403).\n- somente participante: tested.\n- vazio: tested.\n- atividades elegíveis: R10/R13 tested.\n- somente inscrição confirmada: tested via R14, R15, R16, R17.\n- exclusão em_espera: tested.\n- convocada: tested.\n- cancelada: tested.\n- expirada: tested.\n- atividade cancelada: tested.\n- certificado emitido → código: tested.\n- não emitido → null: tested.\n- cargas brutas: tested.\n- teto palestras 240: tested.\n- teto global 1200: tested.\n- cálculo em tempo de consulta: the extrato recomputes on each request. Is there a test proving it's computed at query time (e.g., emit certificate after first consult, then consult again → minicursos changes)? Not clearly. The R10 test emits before first consult. Hmm. \"cálculo em tempo de consulta\" — the extrato is computed from live data each time. Is there a test showing the extrato reflects changes made after a previous request? Not that I've seen. And also the spec R13: \"Participante com inscrição confirmada em uma atividade sem certificado emitido → a atividade consta no itens do extrato\". That's criterio 21 → tested by R10/R13 test (palestra sem certificado). Good.\n\nNow the important missing areas to verify more carefully:\n\n1. R12 test — precedence ATIVIDADE_NAO_ENCERRADA over PRESENCA_INSUFICIENTE. Let me grep.\n2. POST /atividades/:id/certificado with non-existent id → 404. Tested?\n3. Presença manual/offline counted (M3 integration).\n4. Criterio 12 (two certificates for distinct participants → distinct codes) at HTTP level.\n5. GET /extrato recalculation at query time.\n6. cargaHorariaMinutos on emission response.\n7. Certificado response fields fully on emission (does emission response include codigo, atividadeId, participanteId, cargaHorariaMinutos, presencas, encontros, emitidoEm)? Test partially (first test checks presencas, encontros, atividadeId, participanteId, but not codigo/cargaHorariaMinutos/emitidoEm; the R9 test checks codigo and emitidoEm across requests).\n\nLet me grep for R12, and search tests for 404 on emissão and manual presença in certificado tests. Also let me look at the M3 tests for manual/offline presence to confirm those count toward presence (the M3PresencePort counts any presenca record via findByEncontroAndParticipante regardless of origem). Let me check the presence repository.\n\nLet me now grep.",
+     "time": {
+      "start": 1789862318451,
+      "end": 1789862331809
+     },
+     "id": "prt_0bc1b9173001GPiSXBjRf5xOJ8",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b8a1c0013AKzkiw7apkV2p"
+    },
+    {
+     "type": "text",
+     "text": "Agora vou verificar pontos específicos: teste de R12, 404 na emissão, presença manual/offline contada, e unicidade entre certificados distintos.",
+     "time": {
+      "start": 1789862331813,
+      "end": 1789862332684
+     },
+     "id": "prt_0bc1bc5a5001BZ6PUs0ZTHDTpE",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b8a1c0013AKzkiw7apkV2p"
+    },
+    {
+     "type": "tool",
+     "tool": "grep",
+     "callID": "call_9449d91908cf4149b20ecc46",
+     "state": {
+      "status": "completed",
+      "input": {
+       "pattern": "R12|ATIVIDADE_NAO_ENCERRADA.*PRESENCA|3,75|precedência",
+       "path": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests"
+      },
+      "output": "[2170 caracteres omitidos]",
+      "title": "R12|ATIVIDADE_NAO_ENCERRADA.*PRESENCA|3,75|precedência",
+      "time": {
+       "start": 1789862332254,
+       "end": 1789862332406
+      }
+     },
+     "id": "prt_0bc1bc659001C1qFWKpSmWK5Ou",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b8a1c0013AKzkiw7apkV2p"
+    },
+    {
+     "type": "tool",
+     "tool": "grep",
+     "callID": "call_430c02d6adfb4be1a3832e64",
+     "state": {
+      "status": "completed",
+      "input": {
+       "pattern": "certificado\\b",
+       "path": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests",
+       "include": "*.test.ts"
+      },
+      "output": "[3497 caracteres omitidos]",
+      "title": "certificado\\b",
+      "time": {
+       "start": 1789862332513,
+       "end": 1789862332629
+      }
+     },
+     "id": "prt_0bc1bc78800176DbHLxBD765mn",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b8a1c0013AKzkiw7apkV2p"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_3a1f72a6558e4dc883850838",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\repositories\\presenca-repository.ts"
+      },
+      "output": "[2036 caracteres omitidos]",
+      "title": "api\\src\\repositories\\presenca-repository.ts",
+      "time": {
+       "start": 1789862332679,
+       "end": 1789862332739
+      }
+     },
+     "id": "prt_0bc1bc865001KBHv05j9g5pt7W",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b8a1c0013AKzkiw7apkV2p"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-finish",
+     "tokens": {
+      "total": 77985,
+      "input": 14341,
+      "output": 3228,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 60416
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bc1bcb290013qwLev5YBm15vh",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1b8a1c0013AKzkiw7apkV2p"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bc1b25ce001A2ZnDCEg9ztgt8",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 81039,
+     "input": 5490,
+     "output": 541,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 75008
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789862333681,
+     "completed": 1789862340520
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bc1bccf1001aIpa7CT3kwPGTw",
+    "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU"
+   },
+   "parts": [
+    {
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-start",
+     "id": "prt_0bc1bd8fe001kSUuiTmJNxHKTf",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1bccf1001aIpa7CT3kwPGTw"
+    },
+    {
+     "type": "reasoning",
+     "text": "Key finding: There is NO test for R12 (precedência ATIVIDADE_NAO_ENCERRADA sobre PRESENCA_INSUFICIENTE). The grep found no \"R12\" reference in M4 tests. The `presenca-fatia3.test.ts` R12 reference is M2's R12 (different module).\n\nAlso I need to check:\n- POST /atividades/:id/certificado 404 for inexistente activity.\n- Presença manual/offline counted toward emission.\n- Criterio 12 unicidade (two certificates distinct participants) at HTTP level.\n\nLet me check the migrations for the certificados table (unique constraints) and check for the 404 test, and check M3 tests for manual/offline. Let me search certificate related 404.",
+     "time": {
+      "start": 1789862336800,
+      "end": 1789862338271
+     },
+     "id": "prt_0bc1bd920001weTFcGGXfp5o2x",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1bccf1001aIpa7CT3kwPGTw"
+    },
+    {
+     "type": "text",
+     "text": "Sem teste para R12 no M4. Vou verificar: 404 da emissão, unicidade entre certificados distintos via HTTP, migração (constraints), e cobertura M3 manual/offline.",
+     "time": {
+      "start": 1789862338276,
+      "end": 1789862339592
+     },
+     "id": "prt_0bc1bdee4001gYAZoaomxhga5i",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1bccf1001aIpa7CT3kwPGTw"
+    },
+    {
+     "type": "tool",
+     "tool": "grep",
+     "callID": "call_2282425ae8ac4b789f92241f",
+     "state": {
+      "status": "completed",
+      "input": {
+       "path": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests",
+       "pattern": "certificado.*404|404.*certificado|NAO_ENCONTRADO",
+       "include": "*.test.ts"
+      },
+      "output": "[2741 caracteres omitidos]",
+      "title": "certificado.*404|404.*certificado|NAO_ENCONTRADO",
+      "time": {
+       "start": 1789862338476,
+       "end": 1789862338634
+      }
+     },
+     "id": "prt_0bc1bdf57001KW0Xcf0JLhtdhh",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1bccf1001aIpa7CT3kwPGTw"
+    },
+    {
+     "type": "tool",
+     "tool": "glob",
+     "callID": "call_c8c4afc612944b8caa028f90",
+     "state": {
+      "status": "completed",
+      "input": {
+       "pattern": "api/src/db/migrations/**/*.ts"
+      },
+      "output": "[14 caracteres omitidos]",
+      "title": "",
+      "time": {
+       "start": 1789862338512,
+       "end": 1789862338628
+      }
+     },
+     "id": "prt_0bc1bdfb1001B2trK5oicgzqzU",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1bccf1001aIpa7CT3kwPGTw"
+    },
+    {
+     "type": "tool",
+     "tool": "grep",
+     "callID": "call_f0cbfc867b59491391bffac2",
+     "state": {
+      "status": "completed",
+      "input": {
+       "path": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\db",
+       "pattern": "certificados"
+      },
+      "output": "[309 caracteres omitidos]",
+      "title": "certificados",
+      "time": {
+       "start": 1789862338617,
+       "end": 1789862338735
+      }
+     },
+     "id": "prt_0bc1bdfd3001UlV1a2uhdLUPnv",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1bccf1001aIpa7CT3kwPGTw"
+    },
+    {
+     "type": "tool",
+     "tool": "grep",
+     "callID": "call_9f8334418c4548e09c1ebf92",
+     "state": {
+      "status": "completed",
+      "input": {
+       "path": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests",
+       "pattern": "manual|qr_offline",
+       "include": "*.test.ts"
+      },
+      "output": "[2603 caracteres omitidos]",
+      "title": "manual|qr_offline",
+      "time": {
+       "start": 1789862339538,
+       "end": 1789862339632
+      }
+     },
+     "id": "prt_0bc1be062001OmlAKXzaAw7Eze",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1bccf1001aIpa7CT3kwPGTw"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-finish",
+     "tokens": {
+      "total": 81039,
+      "input": 5490,
+      "output": 541,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 75008
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bc1be61300125De3CeDFmETwq",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1bccf1001aIpa7CT3kwPGTw"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bc1b25ce001A2ZnDCEg9ztgt8",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 83275,
+     "input": 2167,
+     "output": 212,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 80896
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789862340526,
+     "completed": 1789862343739
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bc1be7ae001fSrtKXLunP5N3R",
+    "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU"
+   },
+   "parts": [
+    {
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-start",
+     "id": "prt_0bc1bedb2001WE0c7sem2p1oOj",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1be7ae001fSrtKXLunP5N3R"
+    },
+    {
+     "type": "reasoning",
+     "text": "Let me look at the migração for certificados table to check constraints (unique codigo, unique per activity/participant). Let me read the migrate.ts.",
+     "time": {
+      "start": 1789862342070,
+      "end": 1789862342174
+     },
+     "id": "prt_0bc1bedb60012Chv1gH3Ogo9rI",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1be7ae001fSrtKXLunP5N3R"
+    },
+    {
+     "type": "text",
+     "text": "\n\n",
+     "time": {
+      "start": 1789862342181,
+      "end": 1789862342733
+     },
+     "id": "prt_0bc1bee25001W8HKwkxJUtWE1R",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1be7ae001fSrtKXLunP5N3R"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_cba824b3b50b4e49adf0f45e",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\db\\migrate.ts"
+      },
+      "output": "[3235 caracteres omitidos]",
+      "title": "api\\src\\db\\migrate.ts",
+      "time": {
+       "start": 1789862342389,
+       "end": 1789862342407
+      }
+     },
+     "id": "prt_0bc1bee46001b67W6sJha3lGbC",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1be7ae001fSrtKXLunP5N3R"
+    },
+    {
+     "type": "tool",
+     "tool": "grep",
+     "callID": "call_4689d5332e3f489e973d8e2d",
+     "state": {
+      "status": "completed",
+      "input": {
+       "include": "*.test.ts",
+       "path": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests",
+       "pattern": "origem.*manual.*certificado|certificado.*manual"
+      },
+      "output": "[14 caracteres omitidos]",
+      "title": "origem.*manual.*certificado|certificado.*manual",
+      "time": {
+       "start": 1789862342697,
+       "end": 1789862342824
+      }
+     },
+     "id": "prt_0bc1beef8001AakjGkY1LQXUy2",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1be7ae001fSrtKXLunP5N3R"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-finish",
+     "tokens": {
+      "total": 83275,
+      "input": 2167,
+      "output": 212,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 80896
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bc1bf265001Qt6IZSWQ0O9rWc",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1be7ae001fSrtKXLunP5N3R"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bc1b25ce001A2ZnDCEg9ztgt8",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 88411,
+     "input": 1255,
+     "output": 4212,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 82944
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789862343748,
+     "completed": 1789862381237
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bc1bf4440011moLdvKEXW0X6f",
+    "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU"
+   },
+   "parts": [
+    {
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-start",
+     "id": "prt_0bc1bfa33001yxmyMYnd4TsFXj",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1bf4440011moLdvKEXW0X6f"
+    },
+    {
+     "type": "reasoning",
+     "text": "Key findings so far:\n\n1. **R12 (precedência ATIVIDADE_NAO_ENCERRADA sobre PRESENCA_INSUFICIENTE)** — NO test exists. The implementation supports it (code checks encerramento before presença). Criterio 20 of spec not tested. This is a real gap: \"IMPLEMENTADO SEM TESTE SUFICIENTE\".\n\n2. **404 for POST /atividades/:id/certificado with inexistent activity** — No test found. Implementation returns 404 NAO_ENCONTRADO. Contract order: identificação (401) → perfil (403) → existência (404). The route does requireUser, then checks perfil (returns 403 SOMENTE_PARTICIPANTE before checking existence). Actually the route checks papel first, then existence. Wait: in app.ts, POST route: requireUser → then check papel → then find activity → 404. So for inexistent activity with a participant, it returns 404. Is that tested? No test in M4 files. But is this a \"rule of the spec/contract\"? The contract general order says exam: identificação → perfil → existência → corpo → regras. The route implements participant check before existência. For M2's test (inscricoes-fatia2) there's a test that perfil 403 prevails over inexistente 404. For M4 emissão, there is a test? No. Not tested. This is a gap but it's more contract-level. Also note: the route checks papel via requireUser already; but it uses `requireUser` not `requireParticipant`, and does manual check returning custom message. It uses SOMENTE_PARTICIPANTE code. Is there a test that org trying to POST certificado gets 403 SOMENTE_PARTICIPANTE? Not found in grep. Let me verify. In the seat tests: listagem has 403 SOMENTE_PARTICIPANTE for org on GET /certificados, and extrato has for GET /extrato. For POST /atividades/:id/certificado as org — no test.\n\nSo gap: POST emissão for org → 403 SOMENTE_PARTICIPANTE (not tested); POST emissão for inexistent activity → 404 NAO_ENCONTRADO (not tested); POST emissão sem X-Usuario → 401 (not tested). These are contract-level (section F). Actually contract general conventions require these behaviors. The implementation implements them. But they're not tested.\n\nAlso: GET /certificados/:codigo lowercase handling — contract doesn't require, codes aren't lowercase. N/A.\n\n3. **Presença manual/offline contada no certificado** — No test that registers presence via manual or qr_offline and then emits a certificate counting them. The user's \"Especialmente A\" mentions \"presença manual/offline proveniente do M3\". The M3PresencePort counts any presenca row per encontro, regardless of origem. Implementation: countPresencas counts via findByEncontroAndParticipante for each encontro (any origem). This should count QR, qr_offline, manual. But is there a test proving that a certificate emission considers manual/offline presence? No. Only QR presence used in tests. This is a real gap: the M3 integration counting manual/offline presence is not demonstrated by a test. It's \"IMPLEMENTADO SEM TESTE SUFICIENTE\" (implementation likely works, but no test proves the M3 origem types are counted).\n\n4. **Unicidade entre certificados distintos (criterio 12)** — The gerar-codigo.test asserts uniqueness at generation level (unit). The spec criterio 12: \"Dois certificados emitidos para participantes distintos → códigos diferentes entre si.\" This is not tested at HTTP level, but at unit level two consecutive `gerarCodigo()` calls produce different codes. Given codes are 8 chars from 32-char alphabet (~2^40), collision practically impossible. Is this \"tested sufficiently\"? The unit test for R6 uniqueness tests generation, which is what guarantees uniqueness. It's arguably sufficient evidence for the implementation mechanism. But no test emitting two certificates via HTTP and comparing codes. I'd flag as IMPLEMENTADO SEM TESTE SUFICIENTE (marginal) or COBERTO via unit test. Given the spec criterio 12 specifically describes two emitted certificates, I'd say partially covered. Trend toward \"IMPLEMENTADO SEM TESTE SUFICIENTE\" as a minor gap.\n\n5. **Cálculo em tempo de consulta (extrato)** — No test showing extrato recomputed after a change (e.g., emit certificate then re-query extrato, or inscribe later). Implementation recalculates each request. Spec doesn't explicitly require \"cálculo em tempo de consulta\" as a rule... actually the model says \"calculado\". The user asked to verify \"cálculo em tempo de consulta\". It's an implementation concern; each request recomputes from repositories. There's no test that verifies a second GET/extrato after emission reflects the new codigo, but the R10 test already emits before querying. A test that does GET /extrato once (codigo null), then emits, then GET /extrato again (codigo filled) would prove computation at query time. This is a small gap: IMPLEMENTADO SEM TESTE SUFICIENTE.\n\n6. **carga horária integral no certificado (emissão)** — Test checks cargaHorariaMinutos on listagem (720) but on emission response test checks only presencas/encontros/atividadeId/participanteId. The emission response includes cargaHorariaMinutos (720). Listagem test asserts it. So the field is tested (via listagem). The emission's own cargaHorariaMinutos is same object. Marginal — arguably covered via listagem since same persisted data. I'd mark COBERTO (the field is persisted and read back in listagem test verifying 720; certificado.test.ts R9 verifies same certificate contents across reemission).\n\nActually, wait — in certificado.test.ts first test, it asserts presencas and encontros but NOT cargaHorariaMinutos. However certificado-listagem.test.ts asserts cargaHorariaMinutos 720. So carga horária integral proven. Fine.\n\n7. **Idempotência 201→200 e somente um certificado persistido** — HTTP-level test verifies 201→200 same codigo & emitidoEm. The \"somente um certificado persistido\" is verified in unit-level test (certificado-r9.test.ts counts rows = 1). Combined: COBERTO. Though unit test imports repository/service directly — violating the repo's testing rule, but it does prove the effect. It's supplementary evidence. I'll note it as COBERTO with caveat.\n\nNow, also need to check GET /certificados content fields — tested. GET /certificados 401 no header — tested here but not \"USUARIO_DESCONHECIDO for unknown id\" — not tested for M4 but is generic requireUser (tested in other tests, e.g., app.test? Let me not overreach; contract-level: identification via X-Usuario is a shared middleware tested elsewhere).\n\nLet me check the exact upstream contract items for certificado (\"grupos de 4 e de 5\"). Contract fields of Certificado: codigo, atividadeId, participanteId, cargaHorariaMinutos, presencas, encontros, emitidoEm. Implementation returns exactly these. Good.\n\nNow let me verify GET /extrato endpoint fields and status; and GET /certificados/:codigo must not require X-Usuario — tested with no header → 200. But what if X-Usuario is provided with unknown id? Route doesn't use requireUser, so it works regardless. Fine.\n\nLet me also double check: In app.ts POST /atividades/:id/certificado route — uses only `requireUser`, then manual participante check. It does NOT use requireParticipant middleware, but checks papel. That means a participant can emit, org gets 403 SOMENTE_PARTICIPANTE. Wait — check order: `requireUser` then `if (user.papel !== 'participante')`. Yes.\n\nBut precedence: does it check existence before perfil? No — perfil first, then existence. Contract says: identificação (401) → perfil (403) → existência (404). So the code matches contract order (perfil before existência). Good.\n\nNow, is there a test that checks participant role required for POST certificado? No. Is there test for 401 missing header POST certificado? No. Is there test for 404 inexistente POST certificado? No. These are contract F items. Implementation implements them, tests don't cover. So \"IMPLEMENTADO SEM TESTE SUFICIENTE\" per contract.\n\nNow, GET /certificados/:codigo: contract says public. Implementation is public. Test with no header → 200. Also 404. Good. Lowercase: not required.\n\nNow R7 test: the implementation of abreviarNome handles particles. Note R7 spec: \"primeiro nome por extenso e as iniciais dos demais nomes, cada uma seguida de ponto. As partículas de, da, do, das, dos permanecem por extenso e em minúsculas.\" Implementation details: \"deveManterPorExtenso\" logic — for \"Elisa Fernandes da Rocha\": partes = [Elisa, Fernandes, da, Rocha]. i=1 Fernandes → E.; i=2 da → da (particula); i=3 Rocha: ehUltima=true, anterior='da', particulaLogoAposPrimeiroNome = (i===2)? i=3 so false → deveManterPorExtenso = true && da && !false = true → push 'Rocha' intact. Result \"Elisa F. da Rocha\". Good. \n\nFor \"Isadora Ribeiro dos Santos\": i=3 Santos: ehUltima, anterior='dos', particulaLogoAposPrimeiroNome=false → true → push Santos → \"Isadora R. dos Santos\". Good.\n\nInteresting edge: \"Carla Mendes Souza\" → \"Carla M. S.\" good. The spec examples pass. This complicated \"protetora\" rule is beyond spec but matches examples. Fine.\n\nNow let me check the tests reference R7's criterio 13/14. All good.\n\nNow what about the emissão route's `ATIVIDADE_NAO_ENCERRADA` message and 422 status: contract says 422 ATIVIDADE_NAO_ENCERRADA. Implementation: 422. Good. `PRESENCA_INSUFICIENTE` 422. `ATIVIDADE_CANCELADA` 422. `NAO_INSCRITO` 403. Good.\n\nNow the user mentioned \"precedência completa dos erros: inexistente → cancelada → não inscrito → não encerrada → presença insuficiente\". Tests:\n- inexistente → 404: NOT tested.\n- cancelada over não encerrada: tested.\n- cancelada over... (não inscrito?): no. Consider: activity cancelled and participant not enrolled → returns ATIVIDADE_CANCELADA (cancelada checked first). Is that tested? No. Is there a spec rule about this precedence? The spec doesn't define precedence order for cancelada vs nao_inscrito. The known-state says precedence implemented: inexistente → cancelada → não inscrito → não encerrada → presença insuficiente. So which tests cover it?\n  - cancelada vs não encerrada: tested (certificado-atividade-cancelada test 2).\n  - cancelada vs não inscrito: not tested.\n  - não inscrito vs não encerrada: tested.\n  - não inscrito vs presença insuficiente: tested.\n  - não encerrada vs presença insuficiente (R12): NOT tested.\n  \nSo R12 is a gap. Also cancelada vs não inscrito is not tested — but is there a spec rule for it? Spec R12 only covers ATIVIDADE_NAO_ENCERRADA vs PRESENCA_INSUFICIENTE. The other precedences aren't spec'd. But the \"estado conhecido\" asserts that full chain is implemented. For the review, per spec/contract scope, R12 is the spec rule (criterio 20). The cancelada-before-nao-inscrito is an implementation ordering, arguably the contract requires cancelada (422 ATIVIDADE_CANCELADA \"certificado\") — the contract lists ATIVIDADE_CANCELADA as code that appears \"na ... certificado\". And NAO_INSCRITO also appears at certificado. The order between them is business rule (contrato section 1: \"Quando mais de uma regra do recurso recusa a mesma operação, a ordem entre elas é regra de negócio\" — documented in the requisitos doc). Since we can't see the requisitos doc, and spec doesn't state it, we can only test what spec/contract requires. Spec R12 (criterio 20) explicitly requires one precedence. That's a confirmed gap.\n\nNow, let me verify the \"somente participante\" for GET /certificados & GET /extrato — tested. \n\nNow GET /extrato: calc at query time (no test). Also empty — tested.\n\nAlso there's a subtle point: GET /extrato for a participant's inscrição convocada — tested via extrato R15. In that test they set up convocada status. OK.\n\nNow another subtle: the extrato \"somente inscrição confirmada\" — also the implementation uses listarInscricoesDoParticipante which calls processExpirationsAndConvocations. So an expirada in DB is properly evicted. Tested (R17). Good.\n\nLet me also verify whether GET /extrato and GET /certificados properly filter for org (403). Tested. And 401 unknown user id? Not tested but generic.\n\nNow, is the \"GET /certificados\" route returning `findByParticipante(user.id)` — includes only own. Tested isolation.\n\nNow also confirm the idempotency at HTTP level creates only one certificate: not tested at HTTP (count rows). The unit test counts rows after calling use-case directly twice, which proves no double insert. OK.\n\nNow, is there a test for the certificado route when a certificate already exists but presence now insufficient? E.g., re-emission after presence... The R9 test proves 200 path with existing. Good. But an edge: what if existing certificate exists and activity now cancelled? Not relevant.\n\nNow the user asked specifically about \"comportamento em eventual colisão, se spec/contrato exigir\" — spec/contract don't require collision handling; codigo is PK (UNIQUE). No retry on collision → INSERT would throw UNIQUE constraint error → Express returns 422 DADOS_INVALIDOS via error handler? Actually the `create` in repository would throw a SQLite error, which is not caught → would be 500 or caught by final error handler as DADOS_INVALIDOS 422 with message 'UNIQUE constraint failed...'. Not spec'd. So N/A. But nota: no retry logic. Probability is negligible. N/A per spec/contract.\n\nLet me also double-check that there's no test for `GET /certificados/:codigo` on lowercase, and confirm the response for inexistent activity in `POST`. Implementation handles: returns emptystring for atividade/participante if missing in verificacao. OK.\n\nLet me also confirm the presence of R10/R13 mapping test asserts `itens.length` = 2. Yes it checks itemMinicurso, itemPalestra. Fine.\n\nNow let me also verify there is a test that the extrato items only include palestra/minicurso types (both types present in R3 test, checked length 3). OK.\n\nLet me now check the M3 offline test file to see how qr_offline is triggered — just to confirm the flag exists, but no M4 test uses it. Not needed further.\n\nLet me also verify computational rule: the R1 formula `presencas * 4 < encontros * 3` = presencas/encontros < 0.75. For 3/4 = 0.75: 3*4=12, 4*3=12 → 12<12 false → pass. For 3/5=0.6: 12 < 15 → true → insufficient. Correct. No floating rounding. Good.\n\nNow the 7 baseline typecheck errors — not related to M4 presumably. Not needed.\n\nLet me also verify one more: Does GET /certificados return exactly the same shape fields (no extra)? Test checks fields individually; keys not compared. Marginal. Contract shape matched by repo select. Fine.\n\nLet me quickly check the tests count claim: 34 files, 260 tests. Not necessary to verify but let's run the suite? The user says known state 260/260 green and 7 TS2339 baseline errors. Since this is analysis-only, I could run `npm --prefix api test` to confirm. That doesn't modify files. Running tests is safe and doesn't \"alterar arquivos\". Let me run it to confirm the coverage claim. Actually running tests may create DB files? The tests use in-memory DB via createDatabase() presumably. Let me check createDatabase default is in-memory (`:memory:`). Let me quickly run the suite to confirm. But careful: running test may take time. It's fine.\n\nLet me run the test suite and also check git status. Actually the user asked at the end to run git status --short. Let me run tests to confirm the claim and then git status.\n\nActually, do I need the test run? The review is based on analysis. Running tests doesn't add coverage info. But confirming green state is helpful for the \"SITUAÇÃO\" e.g. verifying no test currently fails (which would invalidate \"testado\"). I'll run it quickly.\n\nLet me also check the m5-port to ensure no interference. Not needed.\n\nLet me check the app.ts `GET /certificados/:codigo` handles param routes ordering relative to `/_teste/*` and others. It's after `/extrato`. Fine.\n\nOne more thing: The `GET /certificados/:codigo` — contract says \"público, sem X-Usuario\". The route is defined without requireUser. Good. But note that Express rout: `/certificados/:codigo` will also match `/certificados/AAAA`. But there's also GET `/certificados` (exact). Fine.\n\nNow, potencial issue: GET /certificados/:codigo uses findByCodigo exact match. If the juiz retrieves via the code as generated (uppercase) fine. Contract doesn't require lowercase normalization. N/A.\n\nLet me run the test suite and git status.",
+     "time": {
+      "start": 1789862345271,
+      "end": 1789862365531
+     },
+     "id": "prt_0bc1bfa370015Y11WM7Htfc7SU",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1bf4440011moLdvKEXW0X6f"
+    },
+    {
+     "type": "text",
+     "text": "Vou rodar a suíte para confirmar o estado verde e ao final o `git status --short`.",
+     "time": {
+      "start": 1789862365541,
+      "end": 1789862365757
+     },
+     "id": "prt_0bc1c4965001h4ds17bgLMYE4D",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1bf4440011moLdvKEXW0X6f"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_d9106d9c9bb346beaaac01ea",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "npm --prefix api test 2>&1 | Select-Object -Last 30",
+       "timeout": 300000
+      },
+      "output": " \u001b[32m✓\u001b[39m tests/cancel-activity.test.ts \u001b[2m(\u001b[22m\u001b[2m9 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 727\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/certificado-nao-inscrito.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 872\u001b[2mms\u001b[22m\u001b[39m\r\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - NAO_INSCRITO na emissão\u001b[2m > \u001b[22mexigência de inscrição confirmada conforme o contrato\u001b[2m > \u001b[22mrecusa com 403 NAO_INSCRITO a emissão de certificado de participante sem nenhuma inscrição na atividade \u001b[33m 413\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/create-activity.test.ts \u001b[2m(\u001b[22m\u001b[2m20 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1298\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/activity-filters.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 594\u001b[2mms\u001b[22m\u001b[39m\r\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m R19 & R20 — Filtros por dia e tipo na listagem de atividades\u001b[2m > \u001b[22mCenário 1: Filtro por dia — inclui atividade com pelo menos um encontro no dia e exclui as demais \u001b[33m 324\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/migration.test.ts \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 274\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/gerar-codigo.test.ts \u001b[2m(\u001b[22m\u001b[2m12 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 74\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/certificado-r9.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 108\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/activity-list-order.test.ts \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 657\u001b[2mms\u001b[22m\u001b[39m\r\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m R17 — Ordenação da listagem de atividades\u001b[2m > \u001b[22m1. Ordem pelo primeiro encontro: atividade mais cedo aparece primeiro independentemente da ordem de criação \u001b[33m 424\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/activity-output.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 538\u001b[2mms\u001b[22m\u001b[39m\r\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m Activity Output and Carga Horaria & Ordenacao (Fatia 2)\u001b[2m > \u001b[22mR9 — Soma exata da carga horaria sem arredondar cada encontro individualmente \u001b[33m 306\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/abreviar-nome.test.ts \u001b[2m(\u001b[22m\u001b[2m14 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 12\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/initialization.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 311\u001b[2mms\u001b[22m\u001b[39m\r\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m 1. Inicialização não destrutiva\u001b[2m > \u001b[22mcomprova que reiniciar a aplicação apontando para o mesmo banco SQLite não apaga atividades \u001b[33m 306\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/activity-status.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 646\u001b[2mms\u001b[22m\u001b[39m\r\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m R15 — Estados temporais da atividade\u001b[2m > \u001b[22m1. Antes do primeiro encontro, situação é prevista \u001b[33m 366\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/reset.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 496\u001b[2mms\u001b[22m\u001b[39m\r\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m 2. Reset exato do M1\u001b[2m > \u001b[22mreseta o M1 removendo salas/usuários extras, mantendo os 10 oficiais, sem duplicação no segundo reset, e restaurando o relógio \u001b[33m 491\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/certificado-atividade-cancelada.test.ts \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 447\u001b[2mms\u001b[22m\u001b[39m\r\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - ATIVIDADE_CANCELADA na emissão\u001b[2m > \u001b[22mATIVIDADE_CANCELADA conforme o contrato\u001b[2m > \u001b[22mrecusa com 422 ATIVIDADE_CANCELADA a emissão de certificado de atividade cancelada \u001b[33m 343\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/activity-detail.test.ts \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 496\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/horas-complementares.test.ts \u001b[2m(\u001b[22m\u001b[2m16 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 14\u001b[2mms\u001b[22m\u001b[39m\r\n\r\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m34 passed\u001b[39m\u001b[22m\u001b[90m (34)\u001b[39m\r\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m260 passed\u001b[39m\u001b[22m\u001b[90m (260)\u001b[39m\r\n\u001b[2m   Start at \u001b[22m 20:59:27\r\n\u001b[2m   Duration \u001b[22m 11.57s\u001b[2m (transform 3.13s, setup 0ms, collect 41.20s, tests 34.70s, environment 25ms, prepare 20.55s)\u001b[22m\r\n\r\n",
+      "metadata": {
+       "output": " \u001b[32m✓\u001b[39m tests/cancel-activity.test.ts \u001b[2m(\u001b[22m\u001b[2m9 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 727\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/certificado-nao-inscrito.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 872\u001b[2mms\u001b[22m\u001b[39m\r\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - NAO_INSCRITO na emissão\u001b[2m > \u001b[22mexigência de inscrição confirmada conforme o contrato\u001b[2m > \u001b[22mrecusa com 403 NAO_INSCRITO a emissão de certificado de participante sem nenhuma inscrição na atividade \u001b[33m 413\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/create-activity.test.ts \u001b[2m(\u001b[22m\u001b[2m20 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1298\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/activity-filters.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 594\u001b[2mms\u001b[22m\u001b[39m\r\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m R19 & R20 — Filtros por dia e tipo na listagem de atividades\u001b[2m > \u001b[22mCenário 1: Filtro por dia — inclui atividade com pelo menos um encontro no dia e exclui as demais \u001b[33m 324\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/migration.test.ts \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 274\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/gerar-codigo.test.ts \u001b[2m(\u001b[22m\u001b[2m12 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 74\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/certificado-r9.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 108\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/activity-list-order.test.ts \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 657\u001b[2mms\u001b[22m\u001b[39m\r\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m R17 — Ordenação da listagem de atividades\u001b[2m > \u001b[22m1. Ordem pelo primeiro encontro: atividade mais cedo aparece primeiro independentemente da ordem de criação \u001b[33m 424\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/activity-output.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 538\u001b[2mms\u001b[22m\u001b[39m\r\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m Activity Output and Carga Horaria & Ordenacao (Fatia 2)\u001b[2m > \u001b[22mR9 — Soma exata da carga horaria sem arredondar cada encontro individualmente \u001b[33m 306\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/abreviar-nome.test.ts \u001b[2m(\u001b[22m\u001b[2m14 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 12\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/initialization.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 311\u001b[2mms\u001b[22m\u001b[39m\r\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m 1. Inicialização não destrutiva\u001b[2m > \u001b[22mcomprova que reiniciar a aplicação apontando para o mesmo banco SQLite não apaga atividades \u001b[33m 306\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/activity-status.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 646\u001b[2mms\u001b[22m\u001b[39m\r\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m R15 — Estados temporais da atividade\u001b[2m > \u001b[22m1. Antes do primeiro encontro, situação é prevista \u001b[33m 366\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/reset.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 496\u001b[2mms\u001b[22m\u001b[39m\r\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m 2. Reset exato do M1\u001b[2m > \u001b[22mreseta o M1 removendo salas/usuários extras, mantendo os 10 oficiais, sem duplicação no segundo reset, e restaurando o relógio \u001b[33m 491\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/certificado-atividade-cancelada.test.ts \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 447\u001b[2mms\u001b[22m\u001b[39m\r\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - ATIVIDADE_CANCELADA na emissão\u001b[2m > \u001b[22mATIVIDADE_CANCELADA conforme o contrato\u001b[2m > \u001b[22mrecusa com 422 ATIVIDADE_CANCELADA a emissão de certificado de atividade cancelada \u001b[33m 343\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/activity-detail.test.ts \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 496\u001b[2mms\u001b[22m\u001b[39m\r\n \u001b[32m✓\u001b[39m tests/horas-complementares.test.ts \u001b[2m(\u001b[22m\u001b[2m16 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 14\u001b[2mms\u001b[22m\u001b[39m\r\n\r\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m34 passed\u001b[39m\u001b[22m\u001b[90m (34)\u001b[39m\r\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m260 passed\u001b[39m\u001b[22m\u001b[90m (260)\u001b[39m\r\n\u001b[2m   Start at \u001b[22m 20:59:27\r\n\u001b[2m   Duration \u001b[22m 11.57s\u001b[2m (transform 3.13s, setup 0ms, collect 41.20s, tests 34.70s, environment 25ms, prepare 20.55s)\u001b[22m\r\n\r\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "npm --prefix api test 2>&1 | Select-Object -Last 30",
+      "time": {
+       "start": 1789862365737,
+       "end": 1789862380064
+      }
+     },
+     "id": "prt_0bc1c49a90010eXbEovRxkViZc",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1bf4440011moLdvKEXW0X6f"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-finish",
+     "tokens": {
+      "total": 88411,
+      "input": 1255,
+      "output": 4212,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 82944
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bc1c84b3001lJLA8AnNehGHc6",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1bf4440011moLdvKEXW0X6f"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bc1b25ce001A2ZnDCEg9ztgt8",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 93544,
+     "input": 2110,
+     "output": 3114,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 88320
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789862381244,
+     "completed": 1789862403741
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bc1c86bc0012XGQ88zVfVBfT1",
+    "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU"
+   },
+   "parts": [
+    {
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-start",
+     "id": "prt_0bc1c8e9a0013lkdqBjbCuoHG4",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1c86bc0012XGQ88zVfVBfT1"
+    },
+    {
+     "type": "reasoning",
+     "text": "Confirmed: 260/260 in 34 files. Now let me run git status --short at the end.\n\nLet me now assemble the final matrix. Let me carefully enumerate the R1-R18 rules and their status.\n\nR1 — Presença mínima de 75% sem arredondamento:\n- Implementation: emissao-certificado.ts:57 `presencas * 4 < encontros * 3` — exact fraction, no rounding. ✓\n- Tests: certificado.test.ts criterios 1,2,3,4 (75% exato, 50%, 60% (3,75), 80%). ✓\n- Situação: COBERTO\n\nR2 — Emissão somente após o encerramento:\n- Implementation: emissao-certificado.ts:48-53 (agora < fim do último encontro). ✓\n- Tests: certificado.test.ts criterios 5,6. ✓\n- Situação: COBERTO\n\nR3 — Cargas brutas somas:\n- Implementation: horas-complementares.ts somarCargasBrutas; extrato.ts. ✓\n- Tests: horas-complementares.test.ts + extrato.test.ts R3 (300/500→800)→ COBERTO\n\nR4 — Teto palestras 240:\n- Implementation: calcularAproveitadoMinutos. ✓\n- Tests: unit (250→240, 239→239, 240→240) + HTTP (300→aproveitado 240). COBERTO\n\nR5 — Teto total 1200:\n- Implementation: min(1200, ...). ✓\n- Tests: unit (120+1300→1200, 240+960=1200) + HTTP (1300→1200). COBERTO\n\nR6 — Formato, unicidade, mesmo código na reemissão:\n- Implementation: gerar-codigo + emissao (findByAtividadeEParticipante before create; exists → returns existing). ✓\n- Tests: gerar-codigo.test.ts (formato, unicidade geração), certificado.test.ts R9 (mesmo código na reemissão), certificado-r9 (persistência única). \n- Unicidade entre dois certificados distintos (criterio 12): only unit generation-level; no HTTP-level test emitting 2 certificates for 2 participants comparing codes. Marginal gap.\n- Situação: COBERTO (com ressalva de critério 12 só provado na geração, não na persistência)\n\nR7 — Abreviação do nome:\n- Implementation: abreviar-nome.ts. ✓\n- Tests: abreviar-nome.test.ts (criterios 13, 14 + edge cases). COBERTO. Note some behavior beyond spec (protetoras) but tests pass.\n\nR8 — Verificação pública sem X-Usuario:\n- Implementation: app.ts route without requireUser, returns only public fields. ✓\n- Tests: certificado-r8.test.ts criterio 15 (200 sem header, campos exatos) e 16 (sem privados), 404 inexistente. COBERTO.\n- lowercase: not tested, not required by spec/contract. N/A.\n\nR9 — Idempotência 201→200:\n- Implementation: emissao returns existing with criado:false; route maps 201/200. ✓\n- Tests: certificado.test.ts (HTTP 201→200 mesmo codigo e emitidoEm) + certificado-r9 (só 1 linha persistida). COBERTO.\n\nR10 — Composição dos itens do extrato (codigo ou null):\n- Implementation: extrato.ts. ✓\n- Tests: extrato.test.ts R10/R13. COBERTO.\n- Cálculo em tempo de consulta: não há teste que consulte duas vezes e prove que o extrato reflete mudança entre consultas. Implementation recalcula sempre. IMPLEMENTADO SEM TESTE SUFICIENTE (menor).\n\nR11 — Alfabeto do código:\n- Implementation: ALFABETO 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' (exclui I, O, 0, 1). ✓\n- Tests: gerar-codigo.test.ts R11 (I, O, 0, 1; regex). COBERTO.\n\nR12 — Precedência ATIVIDADE_NAO_ENCERRADA sobre PRESENCA_INSUFICIENTE:\n- Implementation: emissao-certificado.ts:48-59 (encerramento antes de presença). ✓\n- Tests: NENHUM. Falta o critério 20 (atividade não encerrada + 50% presença → ATIVIDADE_NAO_ENCERRADA). \n- Situação: IMPLEMENTADO SEM TESTE SUFICIENTE (regra da spec critério 20 sem prova). Real gap.\n\nR13 — Inscrição confirmada elegível (criterio 21):\n- Implementation: extrato.ts filtra status confirmada. ✓\n- Tests: extrato.test.ts R10/R13 (atividade sem certificado com codigo null). COBERTO.\n\nR14 — em_espera não elegível (criterio 22):\n- Implementation: filter. ✓ Tests: extrato.test.ts R14. COBERTO.\n\nR15 — convocada não elegível (criterio 23):\n- Implementation: filter (status !== confirmada continue). ✓ Tests: R15. COBERTO.\n\nR16 — cancelada não elegível (criterio 24):\n- Implementation: filter. ✓ Tests: R16. COBERTO.\n\nR17 — expirada não elegível (criterio 25):\n- Implementation: filter + processExpirations. ✓ Tests: R17. COBERTO.\n\nR18 — atividade cancelada não elegível (criterio 26):\n- Implementation: extrato.ts skip cancelada===1. ✓ Tests: R18. COBERTO.\n\nNow contract F items for POST /atividades/:id/certificado:\n- método POST ✓, path ✓, participante só ✓ (implementation), autenticação X-Usuario ✓ (requireUser).\n- 401 sem X-Usuario: implementado, não testado para M4 (middleware shared, mas sem teste M4).\n- 403 SOMENTE_PARTICIPANTE para org: implementado, não testado para M4.\n- 404 NAO_ENCONTRADO atividade inexistente: implementado, não testado para M4.\n- 422 ATIVIDADE_CANCELADA: tested.\n- 403 NAO_INSCRITO: tested.\n- 422 ATIVIDADE_NAO_ENCERRADA: tested (R2) e precedência R12 sem teste.\n- 422 PRESENCA_INSUFICIENTE: tested.\n- 201/200 payload Certificado: tested (201; 200 na reemissão; campos via listagem).\n- Precedência completa: cancelada→não encerrada tested; não inscrito→não encerrada e →presença insuficiente tested; não encerrada→presença insuficiente (R12) NÃO; cancelada→não inscrito NÃO (não é regra de spec).\n\nGET /certificados (participante):\n- 200 [Certificado] ✓, vazio ✓, campos ✓, isolamento ✓, 401 ✓, 403 org ✓. COBERTO.\n\nGET /certificados/:codigo (público):\n- sem X-Usuario 200 ✓, campos públicos ✓, sem vazamento ✓, 404 inexistente ✓. lowercase N/A (contrato/spec não exigem). COBERTO/N/A.\n\nGET /extrato (participante):\n- 200 shape ✓, vazio ✓, 401 ✓, 403 org ✓, R3R4R5 ✓, R10 ✓, R13-R18 ✓.\n- cálculo em tempo de consulta: sem teste. Menor.\n\nPresença manual/offline (A): a porta M3 conta qualquer presença (origem irrestrita). Nenhum teste M4 monta cenário com presença manual (POST /encontros/:id/presencas/manual) ou qr_offline e emite certificado. IMPLEMENTADO SEM TESTE SUFICIENTE.\n\nCarga horária integral no certificado: testada na listagem (720). Na resposta de emissão não é checado diretamente, mas o objeto vem do repositório (mesmo shape). Considero COBERTO (via listagem; mesma persistência).\n\nCódigo lowercase: N/A.\n\nCollision: spec/contrato não exigem tratamento; codigo é PK (unicidade garantida por constraint). N/A.\n\nAgora, \"informar se alguma regra da spec está implementada incidentalmente, mas ainda sem teste explícito\": R12 está implementada mas sem teste. Pontos \"incidentalmente sem teste explícito\":\n- Precedência totalmente implementada: cancelada antes de não inscrito (sem teste, mas não é regra de spec).\n- 403/401/404 na rota POST certificado (implementados, sem teste M4).\n- M3 conta presenças manuais/offline (implementado via findByEncontroAndParticipante sem filtro de origem, sem teste M4).\n- Gerar código nunca colide na prática (PK impede duplicidade) — sem teste de colisão (não exigido).\n\nLacunas reais antes das telas:\n1. R12 (criterio 20) — sem teste. Prioridade alta (regra da spec; precedência de erro afeta tela de emissão: usuário deve ver ATIVIDADE_NAO_ENCERRADA).\n   Menor teste: montar atividade com 2 encontros ainda não encerrada + participante com 1/4? Actually 50% de 4 = 2 de 4, relógio antes do fim → POST → 422 ATIVIDADE_NAO_ENCERRADA (não PRESENCA_INSUFICIENTE). Setup via rotas M1/M3 + relógio.\n2. Campos de erro da emissão (401 sem X-Usuario, 403 org, 404 atividade inexistente) — sem teste HTTP M4. Prioridade média (contrato; interface precisa saber os códigos).\n3. Presença manual/offline contada na emissão — sem teste. Prioridade média (integração com M3; a tela e o juiz podem validar via presença manual).\n4. Unicidade entre dois certificados distintos (criterio 12) via HTTP — o unit test prova geração única, mas não dois certificados persistidos. Prioridade baixa.\n5. Extrato recalculado em tempo de consulta — sem teste. Prioridade baixa.\n\nFor each gap, priority based on dependency. R12 first (regra da spec fatia 1, falta critério 20). Then contract errors on emission. Then manual presence.\n\nLet me now also note: R10 asserted at HTTP that \"iterative compute\" — no. Fine.\n\nOne more check: does any test check that POST /certificados doesn't exist? no. Fine.\n\nLet me confirm that the unit tests certificado-r9.test.ts and horas-complementares.test.ts and gerar-codigo.test.ts and abreviar-nome.test.ts import implementation directly. Yes. These are unit tests that violate the repo's \"test via HTTP public interface\" rule. But they exist as supporting evidence. I should note in the review that some M4 coverage relies on unit tests that import implementation directly (project rule discourages). This matters: for R7 and R6/R11, HTTP-level coverage is partial:\n- R7: only HTTP check is in certificado-r8.test.ts (Carla M. S. via GET). The spec's criterio 14 examples (Elisa, Isadora) are only tested at unit level! The public API verification for Elisa/Isadora is NOT tested via HTTP. Criterio 14: \"Verificação pública de p-elisa ... → 'Elisa F. da Rocha'; de p-isadora → 'Isadora R. dos Santos'\". At HTTP level, only Carla is verified. The unit tests cover Elisa/Isadora/particles. So criterio 14 is covered only by unit test (imports implementation), not by HTTP. This is a soft gap: the rule is implemented and unit-proven; HTTP-level only proves one name. I'd call R7 COBERTO with note (critério 14 só no unit).\n\n- R6/R11: gerar-codigo tested only at unit level; HTTP test (certificado.test) proves format indirectly? It doesn't check code format. In R9 test it checks same codigo across requests but not format. The codigo format/alfabeto in an actual emitted certificate is not checked via HTTP. But unit tests prove the generator. And the emitted codigo comes from that generator. Combined: R6/R11 COBERTO (unit-level) — acceptable, though HTTP-level not asserting format of emitted certificate is a minor gap. Actually let me check: certificado.test.ts first test doesn't check codigo format. certificado-listagem doesn't. So the format of an emitted certificate (SA26-...) is never asserted on an HTTP response. Combined with unit tests. Minor.\n\nNow I should be precise with SITUAÇÃO. The user wants R1..R18 individually.\n\nLet me now also decide E items:\n- GET /extrato \"vazio\" tested; \"somente participante\" tested (403 org, 401).\n- \"cálculo em tempo de consulta\" — no test. I'll note in gaps.\n\nLet me write final answer. This is a long analysis — the user explicitly requested a detailed matrix, so longer output is justified (they asked for detail). The concise rule is overridden by the explicit request for a matrix and sections.\n\nLet me also run git status --short at the end as requested.",
+     "time": {
+      "start": 1789862383261,
+      "end": 1789862402259
+     },
+     "id": "prt_0bc1c8e9d001iMcLPFewOa5OO2",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1c86bc0012XGQ88zVfVBfT1"
+    },
+    {
+     "type": "text",
+     "text": "Suíte confirmada: 260/260 em 34 arquivos. Agora o `git status --short` solicitado.",
+     "time": {
+      "start": 1789862402265,
+      "end": 1789862402497
+     },
+     "id": "prt_0bc1cd8d9001aEnYFUZwER4xZD",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1c86bc0012XGQ88zVfVBfT1"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_b8c1be84425047959c3a2b4d",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git status --short"
+      },
+      "output": "(no output)",
+      "metadata": {
+       "output": "(no output)",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git status --short",
+      "time": {
+       "start": 1789862402457,
+       "end": 1789862402867
+      }
+     },
+     "id": "prt_0bc1cd94c0016LetO06FbtVwHi",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1c86bc0012XGQ88zVfVBfT1"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-finish",
+     "tokens": {
+      "total": 93544,
+      "input": 2110,
+      "output": 3114,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 88320
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bc1cdcd9001cuITungOwqiMIB",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1c86bc0012XGQ88zVfVBfT1"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bc1b25ce001A2ZnDCEg9ztgt8",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 96552,
+     "input": 117,
+     "output": 2995,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 93440
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789862403751,
+     "completed": 1789862425842
+    },
+    "finish": "stop",
+    "id": "msg_0bc1cdea7001q9FCnR4daMcFb4",
+    "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU"
+   },
+   "parts": [
+    {
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-start",
+     "id": "prt_0bc1ce5c6001MpZBeV39ZA2qIm",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1cdea7001q9FCnR4daMcFb4"
+    },
+    {
+     "type": "reasoning",
+     "text": "git status clean. Now let me write the full review. Let me organize:\n\n1. Análise A-F\n2. Matriz R1-R18\n3. Lacunas reais\n4. Regras implementadas incidentalmente sem teste explícito\n5. git status result\n\nLet me be careful about accuracy of each claim.",
+     "time": {
+      "start": 1789862405578,
+      "end": 1789862406527
+     },
+     "id": "prt_0bc1ce5ca0014bv63r5PXZIQTC",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1cdea7001q9FCnR4daMcFb4"
+    },
+    {
+     "type": "text",
+     "text": "# Revisão de cobertura — M4 Certificados (somente análise)\n\n**Estado confirmado:** suíte verde 260/260 em 34 arquivos. `git status --short` limpo. Nenhuma alteração feita.\n\n---\n\n## Matriz R1–R18\n\n| REGRA | EXIGÊNCIA | IMPLEMENTAÇÃO | TESTE | SITUAÇÃO |\n|---|---|---|---|---|\n| **R1** | 75% exato sem arredondamento; 3/4→201, 2/4→422, 3/5→422 (3,75), 4/5→201 | `emissao-certificado.ts:57` usa `presencas*4 < encontros*3` (fração exata) | `certificado.test.ts` critérios 1–4 | COBERTO |\n| **R2** | Emissão só após fim do último encontro; instante exato conta | `emissao-certificado.ts:48-53` | `certificado.test.ts` critérios 5–6 | COBERTO |\n| **R3** | Somatórios brutos integrais | `horas-complementares.ts:12-25` + `extrato.ts:51` | unit (`horas-complementares`) + HTTP (300/500→800) | COBERTO |\n| **R4** | `min(240, palestras)` só no aproveitado | `calcularAproveitadoMinutos:28` | unit + HTTP (`aproveitado 240` com bruto 300) | COBERTO |\n| **R5** | `min(1200, min(240,p)+m)` | `calcularAproveitadoMinutos:29` | unit (`120+1300→1200`, `240+960=1200`) + HTTP | COBERTO |\n| **R6** | Formato `SA26-XXXX-XXXX`; unicidade; mesmo código na reemissão | `gerar-codigo.ts` + reemissão devolve existente (`emissao-certificado.ts:61-64`) | formato/unicidade só em unit (`gerar-codigo`); mesmo código via HTTP (`certificado.test.ts` R9) e reemissão com 1 linha (`certificado-r9`) | COBERTO (critério 12 só provado na geração, não em 2 certificados persistidos) |\n| **R7** | 1º nome + iniciais; partículas por extenso | `abreviar-nome.ts` | critério 13 via HTTP (`r8`: \"Carla M. S.\"); critério 14 (Elisa/Isadora) **só em unit** (`abreviar-nome`) | COBERTO (critério 14 sem prova HTTP) |\n| **R8** | Público sem `X-Usuario`; só campos públicos | rota sem `requireUser`, projeção limitada (`app.ts:443-460`) | `certificado-r8` critérios 15/16 + 404 | COBERTO |\n| **R9** | 201→200, mesmo código e `emitidoEm`, sem nova emissão | `criado:false` retorna existente | HTTP (`certificado.test.ts`) + COUNT=1 (`certificado-r9`) | COBERTO |\n| **R10** | Itens com `codigo` ou `null` | `extrato.ts:41-48` | `extrato.test.ts` R10/R13 | COBERTO |\n| **R11** | Alfabeto sem I/O/0/1 | `ALFABETO='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'` | unit `gerar-codigo` R11 (regex + cada caractere) | COBERTO |\n| **R12** | `ATIVIDADE_NAO_ENCERRADA` prevalece sobre `PRESENCA_INSUFICIENTE` | ordem implementada (`emissao-certificado.ts:48-59`: encerramento antes da frequência) | **nenhum teste — critério 20 sem prova** | IMPLEMENTADO SEM TESTE SUFICIENTE |\n| **R13** | `confirmada` elegível | `extrato.ts:34` | `extrato.test.ts` R16-side confirma + R10/R13 | COBERTO |\n| **R14** | `em_espera` excluída | `extrato.ts:34-36` | `extrato.test.ts` R14 | COBERTO |\n| **R15** | `convocada` excluída | idem | `extrato.test.ts` R15 | COBERTO |\n| **R16** | `cancelada` excluída | idem | `extrato.test.ts` R16 | COBERTO |\n| **R17** | `expirada` excluída | idem (+ `processExpirations` em `m2-port`) | `extrato.test.ts` R17 | COBERTO |\n| **R18** | atividade cancelada excluída | `extrato.ts:38` (`cancelada===1`) | `extrato.test.ts` R18 | COBERTO |\n\n---\n\n## Verificação dos pontos solicitados\n\n**A. Emissão** — R1, R2, cancelada, NAO_INSCRITO (sem inscrição/cancelada/em_espera), precedências (não-inscrito > não-encerrada e > presença; cancelada > não-encerrada), idempotência 201→200, carga horária integral (via listagem, 720) e 1 registro persistido: **todos cobertos**. Falta: teste R12 (precedência não-encerrada > presença) e **nenhum teste de emissão com presença manual/offline** (`findByEncontroAndParticipante` conta qualquer `origem`, mas os cenários só usam QR).\n\n**B. Código** — formato, alfabeto, exclusão I/O/0/1, estabilidade e unicidade na geração: cobertos (unit). `codigo` é PK no SQLite (`migrate.ts:62`) — colisão resultaria em UNIQUE constraint; spec/contrato não exigem tratamento/retry → **NÃO APLICÁVEL**.\n\n**C. GET /certificados** — 200/vazio/campos/isolamento/401/403: **cobertos** (`certificado-listagem`).\n\n**D. GET /certificados/:codigo** — sem `X-Usuario`, campos exatos, sem `participanteId`/`presencas`/`encontros`, 404: **cobertos**. Lowercase: contrato/spec não exigem normalização → NÃO APLICÁVEL.\n\n**E. GET /extrato** — shape/vazio/401/403/R10/R13–R18/tetos 240 e 1200/brutos: **cobertos**. **\"Cálculo em tempo de consulta\" sem teste explícito** (nenhum teste consulta, muda estado e consulta de novo).\n\n**F. Contrato HTTP** — nos endpoints M4, os erros de sucesso estão testados, mas os de **identificação/perfil/existência da emissão** não:\n- `POST /atividades/:id/certificado` com `X-Usuario` ausente → 401 `USUARIO_DESCONHECIDO`: implementado, sem teste M4;\n- idem com org → 403 `SOMENTE_PARTICIPANTE`: implementado, sem teste M4;\n- idem atividade inexistente → 404 `NAO_ENCONTRADO`: implementado, sem teste M4.\n\n`GET /certificados` e `GET /extrato` cobrem 401/403; `GET /certificados/:codigo` cobre 404.\n\n---\n\n## LACUNAS REAIS ANTES DAS TELAS\n\n**G1 — R12 sem teste (critério 20 da spec).**\n- *Regra:* R12.\n- *Por quê:* a spec exige o cenário \"atividade não encerrada + presença < 75% → `ATIVIDADE_NAO_ENCERRADA`\" e esse caso não existe em nenhum teste; os que parecem cobrir precedência (não-inscrito, cancelada) **não** exercitam R12 com ambas as condições falhando para um inscrito confirmado.\n- *Menor teste TDD:* atividade com 4 encontros ainda não encerrada (relógio antes do fim), participante inscrito confirmado com 2/4 presenças → `POST /atividades/:id/certificado` deve retornar 422 `ATIVIDADE_NAO_ENCERRADA` (e não 422 `PRESENCA_INSUFICIENTE`).\n- *Prioridade:* **ALTA** — regra da fatia 1 sem prova; determina qual erro a tela exibe quando as duas condições falham.\n\n**G2 — Erros de emissão do contrato sem teste M4 (401/403/404).**\n- *Regra:* contrato, seção 1 e rota `POST /atividades/:id/certificado`.\n- *Por quê:* a tela precisa tratar \"SOMENTE_PARTICIPANTE\" e \"NAO_ENCONTRADO\", mas nenhum teste HTTP M4 prova esses códigos na emissão; a ordem perfil→existência também fica sem registro.\n- *Menor teste:* (a) `POST` sem `X-Usuario` → 401 `USUARIO_DESCONHECIDO`; (b) com `org-ana` → 403 `SOMENTE_PARTICIPANTE`; (c) com `atv_inexistente` → 404 `NAO_ENCONTRADO`.\n- *Prioridade:* **ALTA** (mesma rota; barato, desbloqueia o contrato da tela).\n\n**G3 — Presença manual/offline contada na emissão (integração M3).**\n- *Regra:* R1 (mecanismo de contagem via porta M3).\n- *Por quê:* a porta conta qualquer registro de presença, mas os cenários de emissão usam só QR; a tela/org pode registrar presença manual e espera-se que conte para o certificado.\n- *Menor teste:* registrar presenças via `POST /encontros/:id/presencas/manual` (org) em 3 de 4 encontros, atividade encerrada → emissão 201.\n- *Prioridade:* **MÉDIA** (depende de G1/G2 já resolvidos no cenário de endpoint; regra funcional de módulo vizinho).\n\n**G4 — Critério 12 (unicidade entre dois certificados emitidos) só em unit.**\n- *Regra:* R6.\n- *Por quê:* a unicidade com dois certificados **persistidos** (participantes distintos) não é provada por HTTP; apenas pela geração.\n- *Menor teste:* emitir certificado para p-carla e p-diego em atividades distintas → `GET /certificados` de cada um (ou comparar códigos) e provar códigos diferentes.\n- *Prioridade:* **BAIXA** (prob. de colisão desprezível; prova da geração já existe).\n\n**G5 — Extrato recalculado em tempo de consulta sem prova.**\n- *Regra:* R10/R13 (comportamento do extrato como cálculo, não snapshot).\n- *Por quê:* nenhum teste consulta o extrato, muda o estado (ex.: emite certificado) e consulta de novo.\n- *Menor teste:* `GET /extrato` com atividade elegível sem certificado → item com `codigo:null`; emitir certificado; novo `GET /extrato` → `codigo` preenchido, sem outro endpoint intermediário.\n- *Prioridade:* **BAIXA** (comportamento já corre na implementação; só falta demonstrar).\n\n---\n\n## Implementado incidentalmente, sem teste explícito\n\n- **R12** (G1) — a precedência está correta no código, mas não há prova (já listado).\n- **Dicotomização origem do M3**: `countPresencas` ignora `origem` (qr/qr_offline/manual) — comportamento desejado, sem teste (G3).\n- **Ordem cancelada → não-inscrito** na emissão: implementada, sem teste (não é regra da spec, não entra nas lacunas obrigatórias).\n- **404/403/401 da emissão**: implementados, sem teste M4 (G2).\n\n## Execução final\n\n`git status --short` → vazio (working tree limpo). A sessão foi somente análise: nenhum arquivo foi criado, editado, testado ou commitado.",
+     "time": {
+      "start": 1789862406531,
+      "end": 1789862424814
+     },
+     "id": "prt_0bc1ce982001LiVMYQfNIMtCY5",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1cdea7001q9FCnR4daMcFb4"
+    },
+    {
+     "reason": "stop",
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-finish",
+     "tokens": {
+      "total": 96552,
+      "input": 117,
+      "output": 2995,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 93440
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bc1d330f001JZv5QalRpUyZTd",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc1cdea7001q9FCnR4daMcFb4"
+    }
+   ]
+  },
+  {
+   "info": {
+    "role": "user",
+    "time": {
+     "created": 1789862655114
+    },
+    "agent": "build",
+    "model": {
+     "providerID": "opencode",
+     "modelID": "big-pickle"
+    },
+    "summary": {
+     "diffs": [
+      {
+       "file": "api/tests/certificado-r12.test.ts",
+       "patch": "Index: api/tests/certificado-r12.test.ts\n===================================================================\n--- api/tests/certificado-r12.test.ts\t\n+++ api/tests/certificado-r12.test.ts\t\n@@ -0,0 +1,91 @@\n+import { describe, it, expect, beforeEach, afterEach } from 'vitest';\n+import request from 'supertest';\n+import { createApp } from '../src/app.js';\n+\n+const PARTICIPANTE = 'p-carla';\n+const ORGANIZACAO = 'org-ana';\n+\n+function encontrosDoMinicurso(dias: number[]) {\n+  return dias.map((dia) => ({\n+    inicio: `2026-10-${dia}T19:00:00-03:00`,\n+    fim: `2026-10-${dia}T22:00:00-03:00`\n+  }));\n+}\n+\n+function encontrarEncontro(encontros: Array<{ id: string; inicio: string }>, dia: number) {\n+  return encontros.find((enc) => enc.inicio.startsWith(`2026-10-${dia}T`));\n+}\n+\n+describe('M4 - Certificados - Fatia 1 (R12 - Precedência de erros na emissão)', () => {\n+  let app: any;\n+\n+  beforeEach(() => {\n+    app = createApp({ modoTeste: true });\n+  });\n+\n+  afterEach(() => {\n+    app?.close?.();\n+  });\n+\n+  async function definirRelogio(agora: string) {\n+    const res = await request(app).put('/_teste/relogio').send({ agora });\n+    expect(res.status).toBe(200);\n+  }\n+\n+  async function montarCenario(dias: number[], diasComPresenca: number[], relogioFinal: string) {\n+    const resReset = await request(app).post('/_teste/reset');\n+    expect(resReset.status).toBe(204);\n+\n+    const criacao = await request(app)\n+      .post('/atividades')\n+      .set('X-Usuario', ORGANIZACAO)\n+      .send({\n+        titulo: 'Minicurso para precedência',\n+        tipo: 'minicurso',\n+        salaId: 'lab-3',\n+        vagas: 10,\n+        encontros: encontrosDoMinicurso(dias)\n+      });\n+    const atividadeId = criacao.body?.id;\n+    const encontros: Array<{ id: string; inicio: string }> = criacao.body?.encontros ?? [];\n+\n+    await request(app)\n+      .post(`/atividades/${atividadeId}/inscricoes`)\n+      .set('X-Usuario', PARTICIPANTE);\n+\n+    for (const dia of diasComPresenca) {\n+      const encontro = encontrarEncontro(encontros, dia);\n+      if (!encontro) continue;\n+      await request(app).put('/_teste/relogio').send({ agora: `2026-10-${dia}T19:30:00-03:00` });\n+      const codigoRes = await request(app)\n+        .get(`/encontros/${encontro.id}/codigo`)\n+        .set('X-Usuario', ORGANIZACAO);\n+      const codigo = codigoRes.body?.codigo ?? '';\n+      await request(app)\n+        .post(`/encontros/${encontro.id}/presencas`)\n+        .set('X-Usuario', PARTICIPANTE)\n+        .send({ codigo });\n+    }\n+\n+    await definirRelogio(relogioFinal);\n+\n+    return { atividadeId, totalEncontros: encontros.length };\n+  }\n+\n+  it('R12 (Critério 20): atividade não encerrada com 2 de 4 presenças retorna 422 ATIVIDADE_NAO_ENCERRADA e não PRESENCA_INSUFICIENTE', async () => {\n+    const { atividadeId } = await montarCenario(\n+      [19, 20, 21, 22],\n+      [19, 20],\n+      '2026-10-22T21:00:00-03:00'\n+    );\n+\n+    const res = await request(app)\n+      .post(`/atividades/${atividadeId}/certificado`)\n+      .set('X-Usuario', PARTICIPANTE);\n+\n+    expect(res.status).toBe(422);\n+    expect(res.body.erro).toBe('ATIVIDADE_NAO_ENCERRADA');\n+    expect(res.body.erro).not.toBe('PRESENCA_INSUFICIENTE');\n+    expect(typeof res.body.mensagem).toBe('string');\n+  });\n+});\n\\ No newline at end of file\n",
+       "additions": 91,
+       "deletions": 0,
+       "status": "added"
+      }
+     ]
+    },
+    "id": "msg_0bc20b48a001RLBtjFVHY5z77k",
+    "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU"
+   },
+   "parts": [
+    {
+     "type": "text",
+     "text": "Vamos fechar a lacuna G1 da revisão de cobertura do M4:\n\nR12 — precedência ATIVIDADE_NAO_ENCERRADA sobre PRESENCA_INSUFICIENTE.\n\nUse a skill tdd-m4.\n\nEsta etapa é de CARACTERIZAÇÃO/PROVA da regra.\nNÃO altere código de produção antes de executar o novo teste.\n\nConsulte:\n- specs/M4-certificados.md\n- contrato-api.md\n- AGENTS.md\n- testes atuais de certificado\n- implementação atual da emissão\n- helpers/APIs existentes de atividade, inscrição e presença\n\nNÃO consulte requisitos-envolvidos.md.\n\nCenário exigido:\n\n- participante válido;\n- atividade válida e não cancelada;\n- participante com inscrição confirmada;\n- atividade com 4 encontros;\n- relógio ainda antes do encerramento da atividade;\n- participante com apenas 2 de 4 presenças, portanto abaixo de 75%;\n- POST /atividades/:id/certificado.\n\nResultado esperado:\n- HTTP 422;\n- erro ATIVIDADE_NAO_ENCERRADA;\n- NÃO PRESENCA_INSUFICIENTE.\n\nObjetivo:\nprovar explicitamente R12/critério 20 da spec.\n\nCrie somente o menor teste necessário.\n\nIMPORTANTE:\nA implementação atual aparenta já possuir a precedência correta.\n\nPortanto:\n\n1. crie o teste;\n2. execute somente esse teste;\n3. NÃO force um RED artificial;\n4. se o teste passar imediatamente, registre:\n   \"Teste de caracterização R12: GREEN imediato — regra já implementada.\"\n5. se falhar, informe expected × received e pare no RED;\n6. não altere produção nesta sessão;\n7. não altere testes existentes;\n8. não altere spec ou contrato.\n\nDepois execute:\ngit status --short\n\nInforme:\n- arquivo criado;\n- cenário montado;\n- resultado do teste;\n- expected × received;\n- se foi RED legítimo ou GREEN imediato;\n- git status --short.\n\nNão faça git add.\nNão faça commit.\nNão faça push. ",
+     "id": "prt_0bc20b48b001QwGimEOvTOXxn9",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc20b48a001RLBtjFVHY5z77k"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bc20b48a001RLBtjFVHY5z77k",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 97095,
+     "input": 536,
+     "output": 47,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 96512
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789862655145,
+     "completed": 1789862658592
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bc20b4a9001wcbaAzmjuapieQ",
+    "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU"
+   },
+   "parts": [
+    {
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-start",
+     "id": "prt_0bc20bd08001JAaYcxqTeHpuZ6",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc20b4a9001wcbaAzmjuapieQ"
+    },
+    {
+     "type": "text",
+     "text": "\n\n",
+     "time": {
+      "start": 1789862657489,
+      "end": 1789862657693
+     },
+     "id": "prt_0bc20bdd0001KHpoB2FSILLI0q",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc20b4a9001wcbaAzmjuapieQ"
+    },
+    {
+     "type": "tool",
+     "tool": "skill",
+     "callID": "call_953a9f8945294fa0bf60dd76",
+     "state": {
+      "status": "completed",
+      "input": {
+       "name": "tdd-m4"
+      },
+      "output": "<skill_content name=\"tdd-m4\">\n# Skill: tdd-m4\n\n# TDD para M4-certificados\n\nA fonte de verdade é `specs/M4-certificados.md`. Não invente regras de negócio.\nNão altere a spec. Não acesse documentos externos de requisitos.\n\nO ciclo é o mesmo do `tdd` geral — teste que falha, código mínimo, refactor — mas\nancorado nas 4 fatias e 12 regras de M4. Uma regra ou grupo coeso por ciclo TDD.\n\n## Onde o teste mora\n\nTeste verifica comportamento pela interface pública (HTTP), nunca implementação.\nUse Vitest + Supertest, a aplicação Express de `createApp()` sem abrir porta,\ne as rotas `/_teste/*` com `MODO_TESTE=1` para setup e controle do relógio.\n\nArquivos de teste em `api/tests/`. Para rodar: `npm --prefix api test`.\n\nRegra do projeto: não importe serviço nem repositório no teste — se importar,\no teste quebra em refatoração sem que o comportamento tenha mudado.\n\n## Fatias e regras\n\nCada fatia é um entregável vertical que pode ser testado sozinho.\nImplemente as fatias nesta ordem. Dentro de cada fatia, uma regra ou grupo\ncoeso de regras por ciclo TDD.\n\n### Fatia 1 — emissão do certificado\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R1 | Presença mínima de 75% (`presencas / encontros`, sem arredondamento) | 1, 2, 3, 4 |\n| R2 | Emissão somente após encerramento da atividade | 5, 6 |\n| R12 | Precedência: `ATIVIDADE_NAO_ENCERRADA` antes de `PRESENCA_INSUFICIENTE` | 20 |\n| R9 | Idempotência: 201 na primeira vez, 200 nas seguintes, mesmo código | 17 |\n\nOrdem sugerida dentro da fatia:\n1. R1 — teste presence check, implemente, refactor.\n2. R2 — teste encerramento, implemente, refactor.\n3. R12 — teste precedência quando ambos falham, implemente, refactor.\n4. R9 — teste idempotência 201→200, implemente, refactor.\n\n### Fatia 2 — código e listagem\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R6 | Formato `SA26-XXXX-XXXX`, unicidade, mesmo código na reemissão | 11, 12 |\n| R11 | Alfabeto: maiúsculas + dígitos, sem `I`, `O`, `0`, `1` | 19 |\n\nOrdem sugerida dentro da fatia:\n1. R6 — teste formato e unicidade, implemente geração, refactor.\n2. R11 — teste exclusão de caracteres ambíguos, implemente, refactor.\n3. R9 (continuação) — teste `GET /certificados` retornando apenas emitidos.\n\n### Fatia 3 — verificação pública\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R8 | `GET /certificados/:codigo` sem `X-Usuario`, campos públicos apenas | 15, 16 |\n| R7 | Abreviação do nome: primeiro nome + iniciais + partículas por extenso | 13, 14 |\n\nOrdem sugerida dentro da fatia:\n1. R8 — teste rota pública sem header, campos corretos, implemente, refactor.\n2. R7 — teste abreviação com partículas, implemente, refactor.\n\n### Fatia 4 — extrato de horas complementares\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R3 | Cargas brutas: `palestrasMinutos`, `minicursosMinutos`, `totalMinutos` sem teto | 7, 8, 9, 10 |\n| R4 | Teto de palestras: `min(240, palestrasMinutos)` | 7, 8, 9 |\n| R5 | Teto total: `aproveitadoMinutos = min(1200, min(240, palestrasMinutos) + minicursosMinutos)` | 7, 8 |\n| R10 | Itens do extrato: `codigo` preenchido ou `null` conforme emissão | 18 |\n\nOrdem sugerida dentro da fatia:\n1. R3+R4+R5 — teste cálculos de extrato (juntos, são uma unidade coesa), implemente, refactor.\n2. R10 — teste composição dos itens com código/null, implemente, refactor.\n\n## O ciclo TDD, passo a passo\n\nPara cada regra (ou grupo coeso), nestes passos:\n\n1. **RED**: Escreva um teste que prova o critério de aceite. Rode. **Ele tem que falhar.**\n   Se passar antes do código existir, algo está errado — descubra o quê antes de seguir.\n   O nome do teste descreve a regra em português:\n   `it('recusa certificado com menos de 75% de presenca')`.\n\n2. **GREEN**: Escreva o mínimo de código que faz o teste passar.\n   Nada de já implementar a regra seguinte \"que eu vou precisar mesmo\".\n   Rode o teste individual. Verde? Rode a suíte inteira. Verde? Próximo passo.\n\n3. **REFACTOR**: Com verde, limpe o código sem alterar comportamento.\n   Extraia funções, melhore nomes, remova duplicação. Rode a suíte inteira de novo.\n   Ainda verde? Próxima regra.\n\n## A regra que não se quebra\n\n**Quando o teste falha, o suspeito é o código.**\n\nSe você mudar um teste para ele passar, trocou o contrato pela implementação e o\nverde virou enfeite. Só se altera um teste quando a **spec** mudou — e aí você diz\nqual regra da spec mudou e por quê.\n\nVale para o valor esperado, para o status HTTP e para o cenário. Trocar\n`expect(response.body.presencas).toBe(3)` por `expect(response.body.presencas).toBe(0)`\nporque o código deu 0 é a forma mais comum de mentir sozinho.\n\n## Três testes que não valem nada\n\n- **Acoplado à implementação** — chama serviço ou repositório direto, ou confere o\n  dado espiando o `Map`/banco. Quebra em refatoração, não em regressão.\n- **Tautológico** — o esperado é calculado do mesmo jeito que o código calcula.\n  Passa por construção, nunca discorda. O valor esperado vem da spec, escrito na mão.\n- **Frouxo** — confere só o status e ignora o corpo. `201` com o `codigo` errado passa.\n\n## Dependências de M2 e M3\n\nM4 depende de dados que vêm de outros módulos. Não implemente esses módulos —\nuse as interfaces e portas de integração que já existem.\n\n### M3 — Presenças\n\n- Porta: `M3PresencePort` em `src/integrations/m3-presence-port.ts`\n- Método: `countPresencas(atividadeId, participanteId) → number`\n- Estado atual: `NeutralM3PresenceAdapter` retorna sempre 0.\n- Para testes de emissão (R1), registre presenças via rotas HTTP do M3\n  (`POST /encontros/:id/presencas`) no setup do teste. O adapter real do M3\n  deve ser ativado em ambiente de teste, ou o teste deve montar o cenário\n  pelas rotas existentes da API.\n- Se M3 não estiver funcional, documente o bloqueio e não simule dados.\n\n### M2 — Inscrições\n\n- Porta: `M2IntegrationPort` em `src/integrations/m2-port.ts`\n- Estado atual: `NeutralM2Adapter` não expõe listagem de inscrições por participante.\n- Para R10 (extrato), M4 precisa saber em quais atividades o participante está\n  inscrito e se há certificado emitido para cada uma.\n- Se a porta de M2 não fornecer esse dado, documente o bloqueio — não invente\n  persistência de inscrições dentro de M4.\n\n### M1 — Atividades\n\n- Já acessível via `ActivityRepository`. M4 precisa de `titulo`, `tipo`,\n  `cargaHorariaMinutos`, `encontros` (total de encontros) e `dataTermino`\n  (para R2).\n- Não altere o repositório de M1. Se faltar campo, documente o bloqueio.\n\n## Validações adicionais do contrato\n\nAlém das regras R1–R12, o `contrato-api.md` lista códigos de erro que o M4\ndeve retornar. Teste-os quando implementar a rota correspondente:\n\n| Código | HTTP | Quando |\n|--------|------|--------|\n| `NAO_INSCRITO` | 403 | Participante não inscrito na atividade |\n| `ATIVIDADE_CANCELADA` | 422 | Atividade foi cancelada |\n| `ATIVIDADE_NAO_ENCERRADA` | 422 | Atividade ainda não encerrada (R2) |\n| `PRESENCA_INSUFICIENTE` | 422 | Presença abaixo de 75% (R1) |\n\n## Execução e verificação\n\nApós cada regra implementada (GREEN + REFACTOR):\n\n1. Rode `npm --prefix api test` — suíte inteira tem que estar verde.\n2. Rode `npx tsc --noEmit` dentro de `api/` — typecheck tem que passar.\n3. Se falhar, corrija antes de seguir para a próxima regra.\n\nTerminada a última fatia, rode a suíte inteira uma vez e relate o número real\nde testes que apareceu na saída. Não estime, não arredonde.\n\n## Commits\n\nFaça commits pequenos, um por regra ou grupo coeso de regras dentro da fatia.\nMensagem no padrão do projeto, identificando a regra:\n\n```\nM4: implementa R1 — presença mínima de 75%\nM4: implementa R2 — emissão após encerramento\nM4: implementa R9 — idempotência 201/200\n```\n\nAntes de commitar, verifique `git status` e `git diff` para confirmar que\napenas arquivos intencionais estão staged.\n\n## Rastreabilidade\n\nCada regra da spec deve ter:\n- Pelo menos um teste que a comprove (critério de aceite correspondente).\n- Implementação que o teste exercita.\n- Referência explícita: nome do teste cita a regra, commit cita a regra.\n\nSe uma regra não tem teste, ela não está implementada — pare e escreva o teste.\n\n## O que não fazer\n\n- Não acesse documentos externos de requisitos.\n- Não altere `specs/M4-certificados.md`.\n- Não altere `contrato-api.md`.\n- Não implemente código de M1, M2 ou M3 — apenas use suas portas/interfaces.\n- Não altere testes existentes apenas para fazê-los passar.\n- Não altere código de outros módulos.\n- Não faça commit de código que não esteja verde na suíte inteira.\n\nBase directory for this skill: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\.opencode\\skills\\tdd-m4\nRelative paths in this skill (e.g., scripts/, reference/) are relative to this base directory.\nNote: file list is sampled.\n\n<skill_files>\n\n</skill_files>\n</skill_content>",
+      "metadata": {
+       "name": "tdd-m4",
+       "dir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\.opencode\\skills\\tdd-m4",
+       "truncated": false
+      },
+      "title": "Loaded skill: tdd-m4",
+      "time": {
+       "start": 1789862657564,
+       "end": 1789862657637
+      }
+     },
+     "id": "prt_0bc20bdd7001tsn3wmuTDG7EBH",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc20b4a9001wcbaAzmjuapieQ"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-finish",
+     "tokens": {
+      "total": 97095,
+      "input": 536,
+      "output": 47,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 96512
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bc20c072001acHI1iHZHz17EK",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc20b4a9001wcbaAzmjuapieQ"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bc20b48a001RLBtjFVHY5z77k",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 100760,
+     "input": 2846,
+     "output": 890,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 97024
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789862658600,
+     "completed": 1789862666760
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bc20c2280016SSIfca1ree5Wk",
+    "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU"
+   },
+   "parts": [
+    {
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-start",
+     "id": "prt_0bc20cbc6001OFizi8OTKQ0a9f",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc20c2280016SSIfca1ree5Wk"
+    },
+    {
+     "type": "reasoning",
+     "text": "I need to create a test file for R12 (characterization test). Let me look at how existing certificado tests build scenarios. I read certificado.test.ts earlier. The pattern uses `montarCenario(dias, diasComPresenca, relogioFinal)`.\n\nFor R12 scenario:\n- participante válido: p-carla\n- atividade válida não cancelada: minicurso com 4 encontros (dias 19,20,21,22)\n- inscrição confirmada\n- 2 de 4 presenças\n- relógio antes do encerramento: last encontro finis `2026-10-22T22:00:00-03:00`; before → e.g. `2026-10-22T21:00:00-03:00`\n- POST → 422 ATIVIDADE_NAO_ENCERRADA\n\nI'll create `api/tests/certificado-r12.test.ts` following the same pattern/helpers as certificado.test.ts. I'll keep it minimal — one test. Setup: create activity with 4 encontros, register presence in 2, set clock before end, POST certificado, expect 422 ATIVIDADE_NAO_ENCERRADA.\n\nLet me write the file. I'll base it on the existing helper structure in certificado.test.ts.\n\nThe helper `montarCenario` in certificado.test.ts sets relogioFinal as last step. For R12 I need to set the clock to `2026-10-22T21:00:00-03:00` (before 22:00 terminus). Note: presence registration needs clock at 19:30 during each encontro day. Then at the end set clock at 21:00 on day 22 (still before 22:00 of last encontro). Good.\n\nActually careful: when registering presence for day 22 (the last encontro), the presence registration requires a valid window. The window for presença is via QR code — the code requires getting the code from org and sending within window. In certificado.test.ts, `montarCenario([19,20,21,22], [19,20,21,22], ...)` registers presence for all 4 days including day 22, setting clock to 19:30 on day 22 (before fim 22:00). So the presence on the last day happens before the activity ends — fine.\n\nFor R12: montarCenario([19,20,21,22], [19,20], '2026-10-22T21:00:00-03:00'). Wait presence registered on days 19 and 20 at 19:30. Then final clock = 2026-10-22T21:00:00-03:00 which is before the last encontro's fim (22:00). Good — activity not ended, presence 2/4 = 50%.\n\nExpected: 422, erro ATIVIDADE_NAO_ENCERRADA, not PRESENCA_INSUFICIENTE.\n\nLet me create the test file with minimal code. I'll reuse the helper functions from certificado.test.ts (copy minimal ones). Let me write it.\n\nThe instructions: \"execute somente esse teste\". I can run vitest with the specific file: `npm --prefix api test -- <file>`? The test script is `npm --prefix api test`. Vitest supports passing file filter: `npm --prefix api test -- run tests/certificado-r12.test.ts`? Actually `npm test` runs vitest; to pass args: `npm --prefix api test -- tests/certificado-r12.test.ts`. Let me check package.json test script to be sure.\n\nLet me quickly read api/package.json.",
+     "time": {
+      "start": 1789862661067,
+      "end": 1789862665528
+     },
+     "id": "prt_0bc20cbcb001eG6vEuMxXcgLtA",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc20c2280016SSIfca1ree5Wk"
+    },
+    {
+     "type": "text",
+     "text": "Vou verificar o script de teste e o padrão dos testes existentes antes de criar o arquivo.",
+     "time": {
+      "start": 1789862665532,
+      "end": 1789862665850
+     },
+     "id": "prt_0bc20dd3c001Ec2ByD4Y1sxc78",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc20c2280016SSIfca1ree5Wk"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_a4df82cd33a0418a8dbc3738",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\package.json"
+      },
+      "output": "[1012 caracteres omitidos]",
+      "title": "api\\package.json",
+      "time": {
+       "start": 1789862665775,
+       "end": 1789862665791
+      }
+     },
+     "id": "prt_0bc20dddd001s43mJbtI7AgI9t",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc20c2280016SSIfca1ree5Wk"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-finish",
+     "tokens": {
+      "total": 100760,
+      "input": 2846,
+      "output": 890,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 97024
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bc20e04d001d5YcME2RewnqKO",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc20c2280016SSIfca1ree5Wk"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bc20b48a001RLBtjFVHY5z77k",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 102289,
+     "input": 584,
+     "output": 1097,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 100608
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789862666766,
+     "completed": 1789862673201
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bc20e20e001Xt4Y4FTPgODVhV",
+    "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU"
+   },
+   "parts": [
+    {
+     "snapshot": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "type": "step-start",
+     "id": "prt_0bc20e8a3001BQx3slOQKUshUq",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc20e20e001Xt4Y4FTPgODVhV"
+    },
+    {
+     "type": "reasoning",
+     "text": "Test script is `vitest run`. I can run only the new file: `npm --prefix api test -- tests/certificado-r12.test.ts`.\n\nNow create the file. Bloco único de teste, seguindo o padrão de helpers do certificado.test.ts.",
+     "time": {
+      "start": 1789862668455,
+      "end": 1789862668946
+     },
+     "id": "prt_0bc20e8a7001D6C56fC867cxc1",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc20e20e001Xt4Y4FTPgODVhV"
+    },
+    {
+     "type": "text",
+     "text": "Vou criar somente o teste de caracterização R12, seguindo o padrão dos testes de certificado existentes.",
+     "time": {
+      "start": 1789862668953,
+      "end": 1789862672065
+     },
+     "id": "prt_0bc20ea980019w7T4mMJXszWuY",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc20e20e001Xt4Y4FTPgODVhV"
+    },
+    {
+     "type": "tool",
+     "tool": "write",
+     "callID": "call_24448002291d49a3ade87aa3",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\certificado-r12.test.ts",
+       "content": "import { describe, it, expect, beforeEach, afterEach } from 'vitest';\nimport request from 'supertest';\nimport { createApp } from '../src/app.js';\n\nconst PARTICIPANTE = 'p-carla';\nconst ORGANIZACAO = 'org-ana';\n\nfunction encontrosDoMinicurso(dias: number[]) {\n  return dias.map((dia) => ({\n    inicio: `2026-10-${dia}T19:00:00-03:00`,\n    fim: `2026-10-${dia}T22:00:00-03:00`\n  }));\n}\n\nfunction encontrarEncontro(encontros: Array<{ id: string; inicio: string }>, dia: number) {\n  return encontros.find((enc) => enc.inicio.startsWith(`2026-10-${dia}T`));\n}\n\ndescribe('M4 - Certificados - Fatia 1 (R12 - Precedência de erros na emissão)', () => {\n  let app: any;\n\n  beforeEach(() => {\n    app = createApp({ modoTeste: true });\n  });\n\n  afterEach(() => {\n    app?.close?.();\n  });\n\n  async function definirRelogio(agora: string) {\n    const res = await request(app).put('/_teste/relogio').send({ agora });\n    expect(res.status).toBe(200);\n  }\n\n  async function montarCenario(dias: number[], diasComPresenca: number[], relogioFinal: string) {\n    const resReset = await request(app).post('/_teste/reset');\n    expect(resReset.status).toBe(204);\n\n    const criacao = await request(app)\n      .post('/atividades')\n      .set('X-Usuario', ORGANIZACAO)\n      .send({\n        titulo: 'Minicurso para precedência',\n        tipo: 'minicurso',\n        salaId: 'lab-3',\n        vagas: 10,\n        encontros: encontrosDoMinicurso(dias)\n      });\n    const atividadeId = criacao.body?.id;\n    const encontros: Array<{ id: string; inicio: string }> = criacao.body?.encontros ?? [];\n\n    await request(app)\n      .post(`/atividades/${atividadeId}/inscricoes`)\n      .set('X-Usuario', PARTICIPANTE);\n\n    for (const dia of diasComPresenca) {\n      const encontro = encontrarEncontro(encontros, dia);\n      if (!encontro) continue;\n      await request(app).put('/_teste/relogio').send({ agora: `2026-10-${dia}T19:30:00-03:00` });\n      const codigoRes = await request(app)\n        .get(`/encontros/${encontro.id}/codigo`)\n        .set('X-Usuario', ORGANIZACAO);\n      const codigo = codigoRes.body?.codigo ?? '';\n      await request(app)\n        .post(`/encontros/${encontro.id}/presencas`)\n        .set('X-Usuario', PARTICIPANTE)\n        .send({ codigo });\n    }\n\n    await definirRelogio(relogioFinal);\n\n    return { atividadeId, totalEncontros: encontros.length };\n  }\n\n  it('R12 (Critério 20): atividade não encerrada com 2 de 4 presenças retorna 422 ATIVIDADE_NAO_ENCERRADA e não PRESENCA_INSUFICIENTE', async () => {\n    const { atividadeId } = await montarCenario(\n      [19, 20, 21, 22],\n      [19, 20],\n      '2026-10-22T21:00:00-03:00'\n    );\n\n    const res = await request(app)\n      .post(`/atividades/${atividadeId}/certificado`)\n      .set('X-Usuario', PARTICIPANTE);\n\n    expect(res.status).toBe(422);\n    expect(res.body.erro).toBe('ATIVIDADE_NAO_ENCERRADA');\n    expect(res.body.erro).not.toBe('PRESENCA_INSUFICIENTE');\n    expect(typeof res.body.mensagem).toBe('string');\n  });\n});"
+      },
+      "output": "Wrote file successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "filepath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\certificado-r12.test.ts",
+       "exists": false,
+       "truncated": false
+      },
+      "title": "api\\tests\\certificado-r12.test.ts",
+      "time": {
+       "start": 1789862672037,
+       "end": 1789862672057
+      }
+     },
+     "id": "prt_0bc20eb14001Q3ltGNlr8aqe85",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc20e20e001Xt4Y4FTPgODVhV"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "11197dad7d8d4bef795fcc00a98287f00119ebeb",
+     "type": "step-finish",
+     "tokens": {
+      "total": 102289,
+      "input": 584,
+      "output": 1097,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 100608
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bc20f9220019cNQGTQ3xp37jB",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc20e20e001Xt4Y4FTPgODVhV"
+    },
+    {
+     "type": "patch",
+     "hash": "04e225001cd341588d32abd84bd494c1c41556a9",
+     "files": [
+      "C:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/api/tests/certificado-r12.test.ts"
+     ],
+     "id": "prt_0bc20fb2e001vqh08vWqiwB1r3",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc20e20e001Xt4Y4FTPgODVhV"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bc20b48a001RLBtjFVHY5z77k",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 102399,
+     "input": 160,
+     "output": 95,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 102144
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789862673214,
+     "completed": 1789862680218
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bc20fb3e001OxIunXyc2PuI4j",
+    "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU"
+   },
+   "parts": [
+    {
+     "snapshot": "11197dad7d8d4bef795fcc00a98287f00119ebeb",
+     "type": "step-start",
+     "id": "prt_0bc2103020015jRQgJegXPCj0g",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc20fb3e001OxIunXyc2PuI4j"
+    },
+    {
+     "type": "text",
+     "text": "Agora executo somente esse teste.\n\n",
+     "time": {
+      "start": 1789862675206,
+      "end": 1789862675474
+     },
+     "id": "prt_0bc210306001bmA8diKBoT0SnE",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc20fb3e001OxIunXyc2PuI4j"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_e62fd804aef243e9aa6a9559",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "npm --prefix api test -- tests/certificado-r12.test.ts 2>&1 | Select-Object -Last 25",
+       "timeout": 120000
+      },
+      "output": "\r\n> semana-academica-api@1.0.0 test\r\n> vitest run tests/certificado-r12.test.ts\r\n\r\n\r\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/api\u001b[39m\r\n\r\n \u001b[32m✓\u001b[39m tests/certificado-r12.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 150\u001b[2mms\u001b[22m\u001b[39m\r\n\r\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\r\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\r\n\u001b[2m   Start at \u001b[22m 21:04:37\r\n\u001b[2m   Duration \u001b[22m 1.74s\u001b[2m (transform 345ms, setup 0ms, collect 829ms, tests 150ms, environment 0ms, prepare 191ms)\u001b[22m\r\n\r\n",
+      "metadata": {
+       "output": "\r\n> semana-academica-api@1.0.0 test\r\n> vitest run tests/certificado-r12.test.ts\r\n\r\n\r\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/api\u001b[39m\r\n\r\n \u001b[32m✓\u001b[39m tests/certificado-r12.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 150\u001b[2mms\u001b[22m\u001b[39m\r\n\r\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\r\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\r\n\u001b[2m   Start at \u001b[22m 21:04:37\r\n\u001b[2m   Duration \u001b[22m 1.74s\u001b[2m (transform 345ms, setup 0ms, collect 829ms, tests 150ms, environment 0ms, prepare 191ms)\u001b[22m\r\n\r\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "npm --prefix api test -- tests/certificado-r12.test.ts 2>&1 | Select-Object -Last 25",
+      "time": {
+       "start": 1789862675441,
+       "end": 1789862679158
+      }
+     },
+     "id": "prt_0bc21033f001mWTq0Hx2cacIAO",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc20fb3e001OxIunXyc2PuI4j"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "11197dad7d8d4bef795fcc00a98287f00119ebeb",
+     "type": "step-finish",
+     "tokens": {
+      "total": 102399,
+      "input": 160,
+      "output": 95,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 102144
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bc211497001F6uu6elS4POOqm",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc20fb3e001OxIunXyc2PuI4j"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bc20b48a001RLBtjFVHY5z77k",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 102862,
+     "input": 605,
+     "output": 113,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 102144
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789862680242,
+     "completed": 1789862683598
+    },
+    "finish": "tool-calls",
+    "id": "msg_0bc2116b20012CHzwfQTv495Ld",
+    "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU"
+   },
+   "parts": [
+    {
+     "snapshot": "11197dad7d8d4bef795fcc00a98287f00119ebeb",
+     "type": "step-start",
+     "id": "prt_0bc211d730011cbyV4vfg5BOuK",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc2116b20012CHzwfQTv495Ld"
+    },
+    {
+     "type": "reasoning",
+     "text": "The test passed immediately. As instructed, I register \"GREEN imediato\". Now run git status --short. Also confirm no production change. Let me also verify I didn't need to run full suite (this session only asks to run this test). No RED forced. No production changes.\n\nRun git status --short.",
+     "time": {
+      "start": 1789862681975,
+      "end": 1789862682295
+     },
+     "id": "prt_0bc211d77001ysZMvKeJdZ2FF0",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc2116b20012CHzwfQTv495Ld"
+    },
+    {
+     "type": "text",
+     "text": "\n\n",
+     "time": {
+      "start": 1789862682297,
+      "end": 1789862682410
+     },
+     "id": "prt_0bc211eb9001PjS4RhTbZd8YlL",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc2116b20012CHzwfQTv495Ld"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_d7100cab18fd4125918e14b5",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git status --short"
+      },
+      "output": "?? api/tests/certificado-r12.test.ts\n",
+      "metadata": {
+       "output": "?? api/tests/certificado-r12.test.ts\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git status --short",
+      "time": {
+       "start": 1789862682352,
+       "end": 1789862682709
+      }
+     },
+     "id": "prt_0bc211ebc001Q9sMgtc00QHpi1",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc2116b20012CHzwfQTv495Ld"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "11197dad7d8d4bef795fcc00a98287f00119ebeb",
+     "type": "step-finish",
+     "tokens": {
+      "total": 102862,
+      "input": 605,
+      "output": 113,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 102144
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bc212200001Mn5wOKHF0QOUOz",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc2116b20012CHzwfQTv495Ld"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0bc20b48a001RLBtjFVHY5z77k",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 103325,
+     "input": 229,
+     "output": 440,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 102656
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1789862683611,
+     "completed": 1789862687511
+    },
+    "finish": "stop",
+    "id": "msg_0bc2123db001asziqwppsjWQv5",
+    "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU"
+   },
+   "parts": [
+    {
+     "snapshot": "11197dad7d8d4bef795fcc00a98287f00119ebeb",
+     "type": "step-start",
+     "id": "prt_0bc212a7e001m0gtsVdyNIdBxu",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc2123db001asziqwppsjWQv5"
+    },
+    {
+     "type": "text",
+     "text": "Teste de caracterização R12 — **GREEN imediato — regra já implementada.**\n\n- **Arquivo criado:** `api/tests/certificado-r12.test.ts` (e somente ele; nenhum arquivo de produção ou teste existente alterado).\n- **Cenário montado:**\n  - `p-carla` (participante válido);\n  - minicurso válido e não cancelado, 4 encontros (19–22/10), `lab-3`;\n  - inscrição confirmada por `POST /atividades/:id/inscricoes`;\n  - presenças registradas por QR em 2 de 4 encontros (dias 19 e 20);\n  - relógio em `2026-10-22T21:00:00-03:00` — antes do fim do último encontro (`22:00`);\n  - `POST /atividades/:id/certificado` com `X-Usuario: p-carla`.\n- **Resultado:** 1/1 passou (150 ms).\n- **Expected × received:** esperado `422` + `ATIVIDADE_NAO_ENCERRADA`; recebido `422` + `ATIVIDADE_NAO_ENCERRADA`. O teste também afirma `erro !== 'PRESENCA_INSUFICIENTE'`, atendendo ao critério 20 da spec.\n- **RED legítimo ou GREEN imediato:** GREEN imediato — o teste passou sem qualquer alteração de produção, confirmando que a precedência de `emissao-certificado.ts:48-59` (encerramento antes da frequência) já estava correta.\n- **`git status --short`:**\n\n```\n?? api/tests/certificado-r12.test.ts\n```\n\nNada foi feito com `git add`, commit ou push. A lacuna G1 passa de \"IMPLEMENTADO SEM TESTE SUFICIENTE\" para **COBERTO** com prova HTTP explícita.",
+     "time": {
+      "start": 1789862685314,
+      "end": 1789862686594
+     },
+     "id": "prt_0bc212a82001Pgw5uHyxdZ34al",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc2123db001asziqwppsjWQv5"
+    },
+    {
+     "reason": "stop",
+     "snapshot": "11197dad7d8d4bef795fcc00a98287f00119ebeb",
+     "type": "step-finish",
+     "tokens": {
+      "total": 103325,
+      "input": 229,
+      "output": 440,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 102656
+      }
+     },
+     "cost": 0,
+     "id": "prt_0bc213167001WbzkWKqc65NOuC",
+     "sessionID": "ses_f43e4da64ffehJFAJN7xkn10ZU",
+     "messageID": "msg_0bc2123db001asziqwppsjWQv5"
+    }
+   ]
+  }
+ ]
+}

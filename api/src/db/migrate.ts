@@ -58,6 +58,17 @@ export function runMigrations(db: Database.Database): void {
       justificativa TEXT
     );
 
+    CREATE TABLE IF NOT EXISTS certificados (
+      codigo TEXT PRIMARY KEY,
+      atividade_id TEXT NOT NULL,
+      participante_id TEXT NOT NULL,
+      carga_horaria_minutos INTEGER NOT NULL,
+      presencas INTEGER NOT NULL,
+      encontros INTEGER NOT NULL,
+      emitido_em TEXT NOT NULL,
+      FOREIGN KEY (atividade_id) REFERENCES atividades(id),
+      FOREIGN KEY (participante_id) REFERENCES usuarios(id)
+  );
     CREATE TABLE IF NOT EXISTS m5_desbloqueios (
       participanteId TEXT PRIMARY KEY,
       desbloqueadoEm TEXT NOT NULL

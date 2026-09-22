@@ -1,0 +1,2053 @@
+{
+ "info": {
+  "id": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+  "slug": "tidy-river",
+  "projectID": "08a8850750a50d17a216613ef31c5f0b0d1b31ca",
+  "directory": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+  "path": "",
+  "title": "Implementar métodos M4 no cliente API",
+  "agent": "build",
+  "model": {
+   "id": "big-pickle",
+   "providerID": "opencode"
+  },
+  "version": "1.18.31",
+  "summary": {
+   "additions": 0,
+   "deletions": 0,
+   "files": 0
+  },
+  "cost": 0,
+  "tokens": {
+   "input": 60768,
+   "output": 5856,
+   "reasoning": 0,
+   "cache": {
+    "read": 849664,
+    "write": 0
+   }
+  },
+  "time": {
+   "created": 1790027572380,
+   "updated": 1790027699869
+  }
+ },
+ "messages": [
+  {
+   "info": {
+    "role": "user",
+    "time": {
+     "created": 1790027572428
+    },
+    "agent": "build",
+    "model": {
+     "providerID": "opencode",
+     "modelID": "big-pickle"
+    },
+    "summary": {
+     "diffs": [
+      {
+       "file": "app/src/api/client.ts",
+       "patch": "Index: app/src/api/client.ts\n===================================================================\n--- app/src/api/client.ts\t\n+++ app/src/api/client.ts\t\n@@ -1,174 +1,192 @@\n-import { Sala, Atividade, CreateAtividadeDTO, UpdateAtividadeDTO, CodigoDoEncontro, Presenca, RegistrarPresencaDTO, RegistrarPresencaManualDTO, Inscricao, ApiError } from \"./types\";\r\n+import { Sala, Atividade, CreateAtividadeDTO, UpdateAtividadeDTO, CodigoDoEncontro, Presenca, RegistrarPresencaDTO, RegistrarPresencaManualDTO, Inscricao, Certificado, Extrato, VerificacaoCertificado, ApiError } from \"./types\";\r\n \r\n const getBaseUrl = () => {\r\n   return (import.meta as any).env?.VITE_API_URL || \"http://localhost:3000\";\r\n };\r\n \r\n const getHeaders = (): HeadersInit => {\r\n   const headers: Record<string, string> = {\r\n     \"Content-Type\": \"application/json\",\r\n   };\r\n   const selectedUserId = localStorage.getItem(\"selectedUserId\");\r\n   if (selectedUserId) {\r\n     headers[\"X-Usuario\"] = selectedUserId;\r\n   }\r\n   return headers;\r\n };\r\n \r\n const request = async <T>(path: string, options: RequestInit = {}): Promise<T> => {\r\n   const url = `${getBaseUrl()}${path}`;\r\n   const headers = { ...getHeaders(), ...options.headers };\r\n   const res = await fetch(url, { ...options, headers });\r\n \r\n   if (!res.ok) {\r\n     let errorData: any;\r\n     try {\r\n       errorData = await res.json();\r\n     } catch {\r\n       errorData = { erro: \"ERRO_DESCONHECIDO\", mensagem: \"Erro desconhecido na API\" };\r\n     }\r\n     throw new ApiError(\r\n       res.status,\r\n       errorData.erro || \"ERRO_DESCONHECIDO\",\r\n       errorData.mensagem || \"Erro inesperado\"\r\n     );\r\n   }\r\n \r\n   return res.json() as Promise<T>;\r\n };\r\n \r\n export const api = {\r\n   getSalas: async (): Promise<Sala[]> => {\r\n     return request<Sala[]>(\"/salas\");\r\n   },\r\n \r\n   getAtividades: async (filters?: { dia?: string; tipo?: \"palestra\" | \"minicurso\" }): Promise<Atividade[]> => {\r\n     let query = \"\";\r\n     if (filters) {\r\n       const params = new URLSearchParams();\r\n       if (filters.dia) params.append(\"dia\", filters.dia);\r\n       if (filters.tipo) params.append(\"tipo\", filters.tipo);\r\n       const queryString = params.toString();\r\n       if (queryString) {\r\n         query = `?${queryString}`;\r\n       }\r\n     }\r\n     return request<Atividade[]>(`/atividades${query}`);\r\n   },\r\n \r\n   getAtividade: async (id: string): Promise<Atividade> => {\r\n     return request<Atividade>(`/atividades/${id}`);\r\n   },\r\n \r\n   createAtividade: async (data: CreateAtividadeDTO): Promise<Atividade> => {\r\n     return request<Atividade>(\"/atividades\", {\r\n       method: \"POST\",\r\n       body: JSON.stringify(data),\r\n     });\r\n   },\r\n \r\n   updateAtividade: async (id: string, data: UpdateAtividadeDTO): Promise<Atividade> => {\r\n     return request<Atividade>(`/atividades/${id}`, {\r\n       method: \"PATCH\",\r\n       body: JSON.stringify(data),\r\n     });\r\n   },\r\n \r\n   cancelAtividade: async (id: string): Promise<Atividade> => {\r\n     return request<Atividade>(`/atividades/${id}/cancelamento`, {\r\n       method: \"POST\",\r\n     });\r\n   },\r\n \r\n   getCodigoEncontro: async (id: string): Promise<CodigoDoEncontro> => {\r\n     return request<CodigoDoEncontro>(`/encontros/${id}/codigo`);\r\n   },\r\n \r\n   registrarPresenca: async (id: string, data: RegistrarPresencaDTO): Promise<{ presenca: Presenca; status: number }> => {\r\n     const url = `${getBaseUrl()}/encontros/${id}/presencas`;\r\n     const headers = { ...getHeaders() };\r\n     const res = await fetch(url, {\r\n       method: \"POST\",\r\n       headers,\r\n       body: JSON.stringify(data),\r\n     });\r\n \r\n     if (!res.ok) {\r\n       let errorData: any;\r\n       try {\r\n         errorData = await res.json();\r\n       } catch {\r\n         errorData = { erro: \"ERRO_DESCONHECIDO\", mensagem: \"Erro desconhecido na API\" };\r\n       }\r\n       throw new ApiError(\r\n         res.status,\r\n         errorData.erro || \"ERRO_DESCONHECIDO\",\r\n         errorData.mensagem || \"Erro inesperado\"\r\n       );\r\n     }\r\n \r\n     const presenca = await res.json() as Presenca;\r\n     return { presenca, status: res.status };\r\n   },\r\n \r\n   registrarPresencaManual: async (id: string, data: RegistrarPresencaManualDTO): Promise<{ presenca: Presenca; status: number }> => {\r\n     const url = `${getBaseUrl()}/encontros/${id}/presencas/manual`;\r\n     const headers = { ...getHeaders() };\r\n     const res = await fetch(url, {\r\n       method: \"POST\",\r\n       headers,\r\n       body: JSON.stringify(data),\r\n     });\r\n \r\n     if (!res.ok) {\r\n       let errorData: any;\r\n       try {\r\n         errorData = await res.json();\r\n       } catch {\r\n         errorData = { erro: \"ERRO_DESCONHECIDO\", mensagem: \"Erro desconhecido na API\" };\r\n       }\r\n       throw new ApiError(\r\n         res.status,\r\n         errorData.erro || \"ERRO_DESCONHECIDO\",\r\n         errorData.mensagem || \"Erro inesperado\"\r\n       );\r\n     }\r\n \r\n     const presenca = await res.json() as Presenca;\r\n     return { presenca, status: res.status };\r\n   },\r\n \r\n   getPresencas: async (id: string): Promise<Presenca[]> => {\r\n     return request<Presenca[]>(`/encontros/${id}/presencas`);\r\n   },\r\n \r\n   getInscricoes: async (filters?: { atividadeId?: string }): Promise<Inscricao[]> => {\r\n     let query = \"\";\r\n     if (filters?.atividadeId) {\r\n       query = `?atividadeId=${encodeURIComponent(filters.atividadeId)}`;\r\n     }\r\n     return request<Inscricao[]>(`/inscricoes${query}`);\r\n   },\r\n \r\n   getInscricao: async (id: string): Promise<Inscricao> => {\r\n     return request<Inscricao>(`/inscricoes/${id}`);\r\n   },\r\n \r\n   createInscricao: async (atividadeId: string): Promise<Inscricao> => {\r\n     return request<Inscricao>(`/atividades/${atividadeId}/inscricoes`, {\r\n       method: \"POST\",\r\n     });\r\n   },\r\n \r\n   cancelInscricao: async (id: string): Promise<Inscricao> => {\r\n     return request<Inscricao>(`/inscricoes/${id}/cancelamento`, {\r\n       method: \"POST\",\r\n     });\r\n   },\r\n \r\n   confirmInscricao: async (id: string): Promise<Inscricao> => {\r\n     return request<Inscricao>(`/inscricoes/${id}/confirmacao`, {\r\n       method: \"POST\",\r\n     });\r\n   },\r\n+\r\n+  getCertificados: async (): Promise<Certificado[]> => {\r\n+    return request<Certificado[]>(\"/certificados\");\r\n+  },\r\n+\r\n+  getExtrato: async (): Promise<Extrato> => {\r\n+    return request<Extrato>(\"/extrato\");\r\n+  },\r\n+\r\n+  getCertificadoPorCodigo: async (codigo: string): Promise<VerificacaoCertificado> => {\r\n+    return request<VerificacaoCertificado>(`/certificados/${encodeURIComponent(codigo)}`);\r\n+  },\r\n+\r\n+  emitirCertificado: async (atividadeId: string): Promise<Certificado> => {\r\n+    return request<Certificado>(`/atividades/${encodeURIComponent(atividadeId)}/certificado`, {\r\n+      method: \"POST\",\r\n+    });\r\n+  },\r\n };\n\\ No newline at end of file\n",
+       "additions": 19,
+       "deletions": 1,
+       "status": "modified"
+      },
+      {
+       "file": "app/src/api/types.ts",
+       "patch": "Index: app/src/api/types.ts\n===================================================================\n--- app/src/api/types.ts\t\n+++ app/src/api/types.ts\t\n@@ -1,105 +1,139 @@\n export interface Sala {\r\n   id: string;\r\n   nome: string;\r\n   capacidade: number;\r\n }\r\n \r\n export interface EncontroInput {\r\n   inicio: string;\r\n   fim: string;\r\n }\r\n \r\n export interface Encontro extends EncontroInput {\r\n   id: string;\r\n }\r\n \r\n export interface CodigoDoEncontro {\r\n   encontroId: string;\r\n   codigo: string;\r\n   trocaEm: string;\r\n   validoAte: string;\r\n }\r\n \r\n export interface Presenca {\r\n   id: string;\r\n   encontroId: string;\r\n   participanteId: string;\r\n   origem: \"qr\" | \"qr_offline\" | \"manual\";\r\n   lidoEm: string;\r\n   registradaEm: string;\r\n   justificativa: string | null;\r\n }\r\n \r\n export interface RegistrarPresencaDTO {\r\n   codigo: string;\r\n   lidoEm?: string;\r\n }\r\n \r\n export interface RegistrarPresencaManualDTO {\r\n   participanteId: string;\r\n   justificativa: string;\r\n }\r\n \r\n export interface AtividadeInput {\r\n   titulo?: string;\r\n   tipo?: \"palestra\" | \"minicurso\";\r\n   salaId?: string;\r\n   vagas?: number;\r\n   encontros?: EncontroInput[];\r\n }\r\n \r\n export interface CreateAtividadeDTO {\r\n   titulo: string;\r\n   tipo: \"palestra\" | \"minicurso\";\r\n   salaId: string;\r\n   vagas: number;\r\n   encontros: EncontroInput[];\r\n }\r\n \r\n export interface UpdateAtividadeDTO {\r\n   titulo?: string;\r\n   vagas?: number;\r\n }\r\n \r\n export interface Atividade {\r\n   id: string;\r\n   titulo: string;\r\n   tipo: \"palestra\" | \"minicurso\";\r\n   salaId: string;\r\n   vagas: number;\r\n   encontros: Encontro[];\r\n   cargaHorariaMinutos: number;\r\n   situacao: \"prevista\" | \"em_andamento\" | \"encerrada\" | \"cancelada\";\r\n   ocupadas: number;\r\n   vagasRestantes: number;\r\n   emEspera: number;\r\n }\r\n \r\n export interface Inscricao {\r\n   id: string;\r\n   atividadeId: string;\r\n   participanteId: string;\r\n   status: \"confirmada\" | \"em_espera\" | \"convocada\" | \"cancelada\" | \"expirada\";\r\n   posicaoNaEspera: number | null;\r\n   convocadaAte: string | null;\r\n   criadaEm: string;\r\n }\r\n \r\n+export interface Certificado {\r\n+  codigo: string;\r\n+  atividadeId: string;\r\n+  participanteId: string;\r\n+  cargaHorariaMinutos: number;\r\n+  presencas: number;\r\n+  encontros: number;\r\n+  emitidoEm: string;\r\n+}\r\n+\r\n+export interface ExtratoItem {\r\n+  atividadeId: string;\r\n+  titulo: string;\r\n+  tipo: string;\r\n+  cargaHorariaMinutos: number;\r\n+  codigo: string | null;\r\n+}\r\n+\r\n+export interface Extrato {\r\n+  itens: ExtratoItem[];\r\n+  palestrasMinutos: number;\r\n+  minicursosMinutos: number;\r\n+  totalMinutos: number;\r\n+  aproveitadoMinutos: number;\r\n+}\r\n+\r\n+export interface VerificacaoCertificado {\r\n+  codigo: string;\r\n+  participante: string;\r\n+  atividade: string;\r\n+  cargaHorariaMinutos: number;\r\n+  emitidoEm: string;\r\n+}\r\n+\r\n export interface ApiErrorResponse {\r\n   erro: string;\r\n   mensagem: string;\r\n }\r\n \r\n export class ApiError extends Error {\r\n   erro: string;\r\n   mensagem: string;\r\n   status: number;\r\n \r\n   constructor(status: number, erro: string, mensagem: string) {\r\n     super(mensagem);\r\n     this.name = 'ApiError';\r\n     this.status = status;\r\n     this.erro = erro;\r\n     this.mensagem = mensagem;\r\n   }\r\n }\r\n",
+       "additions": 34,
+       "deletions": 0,
+       "status": "modified"
+      }
+     ]
+    },
+    "id": "msg_0c5f524cc001SM2XZU4LEYF6oj",
+    "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB"
+   },
+   "parts": [
+    {
+     "type": "text",
+     "text": "Vamos executar o GREEN da FATIA UI-1 do M4.\n\nO RED já está commitado em:\napp/src/api/client.test.ts\n\nForam adicionados 5 testes e todos falham atualmente porque os métodos M4 ainda não existem:\n\n- getCertificados()\n- getExtrato()\n- getCertificadoPorCodigo(codigo)\n- emitirCertificado(atividadeId)\n\nOs 13 testes anteriores do cliente permanecem verdes.\n\nUse a skill tdd-m4.\n\nConsulte:\n- AGENTS.md\n- app/AGENTS.md\n- specs/M4-certificados.md\n- contrato-api.md\n- app/src/api/client.test.ts\n- app/src/api/client.ts\n- app/src/api/types.ts\n\nNÃO consulte requisitos-envolvidos.md.\n\nOBJETIVO\n\nFaça a MENOR implementação necessária para deixar os 5 testes RED verdes.\n\n1. TIPOS\n\nAdicione em app/src/api/types.ts os tipos necessários ao contrato M4.\n\nCertificado:\n- codigo: string\n- atividadeId: string\n- participanteId: string\n- cargaHorariaMinutos: number\n- presencas: number\n- encontros: number\n- emitidoEm: string\n\nExtratoItem:\n- atividadeId: string\n- titulo: string\n- tipo: string\n- cargaHorariaMinutos: number\n- codigo: string | null\n\nExtrato:\n- itens: ExtratoItem[]\n- palestrasMinutos: number\n- minicursosMinutos: number\n- totalMinutos: number\n- aproveitadoMinutos: number\n\nVerificacaoCertificado:\n- codigo: string\n- participante: string\n- atividade: string\n- cargaHorariaMinutos: number\n- emitidoEm: string\n\nNão invente campos adicionais.\n\n2. CLIENTE\n\nImplemente em app/src/api/client.ts:\n\ngetCertificados()\nGET /certificados\nretorno: Promise<Certificado[]>\n\ngetExtrato()\nGET /extrato\nretorno: Promise<Extrato>\n\ngetCertificadoPorCodigo(codigo)\nGET /certificados/:codigo\nretorno: Promise<VerificacaoCertificado>\n\nO código deve ser aplicado a encodeURIComponent antes de compor a URL.\n\nemitirCertificado(atividadeId)\nPOST /atividades/:id/certificado\nsem body\nretorno: Promise<Certificado>\n\nTambém aplique encodeURIComponent ao atividadeId se esse for o padrão atual do cliente para parâmetros de rota.\n\n3. HEADER\n\nPreserve integralmente a política atual de X-Usuario do helper HTTP.\n\nNão crie exceção global para a rota pública.\n\nQuando não houver selectedUserId, getCertificadoPorCodigo deve funcionar sem X-Usuario, conforme o RED existente.\n\n4. ESCOPO\n\nNÃO:\n- altere os testes RED;\n- crie componentes;\n- crie hooks;\n- altere App.tsx;\n- altere CSS;\n- altere backend;\n- implemente telas;\n- instale novas dependências;\n- altere package.json/package-lock.json;\n- faça UI-2.\n\nPrimeiro execute somente:\n\nnpx vitest run src/api/client.test.ts\n\nEsperado:\n18/18 testes verdes.\n\nDepois execute a suíte completa da interface conforme os scripts reais de app/package.json.\n\nExecute também o typecheck/build apropriado já existente no projeto.\n\nPor fim:\n\ngit status --short\n\nNo relatório informe:\n\n- arquivos de produção modificados;\n- tipos adicionados;\n- assinatura dos quatro métodos;\n- confirmação de que nenhum campo fora do contrato foi criado;\n- resultado de client.test.ts;\n- resultado da suíte completa da interface;\n- resultado do typecheck/build;\n- confirmação de que o RED não foi alterado;\n- confirmação de que package.json/package-lock.json não foram alterados;\n- git status --short.\n\nNÃO faça git add.\nNÃO faça commit.\nNÃO faça push. ",
+     "id": "prt_0c5f524d0001S4cePO8X8THrOo",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f524cc001SM2XZU4LEYF6oj"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5f524cc001SM2XZU4LEYF6oj",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 21949,
+     "input": 20090,
+     "output": 67,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 1792
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790027572478,
+     "completed": 1790027577907
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5f524fe001inQLgGpxQUnvEE",
+    "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB"
+   },
+   "parts": [
+    {
+     "snapshot": "9ac6490960942095dcafcc08c6e0a05c3907f524",
+     "type": "step-start",
+     "id": "prt_0c5f535ca001RGdLAgrJEV7xut",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f524fe001inQLgGpxQUnvEE"
+    },
+    {
+     "type": "reasoning",
+     "text": "Let me start by loading the tdd-m4 skill as requested, and reading the necessary files.",
+     "time": {
+      "start": 1790027576785,
+      "end": 1790027576834
+     },
+     "id": "prt_0c5f535d1001bBiPlyq0Vuyi7t",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f524fe001inQLgGpxQUnvEE"
+    },
+    {
+     "type": "text",
+     "text": "\n\n",
+     "time": {
+      "start": 1790027576839,
+      "end": 1790027576976
+     },
+     "id": "prt_0c5f5360700199u3pvVG7aF4WC",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f524fe001inQLgGpxQUnvEE"
+    },
+    {
+     "type": "tool",
+     "tool": "skill",
+     "callID": "call_7cda7e2dd3664ced8eff8b1a",
+     "state": {
+      "status": "completed",
+      "input": {
+       "name": "tdd-m4"
+      },
+      "output": "<skill_content name=\"tdd-m4\">\n# Skill: tdd-m4\n\n# TDD para M4-certificados\n\nA fonte de verdade é `specs/M4-certificados.md`. Não invente regras de negócio.\nNão altere a spec. Não acesse documentos externos de requisitos.\n\nO ciclo é o mesmo do `tdd` geral — teste que falha, código mínimo, refactor — mas\nancorado nas 4 fatias e 12 regras de M4. Uma regra ou grupo coeso por ciclo TDD.\n\n## Onde o teste mora\n\nTeste verifica comportamento pela interface pública (HTTP), nunca implementação.\nUse Vitest + Supertest, a aplicação Express de `createApp()` sem abrir porta,\ne as rotas `/_teste/*` com `MODO_TESTE=1` para setup e controle do relógio.\n\nArquivos de teste em `api/tests/`. Para rodar: `npm --prefix api test`.\n\nRegra do projeto: não importe serviço nem repositório no teste — se importar,\no teste quebra em refatoração sem que o comportamento tenha mudado.\n\n## Fatias e regras\n\nCada fatia é um entregável vertical que pode ser testado sozinho.\nImplemente as fatias nesta ordem. Dentro de cada fatia, uma regra ou grupo\ncoeso de regras por ciclo TDD.\n\n### Fatia 1 — emissão do certificado\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R1 | Presença mínima de 75% (`presencas / encontros`, sem arredondamento) | 1, 2, 3, 4 |\n| R2 | Emissão somente após encerramento da atividade | 5, 6 |\n| R12 | Precedência: `ATIVIDADE_NAO_ENCERRADA` antes de `PRESENCA_INSUFICIENTE` | 20 |\n| R9 | Idempotência: 201 na primeira vez, 200 nas seguintes, mesmo código | 17 |\n\nOrdem sugerida dentro da fatia:\n1. R1 — teste presence check, implemente, refactor.\n2. R2 — teste encerramento, implemente, refactor.\n3. R12 — teste precedência quando ambos falham, implemente, refactor.\n4. R9 — teste idempotência 201→200, implemente, refactor.\n\n### Fatia 2 — código e listagem\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R6 | Formato `SA26-XXXX-XXXX`, unicidade, mesmo código na reemissão | 11, 12 |\n| R11 | Alfabeto: maiúsculas + dígitos, sem `I`, `O`, `0`, `1` | 19 |\n\nOrdem sugerida dentro da fatia:\n1. R6 — teste formato e unicidade, implemente geração, refactor.\n2. R11 — teste exclusão de caracteres ambíguos, implemente, refactor.\n3. R9 (continuação) — teste `GET /certificados` retornando apenas emitidos.\n\n### Fatia 3 — verificação pública\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R8 | `GET /certificados/:codigo` sem `X-Usuario`, campos públicos apenas | 15, 16 |\n| R7 | Abreviação do nome: primeiro nome + iniciais + partículas por extenso | 13, 14 |\n\nOrdem sugerida dentro da fatia:\n1. R8 — teste rota pública sem header, campos corretos, implemente, refactor.\n2. R7 — teste abreviação com partículas, implemente, refactor.\n\n### Fatia 4 — extrato de horas complementares\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R3 | Cargas brutas: `palestrasMinutos`, `minicursosMinutos`, `totalMinutos` sem teto | 7, 8, 9, 10 |\n| R4 | Teto de palestras: `min(240, palestrasMinutos)` | 7, 8, 9 |\n| R5 | Teto total: `aproveitadoMinutos = min(1200, min(240, palestrasMinutos) + minicursosMinutos)` | 7, 8 |\n| R10 | Itens do extrato: `codigo` preenchido ou `null` conforme emissão | 18 |\n\nOrdem sugerida dentro da fatia:\n1. R3+R4+R5 — teste cálculos de extrato (juntos, são uma unidade coesa), implemente, refactor.\n2. R10 — teste composição dos itens com código/null, implemente, refactor.\n\n## O ciclo TDD, passo a passo\n\nPara cada regra (ou grupo coeso), nestes passos:\n\n1. **RED**: Escreva um teste que prova o critério de aceite. Rode. **Ele tem que falhar.**\n   Se passar antes do código existir, algo está errado — descubra o quê antes de seguir.\n   O nome do teste descreve a regra em português:\n   `it('recusa certificado com menos de 75% de presenca')`.\n\n2. **GREEN**: Escreva o mínimo de código que faz o teste passar.\n   Nada de já implementar a regra seguinte \"que eu vou precisar mesmo\".\n   Rode o teste individual. Verde? Rode a suíte inteira. Verde? Próximo passo.\n\n3. **REFACTOR**: Com verde, limpe o código sem alterar comportamento.\n   Extraia funções, melhore nomes, remova duplicação. Rode a suíte inteira de novo.\n   Ainda verde? Próxima regra.\n\n## A regra que não se quebra\n\n**Quando o teste falha, o suspeito é o código.**\n\nSe você mudar um teste para ele passar, trocou o contrato pela implementação e o\nverde virou enfeite. Só se altera um teste quando a **spec** mudou — e aí você diz\nqual regra da spec mudou e por quê.\n\nVale para o valor esperado, para o status HTTP e para o cenário. Trocar\n`expect(response.body.presencas).toBe(3)` por `expect(response.body.presencas).toBe(0)`\nporque o código deu 0 é a forma mais comum de mentir sozinho.\n\n## Três testes que não valem nada\n\n- **Acoplado à implementação** — chama serviço ou repositório direto, ou confere o\n  dado espiando o `Map`/banco. Quebra em refatoração, não em regressão.\n- **Tautológico** — o esperado é calculado do mesmo jeito que o código calcula.\n  Passa por construção, nunca discorda. O valor esperado vem da spec, escrito na mão.\n- **Frouxo** — confere só o status e ignora o corpo. `201` com o `codigo` errado passa.\n\n## Dependências de M2 e M3\n\nM4 depende de dados que vêm de outros módulos. Não implemente esses módulos —\nuse as interfaces e portas de integração que já existem.\n\n### M3 — Presenças\n\n- Porta: `M3PresencePort` em `src/integrations/m3-presence-port.ts`\n- Método: `countPresencas(atividadeId, participanteId) → number`\n- Estado atual: `NeutralM3PresenceAdapter` retorna sempre 0.\n- Para testes de emissão (R1), registre presenças via rotas HTTP do M3\n  (`POST /encontros/:id/presencas`) no setup do teste. O adapter real do M3\n  deve ser ativado em ambiente de teste, ou o teste deve montar o cenário\n  pelas rotas existentes da API.\n- Se M3 não estiver funcional, documente o bloqueio e não simule dados.\n\n### M2 — Inscrições\n\n- Porta: `M2IntegrationPort` em `src/integrations/m2-port.ts`\n- Estado atual: `NeutralM2Adapter` não expõe listagem de inscrições por participante.\n- Para R10 (extrato), M4 precisa saber em quais atividades o participante está\n  inscrito e se há certificado emitido para cada uma.\n- Se a porta de M2 não fornecer esse dado, documente o bloqueio — não invente\n  persistência de inscrições dentro de M4.\n\n### M1 — Atividades\n\n- Já acessível via `ActivityRepository`. M4 precisa de `titulo`, `tipo`,\n  `cargaHorariaMinutos`, `encontros` (total de encontros) e `dataTermino`\n  (para R2).\n- Não altere o repositório de M1. Se faltar campo, documente o bloqueio.\n\n## Validações adicionais do contrato\n\nAlém das regras R1–R12, o `contrato-api.md` lista códigos de erro que o M4\ndeve retornar. Teste-os quando implementar a rota correspondente:\n\n| Código | HTTP | Quando |\n|--------|------|--------|\n| `NAO_INSCRITO` | 403 | Participante não inscrito na atividade |\n| `ATIVIDADE_CANCELADA` | 422 | Atividade foi cancelada |\n| `ATIVIDADE_NAO_ENCERRADA` | 422 | Atividade ainda não encerrada (R2) |\n| `PRESENCA_INSUFICIENTE` | 422 | Presença abaixo de 75% (R1) |\n\n## Execução e verificação\n\nApós cada regra implementada (GREEN + REFACTOR):\n\n1. Rode `npm --prefix api test` — suíte inteira tem que estar verde.\n2. Rode `npx tsc --noEmit` dentro de `api/` — typecheck tem que passar.\n3. Se falhar, corrija antes de seguir para a próxima regra.\n\nTerminada a última fatia, rode a suíte inteira uma vez e relate o número real\nde testes que apareceu na saída. Não estime, não arredonde.\n\n## Commits\n\nFaça commits pequenos, um por regra ou grupo coeso de regras dentro da fatia.\nMensagem no padrão do projeto, identificando a regra:\n\n```\nM4: implementa R1 — presença mínima de 75%\nM4: implementa R2 — emissão após encerramento\nM4: implementa R9 — idempotência 201/200\n```\n\nAntes de commitar, verifique `git status` e `git diff` para confirmar que\napenas arquivos intencionais estão staged.\n\n## Rastreabilidade\n\nCada regra da spec deve ter:\n- Pelo menos um teste que a comprove (critério de aceite correspondente).\n- Implementação que o teste exercita.\n- Referência explícita: nome do teste cita a regra, commit cita a regra.\n\nSe uma regra não tem teste, ela não está implementada — pare e escreva o teste.\n\n## O que não fazer\n\n- Não acesse documentos externos de requisitos.\n- Não altere `specs/M4-certificados.md`.\n- Não altere `contrato-api.md`.\n- Não implemente código de M1, M2 ou M3 — apenas use suas portas/interfaces.\n- Não altere testes existentes apenas para fazê-los passar.\n- Não altere código de outros módulos.\n- Não faça commit de código que não esteja verde na suíte inteira.\n\nBase directory for this skill: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\.opencode\\skills\\tdd-m4\nRelative paths in this skill (e.g., scripts/, reference/) are relative to this base directory.\nNote: file list is sampled.\n\n<skill_files>\n\n</skill_files>\n</skill_content>",
+      "metadata": {
+       "name": "tdd-m4",
+       "dir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\.opencode\\skills\\tdd-m4",
+       "truncated": false
+      },
+      "title": "Loaded skill: tdd-m4",
+      "time": {
+       "start": 1790027576968,
+       "end": 1790027577051
+      }
+     },
+     "id": "prt_0c5f5362d001wNrwu9QmgGvuyg",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f524fe001inQLgGpxQUnvEE"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "9ac6490960942095dcafcc08c6e0a05c3907f524",
+     "type": "step-finish",
+     "tokens": {
+      "total": 21949,
+      "input": 20090,
+      "output": 67,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 1792
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5f53876001PSNdp27yXF4fZC",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f524fe001inQLgGpxQUnvEE"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5f524cc001SM2XZU4LEYF6oj",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 24956,
+     "input": 2964,
+     "output": 232,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 21760
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790027577918,
+     "completed": 1790027581452
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5f53a3d001bW3Q1Wo2vJL07s",
+    "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB"
+   },
+   "parts": [
+    {
+     "snapshot": "9ac6490960942095dcafcc08c6e0a05c3907f524",
+     "type": "step-start",
+     "id": "prt_0c5f541aa001xxNR24zmHcPmc0",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f53a3d001bW3Q1Wo2vJL07s"
+    },
+    {
+     "type": "reasoning",
+     "text": "This is the GREEN phase of FATIA UI-1 of M4. This is about the interface (app), not the API. Let me read the necessary files first.\n\nLet me read the required files.",
+     "time": {
+      "start": 1790027579821,
+      "end": 1790027580121
+     },
+     "id": "prt_0c5f541ad0016ZAHaVYHxgjX5K",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f53a3d001bW3Q1Wo2vJL07s"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_137474dc223e4c25a25e58ed",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\AGENTS.md"
+      },
+      "output": "[4337 caracteres omitidos]",
+      "title": "AGENTS.md",
+      "time": {
+       "start": 1790027580240,
+       "end": 1790027580295
+      }
+     },
+     "id": "prt_0c5f542dd001HBgjG3mvzFL596",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f53a3d001bW3Q1Wo2vJL07s"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_8ccde4c8f7694014a558e4dc",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\AGENTS.md"
+      },
+      "output": "[2195 caracteres omitidos]",
+      "title": "app\\AGENTS.md",
+      "time": {
+       "start": 1790027580374,
+       "end": 1790027580388
+      }
+     },
+     "id": "prt_0c5f54355001CYd446q1R7a1ML",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f53a3d001bW3Q1Wo2vJL07s"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_dc04b79c68a64ea1bed301aa",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md"
+      },
+      "output": "[16300 caracteres omitidos]",
+      "title": "specs\\M4-certificados.md",
+      "time": {
+       "start": 1790027580580,
+       "end": 1790027580594
+      }
+     },
+     "id": "prt_0c5f543fd001sFEGeoSzTy1t6W",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f53a3d001bW3Q1Wo2vJL07s"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "9ac6490960942095dcafcc08c6e0a05c3907f524",
+     "type": "step-finish",
+     "tokens": {
+      "total": 24956,
+      "input": 2964,
+      "output": 232,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 21760
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5f546680011hbPPC7WCmuBcs",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f53a3d001bW3Q1Wo2vJL07s"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5f524cc001SM2XZU4LEYF6oj",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 32761,
+     "input": 7623,
+     "output": 306,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 24832
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790027581459,
+     "completed": 1790027585425
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5f54813001Dhn50o0HxYWoji",
+    "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB"
+   },
+   "parts": [
+    {
+     "snapshot": "9ac6490960942095dcafcc08c6e0a05c3907f524",
+     "type": "step-start",
+     "id": "prt_0c5f54d5b001jHPLIurCgwcIpn",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f54813001Dhn50o0HxYWoji"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now let me read the test file, the client, and types. Also need contrato-api.md (relevant parts). Let me also check git status first per AGENTS.md.",
+     "time": {
+      "start": 1790027582815,
+      "end": 1790027582977
+     },
+     "id": "prt_0c5f54d5e0013XioZlAhQJQ67z",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f54813001Dhn50o0HxYWoji"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_ec19b2694e7e4e4abaf18e7b",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\client.test.ts"
+      },
+      "output": "[17135 caracteres omitidos]",
+      "title": "app\\src\\api\\client.test.ts",
+      "time": {
+       "start": 1790027583109,
+       "end": 1790027583149
+      }
+     },
+     "id": "prt_0c5f54e04001pPptbVYhfD9NK3",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f54813001Dhn50o0HxYWoji"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_581a6604b43b4463838c445c",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\client.ts"
+      },
+      "output": "[6235 caracteres omitidos]",
+      "title": "app\\src\\api\\client.ts",
+      "time": {
+       "start": 1790027583255,
+       "end": 1790027583313
+      }
+     },
+     "id": "prt_0c5f54e9a0014N8r1zdtj1dhFk",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f54813001Dhn50o0HxYWoji"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_445c4aa80caf4f3f80f94f6b",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\types.ts"
+      },
+      "output": "[2652 caracteres omitidos]",
+      "title": "app\\src\\api\\types.ts",
+      "time": {
+       "start": 1790027583875,
+       "end": 1790027583943
+      }
+     },
+     "id": "prt_0c5f54f2b001ecv0JJ0fDHaSo5",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f54813001Dhn50o0HxYWoji"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_bf0bf581ba9c4ead9ac291bd",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git status --short",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+      },
+      "output": "(no output)",
+      "metadata": {
+       "output": "(no output)",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git status --short",
+      "time": {
+       "start": 1790027584090,
+       "end": 1790027584560
+      }
+     },
+     "id": "prt_0c5f551a3001zkdyXgwg3BNSf7",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f54813001Dhn50o0HxYWoji"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "9ac6490960942095dcafcc08c6e0a05c3907f524",
+     "type": "step-finish",
+     "tokens": {
+      "total": 32761,
+      "input": 7623,
+      "output": 306,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 24832
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5f555c9001dtTAAAMRGt1dGU",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f54813001Dhn50o0HxYWoji"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5f524cc001SM2XZU4LEYF6oj",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 41340,
+     "input": 8624,
+     "output": 204,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 32512
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790027585432,
+     "completed": 1790027589054
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5f5579800194AHVxs1VKfAkW",
+    "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB"
+   },
+   "parts": [
+    {
+     "snapshot": "9ac6490960942095dcafcc08c6e0a05c3907f524",
+     "type": "step-start",
+     "id": "prt_0c5f55cc40011miJlElWztVc2F",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5579800194AHVxs1VKfAkW"
+    },
+    {
+     "type": "reasoning",
+     "text": "Now let me check the contrato-api.md for the M4 relevant parts, and check app/package.json for scripts. Let me read those.",
+     "time": {
+      "start": 1790027586762,
+      "end": 1790027586862
+     },
+     "id": "prt_0c5f55cca001XlvZYgeQFZJusq",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5579800194AHVxs1VKfAkW"
+    },
+    {
+     "type": "text",
+     "text": "Agora vou consultar o contrato para as rotas M4 e o package.json da interface.",
+     "time": {
+      "start": 1790027586869,
+      "end": 1790027588173
+     },
+     "id": "prt_0c5f55d35001T6oBn19Lz5MZBt",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5579800194AHVxs1VKfAkW"
+    },
+    {
+     "type": "tool",
+     "tool": "grep",
+     "callID": "call_3143d69b30ab493dbc1ba204",
+     "state": {
+      "status": "completed",
+      "input": {
+       "pattern": "certificados|extrato|certificado",
+       "path": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\contrato-api.md"
+      },
+      "output": "[14704 caracteres omitidos]",
+      "title": "certificados|extrato|certificado",
+      "time": {
+       "start": 1790027587314,
+       "end": 1790027588124
+      }
+     },
+     "id": "prt_0c5f55dd5001JoyXUWoY6UG5pJ",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5579800194AHVxs1VKfAkW"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_d88c49a975284da798f42c3c",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\package.json"
+      },
+      "output": "[978 caracteres omitidos]",
+      "title": "app\\package.json",
+      "time": {
+       "start": 1790027587904,
+       "end": 1790027587924
+      }
+     },
+     "id": "prt_0c5f55ef6001C6j9l9A6TO9QbE",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5579800194AHVxs1VKfAkW"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "9ac6490960942095dcafcc08c6e0a05c3907f524",
+     "type": "step-finish",
+     "tokens": {
+      "total": 41340,
+      "input": 8624,
+      "output": 204,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 32512
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5f56411001PIRiVg4OcgYdo4",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5579800194AHVxs1VKfAkW"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5f524cc001SM2XZU4LEYF6oj",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 46511,
+     "input": 5155,
+     "output": 140,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 41216
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790027589060,
+     "completed": 1790027594800
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5f565c3001fOsNfKOX9rjjxc",
+    "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB"
+   },
+   "parts": [
+    {
+     "snapshot": "9ac6490960942095dcafcc08c6e0a05c3907f524",
+     "type": "step-start",
+     "id": "prt_0c5f56c2e001b53vsdyeWydFbW",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f565c3001fOsNfKOX9rjjxc"
+    },
+    {
+     "type": "reasoning",
+     "text": "Let me look at the relevant contract section for the M4 routes (lines ~190-196) to confirm field names. Let me read those lines of contrato-api.md.",
+     "time": {
+      "start": 1790027590706,
+      "end": 1790027593312
+     },
+     "id": "prt_0c5f56c320010UNtlHitcCbG0l",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f565c3001fOsNfKOX9rjjxc"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_8a60ed7899c84b96a679658a",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\contrato-api.md",
+       "offset": 185,
+       "limit": 20
+      },
+      "output": "[900 caracteres omitidos]",
+      "title": "contrato-api.md",
+      "time": {
+       "start": 1790027593760,
+       "end": 1790027593770
+      }
+     },
+     "id": "prt_0c5f57663001ZqDdoL419mlfvD",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f565c3001fOsNfKOX9rjjxc"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "9ac6490960942095dcafcc08c6e0a05c3907f524",
+     "type": "step-finish",
+     "tokens": {
+      "total": 46511,
+      "input": 5155,
+      "output": 140,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 41216
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5f57a1d001pu4QjKVigUGQHq",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f565c3001fOsNfKOX9rjjxc"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5f524cc001SM2XZU4LEYF6oj",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 46984,
+     "input": 518,
+     "output": 130,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 46336
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790027594806,
+     "completed": 1790027597683
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5f57c3600166SmzlDc81krGG",
+    "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB"
+   },
+   "parts": [
+    {
+     "snapshot": "9ac6490960942095dcafcc08c6e0a05c3907f524",
+     "type": "step-start",
+     "id": "prt_0c5f5815b001X2ORme6ZjA2CIf",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f57c3600166SmzlDc81krGG"
+    },
+    {
+     "type": "reasoning",
+     "text": "Good, contract matches the types. Let me check the rest of the contract for Verificacao and Extrato to confirm fields.",
+     "time": {
+      "start": 1790027596126,
+      "end": 1790027596427
+     },
+     "id": "prt_0c5f5815e001NWWhoqajrLq0hC",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f57c3600166SmzlDc81krGG"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_d35ff42828a34f3e9a036013",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\contrato-api.md",
+       "limit": 50,
+       "offset": 204
+      },
+      "output": "[1849 caracteres omitidos]",
+      "title": "contrato-api.md",
+      "time": {
+       "start": 1790027596709,
+       "end": 1790027596721
+      }
+     },
+     "id": "prt_0c5f582a5001E5zYkr2sAYIng1",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f57c3600166SmzlDc81krGG"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "9ac6490960942095dcafcc08c6e0a05c3907f524",
+     "type": "step-finish",
+     "tokens": {
+      "total": 46984,
+      "input": 518,
+      "output": 130,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 46336
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5f58598001HLw5VKWbuh9PKT",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f57c3600166SmzlDc81krGG"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5f524cc001SM2XZU4LEYF6oj",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 47971,
+     "input": 856,
+     "output": 267,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 46848
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790027597690,
+     "completed": 1790027606568
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5f5877a001rfVvF3kUqPH858",
+    "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB"
+   },
+   "parts": [
+    {
+     "snapshot": "9ac6490960942095dcafcc08c6e0a05c3907f524",
+     "type": "step-start",
+     "id": "prt_0c5f58e85001aLzW5MjBhFvc75",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5877a001rfVvF3kUqPH858"
+    },
+    {
+     "type": "reasoning",
+     "text": "The contract matches. Now I have all the information I need.\n\nLet me first run the failing test to confirm RED state (18 tests: 13 existing + 5 new). The task says the RED is committed and the 5 new tests fail. Let me first run just the client test to confirm the current state.\n\nActually, the task instruction says: \"Primeiro execute somente: npx vitest run src/api/client.test.ts — Esperado: 18/18 testes verdes.\" That's after implementation. But good TDD practice: run the test first to see it fail. The user already said the RED is committed and failing. Let me run it first to confirm the RED state (5 failures), then implement.\n\nLet me run the test first.",
+     "time": {
+      "start": 1790027599497,
+      "end": 1790027600173
+     },
+     "id": "prt_0c5f58e890015V7fxc18ouEbcY",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5877a001rfVvF3kUqPH858"
+    },
+    {
+     "type": "text",
+     "text": "Contratos confirmados. Vou primeiro executar o RED para confirmar o estado atual.",
+     "time": {
+      "start": 1790027600178,
+      "end": 1790027600542
+     },
+     "id": "prt_0c5f59132001QL2A5XMkjpGbWm",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5877a001rfVvF3kUqPH858"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_9960cbcdbb8c46be867003f0",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "npx vitest run src/api/client.test.ts",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app"
+      },
+      "output": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app\u001b[39m\n\n \u001b[31m❯\u001b[39m src/api/client.test.ts \u001b[2m(\u001b[22m\u001b[2m18 tests\u001b[22m\u001b[2m | \u001b[22m\u001b[31m5 failed\u001b[39m\u001b[2m)\u001b[22m\u001b[32m 31\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve listar salas usando GET /salas sem X-Usuario quando nenhum usuário estiver selecionado\u001b[32m 6\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve incluir X-Usuario automaticamente quando houver usuário selecionado no localStorage\u001b[32m 2\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve passar filtros opcionais em getAtividades\u001b[32m 1\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve consultar detalhe de atividade em GET /atividades/:id\u001b[32m 1\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve criar atividade via POST /atividades\u001b[32m 1\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve editar atividade via PATCH /atividades/:id\u001b[32m 1\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve cancelar atividade via POST /atividades/:id/cancelamento\u001b[32m 1\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve obter código do encontro em GET /encontros/:id/codigo\u001b[32m 0\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve registrar presença via POST /encontros/:id/presencas\u001b[32m 1\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve registrar presença manual via POST /encontros/:id/presencas/manual\u001b[32m 1\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve listar presenças do encontro em GET /encontros/:id/presencas\u001b[32m 0\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve suporte a chamadas de inscricoes (getInscricoes, createInscricao, confirmInscricao, cancelInscricao)\u001b[32m 1\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve lançar ApiError contendo erro e mensagem quando a resposta não for ok\u001b[32m 2\u001b[2mms\u001b[22m\u001b[39m\n\u001b[31m   \u001b[31m×\u001b[31m API Client - M4 Certificados\u001b[2m > \u001b[22mdeve listar certificados usando GET /certificados\u001b[39m\u001b[32m 8\u001b[2mms\u001b[22m\u001b[39m\n\u001b[31m     → api.getCertificados is not a function\u001b[39m\n\u001b[31m   \u001b[31m×\u001b[31m API Client - M4 Certificados\u001b[2m > \u001b[22mdeve consultar o extrato de horas usando GET /extrato\u001b[39m\u001b[32m 1\u001b[2mms\u001b[22m\u001b[39m\n\u001b[31m     → api.getExtrato is not a function\u001b[39m\n\u001b[31m   \u001b[31m×\u001b[31m API Client - M4 Certificados\u001b[2m > \u001b[22mdeve consultar a verificação pública em GET /certificados/:codigo codificando o código na URL\u001b[39m\u001b[32m 0\u001b[2mms\u001b[22m\u001b[39m\n\u001b[31m     → api.getCertificadoPorCodigo is not a function\u001b[39m\n\u001b[31m   \u001b[31m×\u001b[31m API Client - M4 Certificados\u001b[2m > \u001b[22mdeve consultar a verificação pública sem X-Usuario quando nenhum usuário estiver selecionado\u001b[39m\u001b[32m 0\u001b[2mms\u001b[22m\u001b[39m\n\u001b[31m     → api.getCertificadoPorCodigo is not a function\u001b[39m\n\u001b[31m   \u001b[31m×\u001b[31m API Client - M4 Certificados\u001b[2m > \u001b[22mdeve emitir certificado via POST /atividades/:id/certificado sem enviar corpo\u001b[39m\u001b[32m 0\u001b[2mms\u001b[22m\u001b[39m\n\u001b[31m     → api.emitirCertificado is not a function\u001b[39m\n\n\u001b[31m⎯⎯⎯⎯⎯⎯⎯\u001b[39m\u001b[1m\u001b[41m Failed Tests 5 \u001b[49m\u001b[22m\u001b[31m⎯⎯⎯⎯⎯⎯⎯\u001b[39m\n\n\u001b[41m\u001b[1m FAIL \u001b[22m\u001b[49m src/api/client.test.ts\u001b[2m > \u001b[22mAPI Client - M4 Certificados\u001b[2m > \u001b[22mdeve listar certificados usando GET /certificados\n\u001b[31m\u001b[1mTypeError\u001b[22m: api.getCertificados is not a function\u001b[39m\n\u001b[36m \u001b[2m❯\u001b[22m src/api/client.test.ts:\u001b[2m273:36\u001b[22m\u001b[39m\n    \u001b[90m271| \u001b[39m    vi\u001b[33m.\u001b[39m\u001b[34mstubGlobal\u001b[39m(\u001b[32m'fetch'\u001b[39m\u001b[33m,\u001b[39m mockFetch)\u001b[33m;\u001b[39m\n    \u001b[90m272| \u001b[39m\n    \u001b[90m273| \u001b[39m    \u001b[35mconst\u001b[39m certificados \u001b[33m=\u001b[39m \u001b[35mawait\u001b[39m api\u001b[33m.\u001b[39m\u001b[34mgetCertificados\u001b[39m()\u001b[33m;\u001b[39m\n    \u001b[90m   | \u001b[39m                                   \u001b[31m^\u001b[39m\n    \u001b[90m274| \u001b[39m\n    \u001b[90m275| \u001b[39m    \u001b[34mexpect\u001b[39m(certificados)\u001b[33m.\u001b[39m\u001b[34mtoEqual\u001b[39m([certificado])\u001b[33m;\u001b[39m\n\n\u001b[31m\u001b[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯\u001b[22m\u001b[39m\n\n\u001b[41m\u001b[1m FAIL \u001b[22m\u001b[49m src/api/client.test.ts\u001b[2m > \u001b[22mAPI Client - M4 Certificados\u001b[2m > \u001b[22mdeve consultar o extrato de horas usando GET /extrato\n\u001b[31m\u001b[1mTypeError\u001b[22m: api.getExtrato is not a function\u001b[39m\n\u001b[36m \u001b[2m❯\u001b[22m src/api/client.test.ts:\u001b[2m302:31\u001b[22m\u001b[39m\n    \u001b[90m300| \u001b[39m    vi\u001b[33m.\u001b[39m\u001b[34mstubGlobal\u001b[39m(\u001b[32m'fetch'\u001b[39m\u001b[33m,\u001b[39m mockFetch)\u001b[33m;\u001b[39m\n    \u001b[90m301| \u001b[39m\n    \u001b[90m302| \u001b[39m    \u001b[35mconst\u001b[39m extrato \u001b[33m=\u001b[39m \u001b[35mawait\u001b[39m api\u001b[33m.\u001b[39m\u001b[34mgetExtrato\u001b[39m()\u001b[33m;\u001b[39m\n    \u001b[90m   | \u001b[39m                              \u001b[31m^\u001b[39m\n    \u001b[90m303| \u001b[39m\n    \u001b[90m304| \u001b[39m    \u001b[34mexpect\u001b[39m(extrato\u001b[33m.\u001b[39mtotalMinutos)\u001b[33m.\u001b[39m\u001b[34mtoBe\u001b[39m(\u001b[34m360\u001b[39m)\u001b[33m;\u001b[39m\n\n\u001b[31m\u001b[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯\u001b[22m\u001b[39m\n\n\u001b[41m\u001b[1m FAIL \u001b[22m\u001b[49m src/api/client.test.ts\u001b[2m > \u001b[22mAPI Client - M4 Certificados\u001b[2m > \u001b[22mdeve consultar a verificação pública em GET /certificados/:codigo codificando o código na URL\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[31m1 failed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[31m5 failed\u001b[39m\u001b[22m\u001b[2m | \u001b[22m\u001b[1m\u001b[32m13 passed\u001b[39m\u001b[22m\u001b[90m (18)\u001b[39m\n\u001b[2m   Start at \u001b[22m 18:53:23\n\u001b[2m   Duration \u001b[22m 2.08s\u001b[2m (transform 126ms, setup 182ms, collect 97ms, tests 31ms, environment 957ms, prepare 289ms)\u001b[22m\n\n\u001b[31m\u001b[1mTypeError\u001b[22m: api.getCertificadoPorCodigo is not a function\u001b[39m\n\u001b[36m \u001b[2m❯\u001b[22m src/api/client.test.ts:\u001b[2m334:35\u001b[22m\u001b[39m\n    \u001b[90m332| \u001b[39m    vi\u001b[33m.\u001b[39m\u001b[34mstubGlobal\u001b[39m(\u001b[32m'fetch'\u001b[39m\u001b[33m,\u001b[39m mockFetch)\u001b[33m;\u001b[39m\n    \u001b[90m333| \u001b[39m\n    \u001b[90m334| \u001b[39m    const verificacao = await api.getCertificadoPorCodigo('SA26-7K2M 9…\n    \u001b[90m   | \u001b[39m                                  \u001b[31m^\u001b[39m\n    \u001b[90m335| \u001b[39m\n    \u001b[90m336| \u001b[39m    \u001b[34mexpect\u001b[39m(verificacao\u001b[33m.\u001b[39mcodigo)\u001b[33m.\u001b[39m\u001b[34mtoBe\u001b[39m(\u001b[32m'SA26-7K2M-9QXA'\u001b[39m)\u001b[33m;\u001b[39m\n\n\u001b[31m\u001b[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯\u001b[22m\u001b[39m\n\n\u001b[41m\u001b[1m FAIL \u001b[22m\u001b[49m src/api/client.test.ts\u001b[2m > \u001b[22mAPI Client - M4 Certificados\u001b[2m > \u001b[22mdeve consultar a verificação pública sem X-Usuario quando nenhum usuário estiver selecionado\n\u001b[31m\u001b[1mTypeError\u001b[22m: api.getCertificadoPorCodigo is not a function\u001b[39m\n\u001b[36m \u001b[2m❯\u001b[22m src/api/client.test.ts:\u001b[2m356:15\u001b[22m\u001b[39m\n    \u001b[90m354| \u001b[39m    vi\u001b[33m.\u001b[39m\u001b[34mstubGlobal\u001b[39m(\u001b[32m'fetch'\u001b[39m\u001b[33m,\u001b[39m mockFetch)\u001b[33m;\u001b[39m\n    \u001b[90m355| \u001b[39m\n    \u001b[90m356| \u001b[39m    \u001b[35mawait\u001b[39m api\u001b[33m.\u001b[39m\u001b[34mgetCertificadoPorCodigo\u001b[39m(\u001b[32m'SA26-7K2M-9QXA'\u001b[39m)\u001b[33m;\u001b[39m\n    \u001b[90m   | \u001b[39m              \u001b[31m^\u001b[39m\n    \u001b[90m357| \u001b[39m\n    \u001b[90m358| \u001b[39m    \u001b[34mexpect\u001b[39m(mockFetch)\u001b[33m.\u001b[39m\u001b[34mtoHaveBeenCalledWith\u001b[39m(\n\n\u001b[31m\u001b[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯\u001b[22m\u001b[39m\n\n\u001b[41m\u001b[1m FAIL \u001b[22m\u001b[49m src/api/client.test.ts\u001b[2m > \u001b[22mAPI Client - M4 Certificados\u001b[2m > \u001b[22mdeve emitir certificado via POST /atividades/:id/certificado sem enviar corpo\n\u001b[31m\u001b[1mTypeError\u001b[22m: api.emitirCertificado is not a function\u001b[39m\n\u001b[36m \u001b[2m❯\u001b[22m src/api/client.test.ts:\u001b[2m376:31\u001b[22m\u001b[39m\n    \u001b[90m374| \u001b[39m    vi\u001b[33m.\u001b[39m\u001b[34mstubGlobal\u001b[39m(\u001b[32m'fetch'\u001b[39m\u001b[33m,\u001b[39m mockFetch)\u001b[33m;\u001b[39m\n    \u001b[90m375| \u001b[39m\n    \u001b[90m376| \u001b[39m    \u001b[35mconst\u001b[39m emitido \u001b[33m=\u001b[39m \u001b[35mawait\u001b[39m api\u001b[33m.\u001b[39m\u001b[34memitirCertificado\u001b[39m(\u001b[32m'atv_1a2b3c4d'\u001b[39m)\u001b[33m;\u001b[39m\n    \u001b[90m   | \u001b[39m                              \u001b[31m^\u001b[39m\n    \u001b[90m377| \u001b[39m\n    \u001b[90m378| \u001b[39m    \u001b[34mexpect\u001b[39m(emitido)\u001b[33m.\u001b[39m\u001b[34mtoEqual\u001b[39m(certificado)\u001b[33m;\u001b[39m\n\n\u001b[31m\u001b[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯\u001b[22m\u001b[39m\n\n",
+      "metadata": {
+       "output": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app\u001b[39m\n\n \u001b[31m❯\u001b[39m src/api/client.test.ts \u001b[2m(\u001b[22m\u001b[2m18 tests\u001b[22m\u001b[2m | \u001b[22m\u001b[31m5 failed\u001b[39m\u001b[2m)\u001b[22m\u001b[32m 31\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve listar salas usando GET /salas sem X-Usuario quando nenhum usuário estiver selecionado\u001b[32m 6\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve incluir X-Usuario automaticamente quando houver usuário selecionado no localStorage\u001b[32m 2\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve passar filtros opcionais em getAtividades\u001b[32m 1\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve consultar detalhe de atividade em GET /atividades/:id\u001b[32m 1\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve criar atividade via POST /atividades\u001b[32m 1\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve editar atividade via PATCH /atividades/:id\u001b[32m 1\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve cancelar atividade via POST /atividades/:id/cancelamento\u001b[32m 1\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve obter código do encontro em GET /encontros/:id/codigo\u001b[32m 0\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve registrar presença via POST /encontros/:id/presencas\u001b[32m 1\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve registrar presença manual via POST /encontros/:id/presencas/manual\u001b[32m 1\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve listar presenças do encontro em GET /encontros/:id/presencas\u001b[32m 0\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve suporte a chamadas de inscricoes (getInscricoes, createInscricao, confirmInscricao, cancelInscricao)\u001b[32m 1\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[32m✓\u001b[39m API Client\u001b[2m > \u001b[22mdeve lançar ApiError contendo erro e mensagem quando a resposta não for ok\u001b[32m 2\u001b[2mms\u001b[22m\u001b[39m\n\u001b[31m   \u001b[31m×\u001b[31m API Client - M4 Certificados\u001b[2m > \u001b[22mdeve listar certificados usando GET /certificados\u001b[39m\u001b[32m 8\u001b[2mms\u001b[22m\u001b[39m\n\u001b[31m     → api.getCertificados is not a function\u001b[39m\n\u001b[31m   \u001b[31m×\u001b[31m API Client - M4 Certificados\u001b[2m > \u001b[22mdeve consultar o extrato de horas usando GET /extrato\u001b[39m\u001b[32m 1\u001b[2mms\u001b[22m\u001b[39m\n\u001b[31m     → api.getExtrato is not a function\u001b[39m\n\u001b[31m   \u001b[31m×\u001b[31m API Client - M4 Certificados\u001b[2m > \u001b[22mdeve consultar a verificação pública em GET /certificados/:codigo codificando o código na URL\u001b[39m\u001b[32m 0\u001b[2mms\u001b[22m\u001b[39m\n\u001b[31m     → api.getCertificadoPorCodigo is not a function\u001b[39m\n\u001b[31m   \u001b[31m×\u001b[31m API Client - M4 Certificados\u001b[2m > \u001b[22mdeve consultar a verificação pública sem X-Usuario quando nenhum usuário estiver selecionado\u001b[39m\u001b[32m 0\u001b[2mms\u001b[22m\u001b[39m\n\u001b[31m     → api.getCertificadoPorCodigo is not a function\u001b[39m\n\u001b[31m   \u001b[31m×\u001b[31m API Client - M4 Certificados\u001b[2m > \u001b[22mdeve emitir certificado via POST /atividades/:id/certificado sem enviar corpo\u001b[39m\u001b[32m 0\u001b[2mms\u001b[22m\u001b[39m\n\u001b[31m     → api.emitirCertificado is not a function\u001b[39m\n\n\u001b[31m⎯⎯⎯⎯⎯⎯⎯\u001b[39m\u001b[1m\u001b[41m Failed Tests 5 \u001b[49m\u001b[22m\u001b[31m⎯⎯⎯⎯⎯⎯⎯\u001b[39m\n\n\u001b[41m\u001b[1m FAIL \u001b[22m\u001b[49m src/api/client.test.ts\u001b[2m > \u001b[22mAPI Client - M4 Certificados\u001b[2m > \u001b[22mdeve listar certificados usando GET /certificados\n\u001b[31m\u001b[1mTypeError\u001b[22m: api.getCertificados is not a function\u001b[39m\n\u001b[36m \u001b[2m❯\u001b[22m src/api/client.test.ts:\u001b[2m273:36\u001b[22m\u001b[39m\n    \u001b[90m271| \u001b[39m    vi\u001b[33m.\u001b[39m\u001b[34mstubGlobal\u001b[39m(\u001b[32m'fetch'\u001b[39m\u001b[33m,\u001b[39m mockFetch)\u001b[33m;\u001b[39m\n    \u001b[90m272| \u001b[39m\n    \u001b[90m273| \u001b[39m    \u001b[35mconst\u001b[39m certificados \u001b[33m=\u001b[39m \u001b[35mawait\u001b[39m api\u001b[33m.\u001b[39m\u001b[34mgetCertificados\u001b[39m()\u001b[33m;\u001b[39m\n    \u001b[90m   | \u001b[39m                                   \u001b[31m^\u001b[39m\n    \u001b[90m274| \u001b[39m\n    \u001b[90m275| \u001b[39m    \u001b[34mexpect\u001b[39m(certificados)\u001b[33m.\u001b[39m\u001b[34mtoEqual\u001b[39m([certificado])\u001b[33m;\u001b[39m\n\n\u001b[31m\u001b[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯\u001b[22m\u001b[39m\n\n\u001b[41m\u001b[1m FAIL \u001b[22m\u001b[49m src/api/client.test.ts\u001b[2m > \u001b[22mAPI Client - M4 Certificados\u001b[2m > \u001b[22mdeve consultar o extrato de horas usando GET /extrato\n\u001b[31m\u001b[1mTypeError\u001b[22m: api.getExtrato is not a function\u001b[39m\n\u001b[36m \u001b[2m❯\u001b[22m src/api/client.test.ts:\u001b[2m302:31\u001b[22m\u001b[39m\n    \u001b[90m300| \u001b[39m    vi\u001b[33m.\u001b[39m\u001b[34mstubGlobal\u001b[39m(\u001b[32m'fetch'\u001b[39m\u001b[33m,\u001b[39m mockFetch)\u001b[33m;\u001b[39m\n    \u001b[90m301| \u001b[39m\n    \u001b[90m302| \u001b[39m    \u001b[35mconst\u001b[39m extrato \u001b[33m=\u001b[39m \u001b[35mawait\u001b[39m api\u001b[33m.\u001b[39m\u001b[34mgetExtrato\u001b[39m()\u001b[33m;\u001b[39m\n    \u001b[90m   | \u001b[39m                              \u001b[31m^\u001b[39m\n    \u001b[90m303| \u001b[39m\n    \u001b[90m304| \u001b[39m    \u001b[34mexpect\u001b[39m(extrato\u001b[33m.\u001b[39mtotalMinutos)\u001b[33m.\u001b[39m\u001b[34mtoBe\u001b[39m(\u001b[34m360\u001b[39m)\u001b[33m;\u001b[39m\n\n\u001b[31m\u001b[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯\u001b[22m\u001b[39m\n\n\u001b[41m\u001b[1m FAIL \u001b[22m\u001b[49m src/api/client.test.ts\u001b[2m > \u001b[22mAPI Client - M4 Certificados\u001b[2m > \u001b[22mdeve consultar a verificação pública em GET /certificados/:codigo codificando o código na URL\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[31m1 failed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[31m5 failed\u001b[39m\u001b[22m\u001b[2m | \u001b[22m\u001b[1m\u001b[32m13 passed\u001b[39m\u001b[22m\u001b[90m (18)\u001b[39m\n\u001b[2m   Start at \u001b[22m 18:53:23\n\u001b[2m   Duration \u001b[22m 2.08s\u001b[2m (transform 126ms, setup 182ms, collect 97ms, tests 31ms, environment 957ms, prepare 289ms)\u001b[22m\n\n\u001b[31m\u001b[1mTypeError\u001b[22m: api.getCertificadoPorCodigo is not a function\u001b[39m\n\u001b[36m \u001b[2m❯\u001b[22m src/api/client.test.ts:\u001b[2m334:35\u001b[22m\u001b[39m\n    \u001b[90m332| \u001b[39m    vi\u001b[33m.\u001b[39m\u001b[34mstubGlobal\u001b[39m(\u001b[32m'fetch'\u001b[39m\u001b[33m,\u001b[39m mockFetch)\u001b[33m;\u001b[39m\n    \u001b[90m333| \u001b[39m\n    \u001b[90m334| \u001b[39m    const verificacao = await api.getCertificadoPorCodigo('SA26-7K2M 9…\n    \u001b[90m   | \u001b[39m                                  \u001b[31m^\u001b[39m\n    \u001b[90m335| \u001b[39m\n    \u001b[90m336| \u001b[39m    \u001b[34mexpect\u001b[39m(verificacao\u001b[33m.\u001b[39mcodigo)\u001b[33m.\u001b[39m\u001b[34mtoBe\u001b[39m(\u001b[32m'SA26-7K2M-9QXA'\u001b[39m)\u001b[33m;\u001b[39m\n\n\u001b[31m\u001b[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯\u001b[22m\u001b[39m\n\n\u001b[41m\u001b[1m FAIL \u001b[22m\u001b[49m src/api/client.test.ts\u001b[2m > \u001b[22mAPI Client - M4 Certificados\u001b[2m > \u001b[22mdeve consultar a verificação pública sem X-Usuario quando nenhum usuário estiver selecionado\n\u001b[31m\u001b[1mTypeError\u001b[22m: api.getCertificadoPorCodigo is not a function\u001b[39m\n\u001b[36m \u001b[2m❯\u001b[22m src/api/client.test.ts:\u001b[2m356:15\u001b[22m\u001b[39m\n    \u001b[90m354| \u001b[39m    vi\u001b[33m.\u001b[39m\u001b[34mstubGlobal\u001b[39m(\u001b[32m'fetch'\u001b[39m\u001b[33m,\u001b[39m mockFetch)\u001b[33m;\u001b[39m\n    \u001b[90m355| \u001b[39m\n    \u001b[90m356| \u001b[39m    \u001b[35mawait\u001b[39m api\u001b[33m.\u001b[39m\u001b[34mgetCertificadoPorCodigo\u001b[39m(\u001b[32m'SA26-7K2M-9QXA'\u001b[39m)\u001b[33m;\u001b[39m\n    \u001b[90m   | \u001b[39m              \u001b[31m^\u001b[39m\n    \u001b[90m357| \u001b[39m\n    \u001b[90m358| \u001b[39m    \u001b[34mexpect\u001b[39m(mockFetch)\u001b[33m.\u001b[39m\u001b[34mtoHaveBeenCalledWith\u001b[39m(\n\n\u001b[31m\u001b[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯\u001b[22m\u001b[39m\n\n\u001b[41m\u001b[1m FAIL \u001b[22m\u001b[49m src/api/client.test.ts\u001b[2m > \u001b[22mAPI Client - M4 Certificados\u001b[2m > \u001b[22mdeve emitir certificado via POST /atividades/:id/certificado sem enviar corpo\n\u001b[31m\u001b[1mTypeError\u001b[22m: api.emitirCertificado is not a function\u001b[39m\n\u001b[36m \u001b[2m❯\u001b[22m src/api/client.test.ts:\u001b[2m376:31\u001b[22m\u001b[39m\n    \u001b[90m374| \u001b[39m    vi\u001b[33m.\u001b[39m\u001b[34mstubGlobal\u001b[39m(\u001b[32m'fetch'\u001b[39m\u001b[33m,\u001b[39m mockFetch)\u001b[33m;\u001b[39m\n    \u001b[90m375| \u001b[39m\n    \u001b[90m376| \u001b[39m    \u001b[35mconst\u001b[39m emitido \u001b[33m=\u001b[39m \u001b[35mawait\u001b[39m api\u001b[33m.\u001b[39m\u001b[34memitirCertificado\u001b[39m(\u001b[32m'atv_1a2b3c4d'\u001b[39m)\u001b[33m;\u001b[39m\n    \u001b[90m   | \u001b[39m                              \u001b[31m^\u001b[39m\n    \u001b[90m377| \u001b[39m\n    \u001b[90m378| \u001b[39m    \u001b[34mexpect\u001b[39m(emitido)\u001b[33m.\u001b[39m\u001b[34mtoEqual\u001b[39m(certificado)\u001b[33m;\u001b[39m\n\n\u001b[31m\u001b[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯\u001b[22m\u001b[39m\n\n",
+       "exit": 1,
+       "truncated": false
+      },
+      "title": "npx vitest run src/api/client.test.ts",
+      "time": {
+       "start": 1790027600505,
+       "end": 1790027605461
+      }
+     },
+     "id": "prt_0c5f591a1001SLpHBcoqUdep4W",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5877a001rfVvF3kUqPH858"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "9ac6490960942095dcafcc08c6e0a05c3907f524",
+     "type": "step-finish",
+     "tokens": {
+      "total": 47971,
+      "input": 856,
+      "output": 267,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 46848
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5f5a7fe001a4M8WpjbJWKJvt",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5877a001rfVvF3kUqPH858"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5f524cc001SM2XZU4LEYF6oj",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 53674,
+     "input": 4175,
+     "output": 1627,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 47872
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790027606578,
+     "completed": 1790027618681
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5f5aa32001d9PR9GZTCImPeF",
+    "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB"
+   },
+   "parts": [
+    {
+     "snapshot": "9ac6490960942095dcafcc08c6e0a05c3907f524",
+     "type": "step-start",
+     "id": "prt_0c5f5b058001nknwF5WwRak2eJ",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5aa32001d9PR9GZTCImPeF"
+    },
+    {
+     "type": "reasoning",
+     "text": "RED confirmado: 5 falharam, 13 passaram. Agora implemento o GREEN.\n\nTipos a adicionar em types.ts:\n- Certificado\n- ExtratoItem\n- Extrato\n- VerificacaoCertificado\n\nClient: adicionar 4 métodos. Observações:\n- getCertificadoPorCodigo(codigo): deve aplicar encodeURIComponent ao código. Test espera URL `SA26-7K2M%209QXA` a partir de input `SA26-7K2M 9QXA`. encodeURIComponent('SA26-7K2M 9QXA') = 'SA26-7K2M%209QXA'. Correct.\n- O teste \"sem X-Usuario\" checa headers not.objectContaining X-Usuario. O request helper adiciona X-Usuario apenas quando selectedUserId existir. Como localStorage está limpo, não há X-Usuario. Good — the existing helper already preserves that behavior. Não preciso criar exceção.\n- emitirCertificado(atividadeId): POST `/atividades/${encodeURIComponent(atividadeId)}/certificado`, sem body. Test espera URL `http://localhost:3000/atividades/atv_1a2b3c4d/certificado`, method POST, e options sem propriedade 'body'.\n\nAgora, o padrão atual do cliente para parâmetros de rota: vejo que getAtividade, cancelAtividade, getCodigoEncontro não usam encodeURIComponent. Mas getInscricoes usa encodeURIComponent para query param. O `createInscricao` usa `/atividades/${atividadeId}/inscricoes` sem encodeURIComponent. O enunciado diz: \"Também aplique encodeURIComponent ao atividadeId se esse for o padrão atual do cliente para parâmetros de rota.\" O padrão atual do cliente para parâmetros de rota: não usa encodeURIComponent (getAtividade `/atividades/${id}`). Porém a instrução específica exige encodeURIComponent no código (obrigatório). Para atividadeId, se for o padrão... Os rota-parâmetros existentes não codificam. Mas para segurança, o enunciado deixa condicional. Os testes do RED: emitirCertificado('atv_1a2b3c4d') espera URL sem codificação, que encodeURIComponent não altera ('atv_1a2b3c4d' não tem caracteres especiais). Então codificar é seguro para o teste. Porém, preciso seguir o \"menor implementação\" e os padrões. \n\nVou aplicar encodeURIComponent a ambos: código (obrigatório) e atividadeId (seguro, e mais correto). encodeURIComponent('atv_1a2b3c4d') = 'atv_1a2b3c4d', não altera o teste. Isso é consistente com a instrução \"aplicar encodeURIComponent ao atividadeId se esse for o padrão atual\" — o padrão atual é condicional, mas aplicar é defensável e não quebra teste. Na verdade, para ser fiel à instrução, vou aplicar encodeURIComponent aos parâmetros de rota dos novos métodos. Como os ids não têm caracteres especiais, os testes passam.\n\nVamos escrever os tipos e os métodos.\n\nTipos:\n\n```ts\nexport interface Certificado {\n  codigo: string;\n  atividadeId: string;\n  participanteId: string;\n  cargaHorariaMinutos: number;\n  presencas: number;\n  encontros: number;\n  emitidoEm: string;\n}\n\nexport interface ExtratoItem {\n  atividadeId: string;\n  titulo: string;\n  tipo: string;\n  cargaHorariaMinutos: number;\n  codigo: string | null;\n}\n\nexport interface Extrato {\n  itens: ExtratoItem[];\n  palestrasMinutos: number;\n  minicursosMinutos: number;\n  totalMinutos: number;\n  aproveitadoMinutos: number;\n}\n\nexport interface VerificacaoCertificado {\n  codigo: string;\n  participante: string;\n  atividade: string;\n  cargaHorariaMinutos: number;\n  emitidoEm: string;\n}\n```\n\nClient import updates:\n```ts\nimport { ..., Certificado, Extrato, VerificacaoCertificado } from \"./types\";\n```\n\nMétodos no final do objeto api:\n\n```ts\ngetCertificados: async (): Promise<Certificado[]> => {\n  return request<Certificado[]>(\"/certificados\");\n},\n\ngetExtrato: async (): Promise<Extrato> => {\n  return request<Extrato>(\"/extrato\");\n},\n\ngetCertificadoPorCodigo: async (codigo: string): Promise<VerificacaoCertificado> => {\n  return request<VerificacaoCertificado>(`/certificados/${encodeURIComponent(codigo)}`);\n},\n\nemitirCertificado: async (atividadeId: string): Promise<Certificado> => {\n  return request<Certificado>(`/atividades/${encodeURIComponent(atividadeId)}/certificado`, {\n    method: \"POST\",\n  });\n},\n```\n\nWait — the test for emitirCertificado checks `options` not to have property 'body'. The request helper does `{ ...options, headers }`, no body. Good.\n\nAlso check test: getCertificadoPorCodigo checks via `mockFetch.mock.calls[0]` that url is `http://localhost:3000/certificados/SA26-7K2M%209QXA`. The request helper builds url `${getBaseUrl()}${path}`. Yes.\n\nAnd for headers: `getHeaders()` returns Content-Type + X-Usuario if selected; when localStorage cleared, only Content-Type. The test uses `expect.not.objectContaining({'X-Usuario': expect.any(String)})`. Fine.\n\nNow let me write the edits.",
+     "time": {
+      "start": 1790027608156,
+      "end": 1790027615555
+     },
+     "id": "prt_0c5f5b05c001eSQQfxXyoq4Yts",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5aa32001d9PR9GZTCImPeF"
+    },
+    {
+     "type": "text",
+     "text": "RED confirmado: 5 falharam, 13 passaram. Agora o GREEN — tipos primeiro.",
+     "time": {
+      "start": 1790027615560,
+      "end": 1790027617529
+     },
+     "id": "prt_0c5f5cd48001jhalVTJC10DjtH",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5aa32001d9PR9GZTCImPeF"
+    },
+    {
+     "type": "tool",
+     "tool": "edit",
+     "callID": "call_534651e162f8428eb029f9ae",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\types.ts",
+       "oldString": "export interface ApiErrorResponse {\n  erro: string;\n  mensagem: string;\n}",
+       "newString": "export interface Certificado {\n  codigo: string;\n  atividadeId: string;\n  participanteId: string;\n  cargaHorariaMinutos: number;\n  presencas: number;\n  encontros: number;\n  emitidoEm: string;\n}\n\nexport interface ExtratoItem {\n  atividadeId: string;\n  titulo: string;\n  tipo: string;\n  cargaHorariaMinutos: number;\n  codigo: string | null;\n}\n\nexport interface Extrato {\n  itens: ExtratoItem[];\n  palestrasMinutos: number;\n  minicursosMinutos: number;\n  totalMinutos: number;\n  aproveitadoMinutos: number;\n}\n\nexport interface VerificacaoCertificado {\n  codigo: string;\n  participante: string;\n  atividade: string;\n  cargaHorariaMinutos: number;\n  emitidoEm: string;\n}\n\nexport interface ApiErrorResponse {\n  erro: string;\n  mensagem: string;\n}"
+      },
+      "output": "Edit applied successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "diff": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\types.ts\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\types.ts\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\types.ts\n@@ -84,8 +84,42 @@\n   convocadaAte: string | null;\n   criadaEm: string;\n }\n \n+export interface Certificado {\n+  codigo: string;\n+  atividadeId: string;\n+  participanteId: string;\n+  cargaHorariaMinutos: number;\n+  presencas: number;\n+  encontros: number;\n+  emitidoEm: string;\n+}\n+\n+export interface ExtratoItem {\n+  atividadeId: string;\n+  titulo: string;\n+  tipo: string;\n+  cargaHorariaMinutos: number;\n+  codigo: string | null;\n+}\n+\n+export interface Extrato {\n+  itens: ExtratoItem[];\n+  palestrasMinutos: number;\n+  minicursosMinutos: number;\n+  totalMinutos: number;\n+  aproveitadoMinutos: number;\n+}\n+\n+export interface VerificacaoCertificado {\n+  codigo: string;\n+  participante: string;\n+  atividade: string;\n+  cargaHorariaMinutos: number;\n+  emitidoEm: string;\n+}\n+\n export interface ApiErrorResponse {\n   erro: string;\n   mensagem: string;\n }\n",
+       "filediff": {
+        "file": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\types.ts",
+        "patch": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\types.ts\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\types.ts\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\types.ts\n@@ -84,8 +84,42 @@\n   convocadaAte: string | null;\n   criadaEm: string;\n }\n \n+export interface Certificado {\n+  codigo: string;\n+  atividadeId: string;\n+  participanteId: string;\n+  cargaHorariaMinutos: number;\n+  presencas: number;\n+  encontros: number;\n+  emitidoEm: string;\n+}\n+\n+export interface ExtratoItem {\n+  atividadeId: string;\n+  titulo: string;\n+  tipo: string;\n+  cargaHorariaMinutos: number;\n+  codigo: string | null;\n+}\n+\n+export interface Extrato {\n+  itens: ExtratoItem[];\n+  palestrasMinutos: number;\n+  minicursosMinutos: number;\n+  totalMinutos: number;\n+  aproveitadoMinutos: number;\n+}\n+\n+export interface VerificacaoCertificado {\n+  codigo: string;\n+  participante: string;\n+  atividade: string;\n+  cargaHorariaMinutos: number;\n+  emitidoEm: string;\n+}\n+\n export interface ApiErrorResponse {\n   erro: string;\n   mensagem: string;\n }\n",
+        "additions": 34,
+        "deletions": 0
+       },
+       "truncated": false
+      },
+      "title": "app\\src\\api\\types.ts",
+      "time": {
+       "start": 1790027617477,
+       "end": 1790027617523
+      }
+     },
+     "id": "prt_0c5f5cdc6001SQxN9257Fs4NNN",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5aa32001d9PR9GZTCImPeF"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "54806f2643d92583ebecf7bf3bd7f7cb0eff8613",
+     "type": "step-finish",
+     "tokens": {
+      "total": 53674,
+      "input": 4175,
+      "output": 1627,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 47872
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5f5d74a001Z8ec3AyFFOWSHO",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5aa32001d9PR9GZTCImPeF"
+    },
+    {
+     "type": "patch",
+     "hash": "9ac6490960942095dcafcc08c6e0a05c3907f524",
+     "files": [
+      "C:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app/src/api/types.ts"
+     ],
+     "id": "prt_0c5f5d973001RVDafSO3bd1Tjn",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5aa32001d9PR9GZTCImPeF"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5f524cc001SM2XZU4LEYF6oj",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 53919,
+     "input": 184,
+     "output": 231,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 53504
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790027618690,
+     "completed": 1790027622228
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5f5d982001iOUrifvEV4ZohV",
+    "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB"
+   },
+   "parts": [
+    {
+     "snapshot": "54806f2643d92583ebecf7bf3bd7f7cb0eff8613",
+     "type": "step-start",
+     "id": "prt_0c5f5df73001KUhfleAX20pwHP",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5d982001iOUrifvEV4ZohV"
+    },
+    {
+     "type": "text",
+     "text": "Agora o import de tipos e os quatro métodos no cliente.",
+     "time": {
+      "start": 1790027620258,
+      "end": 1790027621017
+     },
+     "id": "prt_0c5f5dfa2001q8nG8BNUjTbaV1",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5d982001iOUrifvEV4ZohV"
+    },
+    {
+     "type": "tool",
+     "tool": "edit",
+     "callID": "call_5be5296593484bfc976afb6e",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\client.ts",
+       "oldString": "import { Sala, Atividade, CreateAtividadeDTO, UpdateAtividadeDTO, CodigoDoEncontro, Presenca, RegistrarPresencaDTO, RegistrarPresencaManualDTO, Inscricao, ApiError } from \"./types\";",
+       "newString": "import { Sala, Atividade, CreateAtividadeDTO, UpdateAtividadeDTO, CodigoDoEncontro, Presenca, RegistrarPresencaDTO, RegistrarPresencaManualDTO, Inscricao, Certificado, Extrato, VerificacaoCertificado, ApiError } from \"./types\";"
+      },
+      "output": "Edit applied successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "diff": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\client.ts\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\client.ts\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\client.ts\n@@ -1,5 +1,5 @@\n-import { Sala, Atividade, CreateAtividadeDTO, UpdateAtividadeDTO, CodigoDoEncontro, Presenca, RegistrarPresencaDTO, RegistrarPresencaManualDTO, Inscricao, ApiError } from \"./types\";\n+import { Sala, Atividade, CreateAtividadeDTO, UpdateAtividadeDTO, CodigoDoEncontro, Presenca, RegistrarPresencaDTO, RegistrarPresencaManualDTO, Inscricao, Certificado, Extrato, VerificacaoCertificado, ApiError } from \"./types\";\n \n const getBaseUrl = () => {\n   return (import.meta as any).env?.VITE_API_URL || \"http://localhost:3000\";\n };\n",
+       "filediff": {
+        "file": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\client.ts",
+        "patch": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\client.ts\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\client.ts\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\client.ts\n@@ -1,5 +1,5 @@\n-import { Sala, Atividade, CreateAtividadeDTO, UpdateAtividadeDTO, CodigoDoEncontro, Presenca, RegistrarPresencaDTO, RegistrarPresencaManualDTO, Inscricao, ApiError } from \"./types\";\n+import { Sala, Atividade, CreateAtividadeDTO, UpdateAtividadeDTO, CodigoDoEncontro, Presenca, RegistrarPresencaDTO, RegistrarPresencaManualDTO, Inscricao, Certificado, Extrato, VerificacaoCertificado, ApiError } from \"./types\";\n \n const getBaseUrl = () => {\n   return (import.meta as any).env?.VITE_API_URL || \"http://localhost:3000\";\n };\n",
+        "additions": 1,
+        "deletions": 1
+       },
+       "truncated": false
+      },
+      "title": "app\\src\\api\\client.ts",
+      "time": {
+       "start": 1790027620973,
+       "end": 1790027621012
+      }
+     },
+     "id": "prt_0c5f5dff1001WNM1M332qOt3S8",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5d982001iOUrifvEV4ZohV"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "47404c7f103254b405fb69268452ac9715339f18",
+     "type": "step-finish",
+     "tokens": {
+      "total": 53919,
+      "input": 184,
+      "output": 231,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 53504
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5f5e505001tsQZgmF321CO61",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5d982001iOUrifvEV4ZohV"
+    },
+    {
+     "type": "patch",
+     "hash": "54806f2643d92583ebecf7bf3bd7f7cb0eff8613",
+     "files": [
+      "C:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app/src/api/client.ts"
+     ],
+     "id": "prt_0c5f5e7510011L33n8PEQQr7LW",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5d982001iOUrifvEV4ZohV"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5f524cc001SM2XZU4LEYF6oj",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 54316,
+     "input": 173,
+     "output": 383,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 53760
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790027622234,
+     "completed": 1790027626378
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5f5e75a001pzgMHfyqnKAfVc",
+    "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB"
+   },
+   "parts": [
+    {
+     "snapshot": "47404c7f103254b405fb69268452ac9715339f18",
+     "type": "step-start",
+     "id": "prt_0c5f5edc5001PkHx35cd2Pck9v",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5e75a001pzgMHfyqnKAfVc"
+    },
+    {
+     "type": "tool",
+     "tool": "edit",
+     "callID": "call_65c35228c60c42e7933392cb",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\client.ts",
+       "newString": "confirmInscricao: async (id: string): Promise<Inscricao> => {\n    return request<Inscricao>(`/inscricoes/${id}/confirmacao`, {\n      method: \"POST\",\n    });\n  },\n\n  getCertificados: async (): Promise<Certificado[]> => {\n    return request<Certificado[]>(\"/certificados\");\n  },\n\n  getExtrato: async (): Promise<Extrato> => {\n    return request<Extrato>(\"/extrato\");\n  },\n\n  getCertificadoPorCodigo: async (codigo: string): Promise<VerificacaoCertificado> => {\n    return request<VerificacaoCertificado>(`/certificados/${encodeURIComponent(codigo)}`);\n  },\n\n  emitirCertificado: async (atividadeId: string): Promise<Certificado> => {\n    return request<Certificado>(`/atividades/${encodeURIComponent(atividadeId)}/certificado`, {\n      method: \"POST\",\n    });\n  },\n};",
+       "oldString": "confirmInscricao: async (id: string): Promise<Inscricao> => {\n    return request<Inscricao>(`/inscricoes/${id}/confirmacao`, {\n      method: \"POST\",\n    });\n  },\n};"
+      },
+      "output": "Edit applied successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "diff": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\client.ts\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\client.ts\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\client.ts\n@@ -170,5 +170,23 @@\n     return request<Inscricao>(`/inscricoes/${id}/confirmacao`, {\n       method: \"POST\",\n     });\n   },\n+\n+  getCertificados: async (): Promise<Certificado[]> => {\n+    return request<Certificado[]>(\"/certificados\");\n+  },\n+\n+  getExtrato: async (): Promise<Extrato> => {\n+    return request<Extrato>(\"/extrato\");\n+  },\n+\n+  getCertificadoPorCodigo: async (codigo: string): Promise<VerificacaoCertificado> => {\n+    return request<VerificacaoCertificado>(`/certificados/${encodeURIComponent(codigo)}`);\n+  },\n+\n+  emitirCertificado: async (atividadeId: string): Promise<Certificado> => {\n+    return request<Certificado>(`/atividades/${encodeURIComponent(atividadeId)}/certificado`, {\n+      method: \"POST\",\n+    });\n+  },\n };\n\\ No newline at end of file\n",
+       "filediff": {
+        "file": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\client.ts",
+        "patch": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\client.ts\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\client.ts\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app\\src\\api\\client.ts\n@@ -170,5 +170,23 @@\n     return request<Inscricao>(`/inscricoes/${id}/confirmacao`, {\n       method: \"POST\",\n     });\n   },\n+\n+  getCertificados: async (): Promise<Certificado[]> => {\n+    return request<Certificado[]>(\"/certificados\");\n+  },\n+\n+  getExtrato: async (): Promise<Extrato> => {\n+    return request<Extrato>(\"/extrato\");\n+  },\n+\n+  getCertificadoPorCodigo: async (codigo: string): Promise<VerificacaoCertificado> => {\n+    return request<VerificacaoCertificado>(`/certificados/${encodeURIComponent(codigo)}`);\n+  },\n+\n+  emitirCertificado: async (atividadeId: string): Promise<Certificado> => {\n+    return request<Certificado>(`/atividades/${encodeURIComponent(atividadeId)}/certificado`, {\n+      method: \"POST\",\n+    });\n+  },\n };\n\\ No newline at end of file\n",
+        "additions": 18,
+        "deletions": 0
+       },
+       "truncated": false
+      },
+      "title": "app\\src\\api\\client.ts",
+      "time": {
+       "start": 1790027625199,
+       "end": 1790027625228
+      }
+     },
+     "id": "prt_0c5f5edc9001ScUvEaG7XZo76j",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5e75a001pzgMHfyqnKAfVc"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "f8622f8cc4d1dd04ff9d74181732ee146c6d2f37",
+     "type": "step-finish",
+     "tokens": {
+      "total": 54316,
+      "input": 173,
+      "output": 383,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 53760
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5f5f56a001OM0r6P7ncyfeTw",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5e75a001pzgMHfyqnKAfVc"
+    },
+    {
+     "type": "patch",
+     "hash": "47404c7f103254b405fb69268452ac9715339f18",
+     "files": [
+      "C:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app/src/api/client.ts"
+     ],
+     "id": "prt_0c5f5f785001VwCGWqt6Vvjz6l",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5e75a001pzgMHfyqnKAfVc"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5f524cc001SM2XZU4LEYF6oj",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 54434,
+     "input": 568,
+     "output": 106,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 53760
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790027626383,
+     "completed": 1790027633777
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5f5f78f00193hoy9l6EJDk90",
+    "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB"
+   },
+   "parts": [
+    {
+     "snapshot": "f8622f8cc4d1dd04ff9d74181732ee146c6d2f37",
+     "type": "step-start",
+     "id": "prt_0c5f5fcf4001vookhl6mLbcOsa",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5f78f00193hoy9l6EJDk90"
+    },
+    {
+     "type": "text",
+     "text": "GREEN implementado. Executando o teste do cliente.",
+     "time": {
+      "start": 1790027627767,
+      "end": 1790027628120
+     },
+     "id": "prt_0c5f5fcf6001P6bc5kNp6w5JOV",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5f78f00193hoy9l6EJDk90"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_c8ff2bc96acd4315a145777c",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "npx vitest run src/api/client.test.ts",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app"
+      },
+      "output": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app\u001b[39m\n\n \u001b[32m✓\u001b[39m src/api/client.test.ts \u001b[2m(\u001b[22m\u001b[2m18 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 22\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m18 passed\u001b[39m\u001b[22m\u001b[90m (18)\u001b[39m\n\u001b[2m   Start at \u001b[22m 18:53:50\n\u001b[2m   Duration \u001b[22m 1.92s\u001b[2m (transform 112ms, setup 157ms, collect 91ms, tests 22ms, environment 953ms, prepare 272ms)\u001b[22m\n\n",
+      "metadata": {
+       "output": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app\u001b[39m\n\n \u001b[32m✓\u001b[39m src/api/client.test.ts \u001b[2m(\u001b[22m\u001b[2m18 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 22\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m18 passed\u001b[39m\u001b[22m\u001b[90m (18)\u001b[39m\n\u001b[2m   Start at \u001b[22m 18:53:50\n\u001b[2m   Duration \u001b[22m 1.92s\u001b[2m (transform 112ms, setup 157ms, collect 91ms, tests 22ms, environment 953ms, prepare 272ms)\u001b[22m\n\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "npx vitest run src/api/client.test.ts",
+      "time": {
+       "start": 1790027628060,
+       "end": 1790027632824
+      }
+     },
+     "id": "prt_0c5f5fd26001ZCIs59Q2luyNr4",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5f78f00193hoy9l6EJDk90"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "f8622f8cc4d1dd04ff9d74181732ee146c6d2f37",
+     "type": "step-finish",
+     "tokens": {
+      "total": 54434,
+      "input": 568,
+      "output": 106,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 53760
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5f612b1001QhkeX2BQfCOm5A",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f5f78f00193hoy9l6EJDk90"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5f524cc001SM2XZU4LEYF6oj",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 54907,
+     "input": 462,
+     "output": 173,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 54272
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790027633784,
+     "completed": 1790027656115
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5f61478001xnfrYhA6WApBjD",
+    "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB"
+   },
+   "parts": [
+    {
+     "snapshot": "f8622f8cc4d1dd04ff9d74181732ee146c6d2f37",
+     "type": "step-start",
+     "id": "prt_0c5f622b2001X7l7METEV2u3oV",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f61478001xnfrYhA6WApBjD"
+    },
+    {
+     "type": "text",
+     "text": "18/18 verdes. Suíte completa e typecheck/build agora.",
+     "time": {
+      "start": 1790027637668,
+      "end": 1790027638277
+     },
+     "id": "prt_0c5f623a40013NGcfNBsVIjMAm",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f61478001xnfrYhA6WApBjD"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_cd9573af31a84697aa843043",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "npm test",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app"
+      },
+      "output": "\n> semana-academica-app@1.0.0 test\n> vitest run\n\n\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app\u001b[39m\n\n \u001b[32m✓\u001b[39m src/api/client.test.ts \u001b[2m(\u001b[22m\u001b[2m18 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 30\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/hooks/useFilaOffline.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 324\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/components/CodigoEncontro.test.tsx \u001b[2m(\u001b[22m\u001b[2m7 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 337\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/M2ExtensionPoint.test.tsx \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 710\u001b[2mms\u001b[22m\u001b[39m\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mdeve exibir indicador de carregamento pendente \"Carregando programação...\" ao carregar atividades\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mdeve realizar nova consulta ao alterar o dia selecionado\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mdeve realizar nova consulta ao filtrar por tipo\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mdeve combinar dia e tipo nas chamadas ao cliente\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mdeve exibir indicador de carregamento pendente \"Carregando atividade...\" na página de detalhes\n\u001b[22m\u001b[39mAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mdeve exibir indicador de carregamento pendente \"Carregando atividade...\" na página de detalhes\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n \u001b[32m✓\u001b[39m src/components/RegistrarPresenca.test.tsx \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1356\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresenca Component\u001b[2m > \u001b[22mdeve registrar presença com sucesso 201 e limpar o campo \u001b[33m 562\u001b[2mms\u001b[22m\u001b[39m\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2menvia o payload conforme o contrato, incluindo conversão de datas datetime-local para ISO 8601 com -03:00\n\u001b[22m\u001b[39mAn update to CriarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mbloqueia o botão e impede envio duplicado durante promessa pendente\n\u001b[22m\u001b[39mAn update to CriarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mcarregamento dos dados atuais na página de edição\n\u001b[22m\u001b[39mAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mcarregamento dos dados atuais na página de edição\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2menvia payload contendo exclusivamente título e vagas via PATCH /atividades/:id\n\u001b[22m\u001b[39mAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mbloqueia o botão durante promessa pendente e impede envio duplicado\n\u001b[22m\u001b[39mAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mconfirmar o cancelamento envia o ID correto para a API\n\u001b[22m\u001b[39mAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mconfirmar o cancelamento envia o ID correto para a API\n\u001b[22m\u001b[39mAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mpromessa pendente bloqueia duplicação de chamadas de cancelamento\n\u001b[22m\u001b[39mAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mpromessa pendente bloqueia duplicação de chamadas de cancelamento\n\u001b[22m\u001b[39mAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mverifica estados acessíveis (role=\"status\" e role=\"alert\") na página de edição\n\u001b[22m\u001b[39mAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mverifica estados acessíveis (role=\"status\" e role=\"alert\") na página de edição\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n \u001b[32m✓\u001b[39m src/App.test.tsx \u001b[2m(\u001b[22m\u001b[2m62 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 4049\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m App Shell\u001b[2m > \u001b[22mdeve renderizar o título principal do esqueleto \u001b[33m 410\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/components/RegistrarPresencaManual.test.tsx \u001b[2m(\u001b[22m\u001b[2m7 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 6194\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresencaManual Component\u001b[2m > \u001b[22mdeve registrar presença manual com sucesso 201 e limpar os campos \u001b[33m 1497\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresencaManual Component\u001b[2m > \u001b[22mdeve lidar com sucesso 200 (idempotência - presença já existia) e limpar os campos \u001b[33m 517\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresencaManual Component\u001b[2m > \u001b[22mdeve tratar erro NAO_INSCRITO \u001b[33m 1078\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresencaManual Component\u001b[2m > \u001b[22mdeve tratar erro FORA_DA_JANELA \u001b[33m 944\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresencaManual Component\u001b[2m > \u001b[22mdeve tratar erro LIMITE_DE_MANUAIS \u001b[33m 917\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresencaManual Component\u001b[2m > \u001b[22mdeve tratar erro de rede genérico \u001b[33m 935\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m7 passed\u001b[39m\u001b[22m\u001b[90m (7)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m111 passed\u001b[39m\u001b[22m\u001b[90m (111)\u001b[39m\n\u001b[2m   Start at \u001b[22m 18:53:59\n\u001b[2m   Duration \u001b[22m 14.54s\u001b[2m (transform 1.32s, setup 3.40s, collect 21.16s, tests 13.00s, environment 18.94s, prepare 3.84s)\u001b[22m\n\n",
+      "metadata": {
+       "output": "\n> semana-academica-app@1.0.0 test\n> vitest run\n\n\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/app\u001b[39m\n\n \u001b[32m✓\u001b[39m src/api/client.test.ts \u001b[2m(\u001b[22m\u001b[2m18 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 30\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/hooks/useFilaOffline.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 324\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/components/CodigoEncontro.test.tsx \u001b[2m(\u001b[22m\u001b[2m7 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 337\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/M2ExtensionPoint.test.tsx \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 710\u001b[2mms\u001b[22m\u001b[39m\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mdeve exibir indicador de carregamento pendente \"Carregando programação...\" ao carregar atividades\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mdeve realizar nova consulta ao alterar o dia selecionado\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mdeve realizar nova consulta ao filtrar por tipo\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mdeve combinar dia e tipo nas chamadas ao cliente\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mdeve exibir indicador de carregamento pendente \"Carregando atividade...\" na página de detalhes\n\u001b[22m\u001b[39mAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mdeve exibir indicador de carregamento pendente \"Carregando atividade...\" na página de detalhes\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n \u001b[32m✓\u001b[39m src/components/RegistrarPresenca.test.tsx \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1356\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresenca Component\u001b[2m > \u001b[22mdeve registrar presença com sucesso 201 e limpar o campo \u001b[33m 562\u001b[2mms\u001b[22m\u001b[39m\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2menvia o payload conforme o contrato, incluindo conversão de datas datetime-local para ISO 8601 com -03:00\n\u001b[22m\u001b[39mAn update to CriarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mbloqueia o botão e impede envio duplicado durante promessa pendente\n\u001b[22m\u001b[39mAn update to CriarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mcarregamento dos dados atuais na página de edição\n\u001b[22m\u001b[39mAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mcarregamento dos dados atuais na página de edição\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2menvia payload contendo exclusivamente título e vagas via PATCH /atividades/:id\n\u001b[22m\u001b[39mAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mbloqueia o botão durante promessa pendente e impede envio duplicado\n\u001b[22m\u001b[39mAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mconfirmar o cancelamento envia o ID correto para a API\n\u001b[22m\u001b[39mAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mconfirmar o cancelamento envia o ID correto para a API\n\u001b[22m\u001b[39mAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mpromessa pendente bloqueia duplicação de chamadas de cancelamento\n\u001b[22m\u001b[39mAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mpromessa pendente bloqueia duplicação de chamadas de cancelamento\n\u001b[22m\u001b[39mAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to AtividadeDetalhe inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mverifica estados acessíveis (role=\"status\" e role=\"alert\") na página de edição\n\u001b[22m\u001b[39mAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to EditarAtividade inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n\u001b[90mstderr\u001b[2m | src/App.test.tsx\u001b[2m > \u001b[22m\u001b[2mApp Shell\u001b[2m > \u001b[22m\u001b[2mverifica estados acessíveis (role=\"status\" e role=\"alert\") na página de edição\n\u001b[22m\u001b[39mAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to App inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n \u001b[32m✓\u001b[39m src/App.test.tsx \u001b[2m(\u001b[22m\u001b[2m62 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 4049\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m App Shell\u001b[2m > \u001b[22mdeve renderizar o título principal do esqueleto \u001b[33m 410\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m src/components/RegistrarPresencaManual.test.tsx \u001b[2m(\u001b[22m\u001b[2m7 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 6194\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresencaManual Component\u001b[2m > \u001b[22mdeve registrar presença manual com sucesso 201 e limpar os campos \u001b[33m 1497\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresencaManual Component\u001b[2m > \u001b[22mdeve lidar com sucesso 200 (idempotência - presença já existia) e limpar os campos \u001b[33m 517\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresencaManual Component\u001b[2m > \u001b[22mdeve tratar erro NAO_INSCRITO \u001b[33m 1078\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresencaManual Component\u001b[2m > \u001b[22mdeve tratar erro FORA_DA_JANELA \u001b[33m 944\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresencaManual Component\u001b[2m > \u001b[22mdeve tratar erro LIMITE_DE_MANUAIS \u001b[33m 917\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m RegistrarPresencaManual Component\u001b[2m > \u001b[22mdeve tratar erro de rede genérico \u001b[33m 935\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m7 passed\u001b[39m\u001b[22m\u001b[90m (7)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m111 passed\u001b[39m\u001b[22m\u001b[90m (111)\u001b[39m\n\u001b[2m   Start at \u001b[22m 18:53:59\n\u001b[2m   Duration \u001b[22m 14.54s\u001b[2m (transform 1.32s, setup 3.40s, collect 21.16s, tests 13.00s, environment 18.94s, prepare 3.84s)\u001b[22m\n\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "npm test",
+      "time": {
+       "start": 1790027638008,
+       "end": 1790027654794
+      }
+     },
+     "id": "prt_0c5f62442001iM5nlFMhqjX1Gs",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f61478001xnfrYhA6WApBjD"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_08fda337cb14487f8b915ca0",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "npm run typecheck",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app"
+      },
+      "output": "\n> semana-academica-app@1.0.0 typecheck\n> tsc --noEmit\n\nsrc/hooks/useCodigoEncontro.ts(12,29): error TS2503: Cannot find namespace 'NodeJS'.\r\n",
+      "metadata": {
+       "output": "\n> semana-academica-app@1.0.0 typecheck\n> tsc --noEmit\n\nsrc/hooks/useCodigoEncontro.ts(12,29): error TS2503: Cannot find namespace 'NodeJS'.\r\n",
+       "exit": 1,
+       "truncated": false
+      },
+      "title": "npm run typecheck",
+      "time": {
+       "start": 1790027638239,
+       "end": 1790027646904
+      }
+     },
+     "id": "prt_0c5f62517001ngvOD1l8ADIAXK",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f61478001xnfrYhA6WApBjD"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "f8622f8cc4d1dd04ff9d74181732ee146c6d2f37",
+     "type": "step-finish",
+     "tokens": {
+      "total": 54907,
+      "input": 462,
+      "output": 173,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 54272
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5f668dd001ekdoA2v91v1CKV",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f61478001xnfrYhA6WApBjD"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5f524cc001SM2XZU4LEYF6oj",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 62027,
+     "input": 6883,
+     "output": 360,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 54784
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790027656127,
+     "completed": 1790027662839
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5f66bbf001RLlGzT2QHrhbxS",
+    "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB"
+   },
+   "parts": [
+    {
+     "snapshot": "f8622f8cc4d1dd04ff9d74181732ee146c6d2f37",
+     "type": "step-start",
+     "id": "prt_0c5f674f6001SryTPDvvyMECb0",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f66bbf001RLlGzT2QHrhbxS"
+    },
+    {
+     "type": "reasoning",
+     "text": "The typecheck has a pre-existing error in `src/hooks/useCodigoEncontro.ts` — unrelated to my change. Let me check if this is pre-existing. It mentions `Cannot find namespace 'NodeJS'`. This is not something I touched. Let me verify it's pre-existing by checking git — this file isn't in my diff. Let me run git status and git diff to confirm. Also, let me check whether the build also fails. The task says \"Execute também o typecheck/build apropriado já existente no projeto.\"\n\nThe typecheck error is pre-existing and unrelated to my change (useCodigoEncontro.ts). I should not fix it since scope is minimal — but let me confirm it exists on the base (git stash not needed; the file is untouched). Let me verify whether the build (`tsc && vite build`) also fails with the same pre-existing error.\n\nLet me check git status/diff to ensure only the two intended files changed, confirm the RED test file is untouched, and then run the build to confirm the typecheck failure is pre-existing.",
+     "time": {
+      "start": 1790027658491,
+      "end": 1790027660063
+     },
+     "id": "prt_0c5f674fb001r89UYKvP21TpLs",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f66bbf001RLlGzT2QHrhbxS"
+    },
+    {
+     "type": "text",
+     "text": "O typecheck falha num arquivo que não toquei (`useCodigoEncontro.ts`). Vou verificar se é pré-existente e checar o diff.",
+     "time": {
+      "start": 1790027660068,
+      "end": 1790027660988
+     },
+     "id": "prt_0c5f67b24001e6AxgkH0fgEDri",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f66bbf001RLlGzT2QHrhbxS"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_d7682fa9b4da4b468be1b5ba",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git status --short; git stash; if ($?) { git stash pop }",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+      },
+      "output": " M app/src/api/client.ts\n M app/src/api/types.ts\nSaved working directory and index state WIP on feat/m4-certificados: e0b601b M4-UI1: adiciona RED do cliente API de certificados\nOn branch feat/m4-certificados\nYour branch is up to date with 'origin/feat/m4-certificados'.\n\nChanges not staged for commit:\n  (use \"git add <file>...\" to update what will be committed)\n  (use \"git restore <file>...\" to discard changes in working directory)\n\tmodified:   app/src/api/client.ts\n\tmodified:   app/src/api/types.ts\n\nno changes added to commit (use \"git add\" and/or \"git commit -a\")\nDropped refs/stash@{0} (71e3cc1a08b4383f4ee5f3b99f1b757df60aa776)\n",
+      "metadata": {
+       "output": " M app/src/api/client.ts\n M app/src/api/types.ts\nSaved working directory and index state WIP on feat/m4-certificados: e0b601b M4-UI1: adiciona RED do cliente API de certificados\nOn branch feat/m4-certificados\nYour branch is up to date with 'origin/feat/m4-certificados'.\n\nChanges not staged for commit:\n  (use \"git add <file>...\" to update what will be committed)\n  (use \"git restore <file>...\" to discard changes in working directory)\n\tmodified:   app/src/api/client.ts\n\tmodified:   app/src/api/types.ts\n\nno changes added to commit (use \"git add\" and/or \"git commit -a\")\nDropped refs/stash@{0} (71e3cc1a08b4383f4ee5f3b99f1b757df60aa776)\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git status --short; git stash; if ($?) { git stash pop }",
+      "time": {
+       "start": 1790027660956,
+       "end": 1790027661837
+      }
+     },
+     "id": "prt_0c5f67cf9001uCOZ4PXSp5f1z9",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f66bbf001RLlGzT2QHrhbxS"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "f8622f8cc4d1dd04ff9d74181732ee146c6d2f37",
+     "type": "step-finish",
+     "tokens": {
+      "total": 62027,
+      "input": 6883,
+      "output": 360,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 54784
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5f6844d001lxd68Onk6iShlM",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f66bbf001RLlGzT2QHrhbxS"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5f524cc001SM2XZU4LEYF6oj",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 62565,
+     "input": 282,
+     "output": 331,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 61952
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790027662848,
+     "completed": 1790027673139
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5f68600001pint5sxfWLk3Cn",
+    "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB"
+   },
+   "parts": [
+    {
+     "snapshot": "f8622f8cc4d1dd04ff9d74181732ee146c6d2f37",
+     "type": "step-start",
+     "id": "prt_0c5f68c2c001cTqFIHsvkeF2a1",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f68600001pint5sxfWLk3Cn"
+    },
+    {
+     "type": "reasoning",
+     "text": "The stash confirmed that only `client.ts` and `types.ts` are modified in my working tree. Good — the RED test file is not modified.\n\nNow let me check if the typecheck error is pre-existing. Let me stash and run typecheck at base state to confirm.\n\nActually I just did `git stash` and `git stash pop` which restored my changes. Let me verify typecheck fails at base too — I can run typecheck with the stash, but simpler: the error is in `src/hooks/useCodigoEncontro.ts` line 12 which I didn't touch. It's clearly pre-existing. But to be rigorous, let me confirm the file is not part of my diff (confirmed: diff only has client.ts and types.ts).\n\nLet me run the build to see if it also fails with the same pre-existing error.",
+     "time": {
+      "start": 1790027664434,
+      "end": 1790027665791
+     },
+     "id": "prt_0c5f68c32001NG5Jv7gFsulIxg",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f68600001pint5sxfWLk3Cn"
+    },
+    {
+     "type": "text",
+     "text": "Confirmei: só `client.ts` e `types.ts` modificados. Vou confirmar que o erro de typecheck é pré-existente rodando no estado-base e testar o build.",
+     "time": {
+      "start": 1790027665793,
+      "end": 1790027666701
+     },
+     "id": "prt_0c5f69181001iO1fd5ZTqkKJKE",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f68600001pint5sxfWLk3Cn"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_4b2f09f4a8f24125b2215c92",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git stash; if ($?) { npm run typecheck 2>&1 | Select-String -Pattern 'error TS' ; git stash pop }",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app"
+      },
+      "output": "Saved working directory and index state WIP on feat/m4-certificados: e0b601b M4-UI1: adiciona RED do cliente API de certificados\n\r\nsrc/api/client.test.ts(273,36): error TS2339: Property 'getCertificados' does not exist on type '{ getSalas: () => \r\nPromise<Sala[]>; getAtividades: (filters?: { dia?: string | undefined; tipo?: \"palestra\" | \"minicurso\" | undefined; } \r\n| undefined) => Promise<Atividade[]>; ... 12 more ...; confirmInscricao: (id: string) => Promise<...>; }'.\r\nsrc/api/client.test.ts(302,31): error TS2339: Property 'getExtrato' does not exist on type '{ getSalas: () => \r\nPromise<Sala[]>; getAtividades: (filters?: { dia?: string | undefined; tipo?: \"palestra\" | \"minicurso\" | undefined; } \r\n| undefined) => Promise<Atividade[]>; ... 12 more ...; confirmInscricao: (id: string) => Promise<...>; }'.\r\nsrc/api/client.test.ts(334,35): error TS2339: Property 'getCertificadoPorCodigo' does not exist on type '{ getSalas: \r\n() => Promise<Sala[]>; getAtividades: (filters?: { dia?: string | undefined; tipo?: \"palestra\" | \"minicurso\" | \r\nundefined; } | undefined) => Promise<Atividade[]>; ... 12 more ...; confirmInscricao: (id: string) => Promise<...>; }'.\r\nsrc/api/client.test.ts(356,15): error TS2339: Property 'getCertificadoPorCodigo' does not exist on type '{ getSalas: \r\n() => Promise<Sala[]>; getAtividades: (filters?: { dia?: string | undefined; tipo?: \"palestra\" | \"minicurso\" | \r\nundefined; } | undefined) => Promise<Atividade[]>; ... 12 more ...; confirmInscricao: (id: string) => Promise<...>; }'.\r\nsrc/api/client.test.ts(376,31): error TS2339: Property 'emitirCertificado' does not exist on type '{ getSalas: () => \r\nPromise<Sala[]>; getAtividades: (filters?: { dia?: string | undefined; tipo?: \"palestra\" | \"minicurso\" | undefined; } \r\n| undefined) => Promise<Atividade[]>; ... 12 more ...; confirmInscricao: (id: string) => Promise<...>; }'.\r\nsrc/hooks/useCodigoEncontro.ts(12,29): error TS2503: Cannot find namespace 'NodeJS'.\r\nOn branch feat/m4-certificados\nYour branch is up to date with 'origin/feat/m4-certificados'.\n\nChanges not staged for commit:\n  (use \"git add <file>...\" to update what will be committed)\n  (use \"git restore <file>...\" to discard changes in working directory)\n\tmodified:   src/api/client.ts\n\tmodified:   src/api/types.ts\n\nno changes added to commit (use \"git add\" and/or \"git commit -a\")\nDropped refs/stash@{0} (ff1733d986c87c866e37da3a22d569a2baff3968)\n\r\n\r\n",
+      "metadata": {
+       "output": "Saved working directory and index state WIP on feat/m4-certificados: e0b601b M4-UI1: adiciona RED do cliente API de certificados\n\r\nsrc/api/client.test.ts(273,36): error TS2339: Property 'getCertificados' does not exist on type '{ getSalas: () => \r\nPromise<Sala[]>; getAtividades: (filters?: { dia?: string | undefined; tipo?: \"palestra\" | \"minicurso\" | undefined; } \r\n| undefined) => Promise<Atividade[]>; ... 12 more ...; confirmInscricao: (id: string) => Promise<...>; }'.\r\nsrc/api/client.test.ts(302,31): error TS2339: Property 'getExtrato' does not exist on type '{ getSalas: () => \r\nPromise<Sala[]>; getAtividades: (filters?: { dia?: string | undefined; tipo?: \"palestra\" | \"minicurso\" | undefined; } \r\n| undefined) => Promise<Atividade[]>; ... 12 more ...; confirmInscricao: (id: string) => Promise<...>; }'.\r\nsrc/api/client.test.ts(334,35): error TS2339: Property 'getCertificadoPorCodigo' does not exist on type '{ getSalas: \r\n() => Promise<Sala[]>; getAtividades: (filters?: { dia?: string | undefined; tipo?: \"palestra\" | \"minicurso\" | \r\nundefined; } | undefined) => Promise<Atividade[]>; ... 12 more ...; confirmInscricao: (id: string) => Promise<...>; }'.\r\nsrc/api/client.test.ts(356,15): error TS2339: Property 'getCertificadoPorCodigo' does not exist on type '{ getSalas: \r\n() => Promise<Sala[]>; getAtividades: (filters?: { dia?: string | undefined; tipo?: \"palestra\" | \"minicurso\" | \r\nundefined; } | undefined) => Promise<Atividade[]>; ... 12 more ...; confirmInscricao: (id: string) => Promise<...>; }'.\r\nsrc/api/client.test.ts(376,31): error TS2339: Property 'emitirCertificado' does not exist on type '{ getSalas: () => \r\nPromise<Sala[]>; getAtividades: (filters?: { dia?: string | undefined; tipo?: \"palestra\" | \"minicurso\" | undefined; } \r\n| undefined) => Promise<Atividade[]>; ... 12 more ...; confirmInscricao: (id: string) => Promise<...>; }'.\r\nsrc/hooks/useCodigoEncontro.ts(12,29): error TS2503: Cannot find namespace 'NodeJS'.\r\nOn branch feat/m4-certificados\nYour branch is up to date with 'origin/feat/m4-certificados'.\n\nChanges not staged for commit:\n  (use \"git add <file>...\" to update what will be committed)\n  (use \"git restore <file>...\" to discard changes in working directory)\n\tmodified:   src/api/client.ts\n\tmodified:   src/api/types.ts\n\nno changes added to commit (use \"git add\" and/or \"git commit -a\")\nDropped refs/stash@{0} (ff1733d986c87c866e37da3a22d569a2baff3968)\n\r\n\r\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git stash; if ($?) { npm run typecheck 2>&1 | Select-String -Pattern 'error TS' ; git stash pop }",
+      "time": {
+       "start": 1790027666687,
+       "end": 1790027671846
+      }
+     },
+     "id": "prt_0c5f69259001m6FKQIO7MeLJm7",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f68600001pint5sxfWLk3Cn"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "f8622f8cc4d1dd04ff9d74181732ee146c6d2f37",
+     "type": "step-finish",
+     "tokens": {
+      "total": 62565,
+      "input": 282,
+      "output": 331,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 61952
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5f6abad001REhlSN0up4GIeP",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f68600001pint5sxfWLk3Cn"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5f524cc001SM2XZU4LEYF6oj",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 63617,
+     "input": 897,
+     "output": 256,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 62464
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790027673153,
+     "completed": 1790027684263
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5f6ae4100146PD1Pm6Tq66GD",
+    "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB"
+   },
+   "parts": [
+    {
+     "snapshot": "f8622f8cc4d1dd04ff9d74181732ee146c6d2f37",
+     "type": "step-start",
+     "id": "prt_0c5f6b68c001Dcc4SV9kcpPz2T",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f6ae4100146PD1Pm6Tq66GD"
+    },
+    {
+     "type": "reasoning",
+     "text": "In the base state, typecheck shows the 5 RED test errors (expected - methods didn't exist) plus the pre-existing `useCodigoEncontro.ts` error. So `NodeJS` namespace error is pre-existing, independent of my changes.\n\nNow with my changes, the test-file errors are gone and only the pre-existing `useCodigoEncontro.ts` error remains.\n\nLet me run the build (`npm run build`) to see if it fails with the same pre-existing error.",
+     "time": {
+      "start": 1790027675282,
+      "end": 1790027676384
+     },
+     "id": "prt_0c5f6b692001mgmeUlFoiwdIyd",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f6ae4100146PD1Pm6Tq66GD"
+    },
+    {
+     "type": "text",
+     "text": "Erro `NodeJS` é pré-existente (já existia no RED). Os 5 erros de teste foram resolvidos pela minha implementação. Vou rodar o build para conferir.",
+     "time": {
+      "start": 1790027676391,
+      "end": 1790027678060
+     },
+     "id": "prt_0c5f6bae7001oZj6jmFjRux5bN",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f6ae4100146PD1Pm6Tq66GD"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_f7ce925d1e0d4276a0e48ba8",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "npm run build 2>&1 | Select-String -Pattern 'error TS|vite v|built in|error during'",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\app"
+      },
+      "output": "\r\nsrc/hooks/useCodigoEncontro.ts(12,29): error TS2503: Cannot find namespace 'NodeJS'.\r\n\r\n\r\n",
+      "metadata": {
+       "output": "\r\nsrc/hooks/useCodigoEncontro.ts(12,29): error TS2503: Cannot find namespace 'NodeJS'.\r\n\r\n\r\n",
+       "exit": 1,
+       "truncated": false
+      },
+      "title": "npm run build 2>&1 | Select-String -Pattern 'error TS|vite v|built in|error during'",
+      "time": {
+       "start": 1790027678008,
+       "end": 1790027682983
+      }
+     },
+     "id": "prt_0c5f6bf18001L2d188gLrq97oQ",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f6ae4100146PD1Pm6Tq66GD"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "f8622f8cc4d1dd04ff9d74181732ee146c6d2f37",
+     "type": "step-finish",
+     "tokens": {
+      "total": 63617,
+      "input": 897,
+      "output": 256,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 62464
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5f6d72b001eNUcYHS7DU2daM",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f6ae4100146PD1Pm6Tq66GD"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5f524cc001SM2XZU4LEYF6oj",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 63962,
+     "input": 175,
+     "output": 299,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 63488
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790027684272,
+     "completed": 1790027689586
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5f6d9b0001y1sSPfmj8s7Y7A",
+    "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB"
+   },
+   "parts": [
+    {
+     "snapshot": "f8622f8cc4d1dd04ff9d74181732ee146c6d2f37",
+     "type": "step-start",
+     "id": "prt_0c5f6e1bf001la0z1rogVDFue5",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f6d9b0001y1sSPfmj8s7Y7A"
+    },
+    {
+     "type": "reasoning",
+     "text": "The build fails only with the pre-existing `NodeJS` namespace error in `useCodigoEncontro.ts` — unrelated to my change.\n\nQuestion: should I fix it? The task says \"Execute também o typecheck/build apropriado já existente no projeto.\" and scope says NOT to touch other things. The error is pre-existing and unrelated to M4. I should NOT fix it (it's outside scope, another integrant's file — hooks/useCodigoEncontro.ts belongs to another module). Per AGENTS.md: \"Não alterar o contrato público ou o módulo de outro integrante sem alinhamento.\" So I report it as pre-existing.\n\nLet me verify the git diff of my two files to include in the report, and confirm RED test unchanged. Let me get the diff.",
+     "time": {
+      "start": 1790027686339,
+      "end": 1790027687761
+     },
+     "id": "prt_0c5f6e1c3001LoeThhHcAoHfBU",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f6d9b0001y1sSPfmj8s7Y7A"
+    },
+    {
+     "type": "text",
+     "text": "Build falha apenas no erro pré-existente de `useCodigoEncontro.ts`, fora do escopo M4. Vou conferir o diff final.",
+     "time": {
+      "start": 1790027687764,
+      "end": 1790027688224
+     },
+     "id": "prt_0c5f6e7540016IhFTYjNP0VOXU",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f6d9b0001y1sSPfmj8s7Y7A"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_fbad0a739dab4d4d95a282f2",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git diff --stat; git diff app/src/api/client.ts app/src/api/types.ts",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+      },
+      "output": " app/src/api/client.ts | 20 +++++++++++++++++++-\n app/src/api/types.ts  | 34 ++++++++++++++++++++++++++++++++++\n 2 files changed, 53 insertions(+), 1 deletion(-)\ndiff --git a/app/src/api/client.ts b/app/src/api/client.ts\nindex 9495e81..b4f32f5 100644\n--- a/app/src/api/client.ts\n+++ b/app/src/api/client.ts\n@@ -1,4 +1,4 @@\n-import { Sala, Atividade, CreateAtividadeDTO, UpdateAtividadeDTO, CodigoDoEncontro, Presenca, RegistrarPresencaDTO, RegistrarPresencaManualDTO, Inscricao, ApiError } from \"./types\";\n+import { Sala, Atividade, CreateAtividadeDTO, UpdateAtividadeDTO, CodigoDoEncontro, Presenca, RegistrarPresencaDTO, RegistrarPresencaManualDTO, Inscricao, Certificado, Extrato, VerificacaoCertificado, ApiError } from \"./types\";\n \n const getBaseUrl = () => {\n   return (import.meta as any).env?.VITE_API_URL || \"http://localhost:3000\";\n@@ -171,4 +171,22 @@ export const api = {\n       method: \"POST\",\n     });\n   },\n+\n+  getCertificados: async (): Promise<Certificado[]> => {\n+    return request<Certificado[]>(\"/certificados\");\n+  },\n+\n+  getExtrato: async (): Promise<Extrato> => {\n+    return request<Extrato>(\"/extrato\");\n+  },\n+\n+  getCertificadoPorCodigo: async (codigo: string): Promise<VerificacaoCertificado> => {\n+    return request<VerificacaoCertificado>(`/certificados/${encodeURIComponent(codigo)}`);\n+  },\n+\n+  emitirCertificado: async (atividadeId: string): Promise<Certificado> => {\n+    return request<Certificado>(`/atividades/${encodeURIComponent(atividadeId)}/certificado`, {\n+      method: \"POST\",\n+    });\n+  },\n };\n\\ No newline at end of file\ndiff --git a/app/src/api/types.ts b/app/src/api/types.ts\nindex 966c9d4..9031047 100644\n--- a/app/src/api/types.ts\n+++ b/app/src/api/types.ts\n@@ -85,6 +85,40 @@ export interface Inscricao {\n   criadaEm: string;\n }\n \n+export interface Certificado {\n+  codigo: string;\n+  atividadeId: string;\n+  participanteId: string;\n+  cargaHorariaMinutos: number;\n+  presencas: number;\n+  encontros: number;\n+  emitidoEm: string;\n+}\n+\n+export interface ExtratoItem {\n+  atividadeId: string;\n+  titulo: string;\n+  tipo: string;\n+  cargaHorariaMinutos: number;\n+  codigo: string | null;\n+}\n+\n+export interface Extrato {\n+  itens: ExtratoItem[];\n+  palestrasMinutos: number;\n+  minicursosMinutos: number;\n+  totalMinutos: number;\n+  aproveitadoMinutos: number;\n+}\n+\n+export interface VerificacaoCertificado {\n+  codigo: string;\n+  participante: string;\n+  atividade: string;\n+  cargaHorariaMinutos: number;\n+  emitidoEm: string;\n+}\n+\n export interface ApiErrorResponse {\n   erro: string;\n   mensagem: string;\n",
+      "metadata": {
+       "output": " app/src/api/client.ts | 20 +++++++++++++++++++-\n app/src/api/types.ts  | 34 ++++++++++++++++++++++++++++++++++\n 2 files changed, 53 insertions(+), 1 deletion(-)\ndiff --git a/app/src/api/client.ts b/app/src/api/client.ts\nindex 9495e81..b4f32f5 100644\n--- a/app/src/api/client.ts\n+++ b/app/src/api/client.ts\n@@ -1,4 +1,4 @@\n-import { Sala, Atividade, CreateAtividadeDTO, UpdateAtividadeDTO, CodigoDoEncontro, Presenca, RegistrarPresencaDTO, RegistrarPresencaManualDTO, Inscricao, ApiError } from \"./types\";\n+import { Sala, Atividade, CreateAtividadeDTO, UpdateAtividadeDTO, CodigoDoEncontro, Presenca, RegistrarPresencaDTO, RegistrarPresencaManualDTO, Inscricao, Certificado, Extrato, VerificacaoCertificado, ApiError } from \"./types\";\n \n const getBaseUrl = () => {\n   return (import.meta as any).env?.VITE_API_URL || \"http://localhost:3000\";\n@@ -171,4 +171,22 @@ export const api = {\n       method: \"POST\",\n     });\n   },\n+\n+  getCertificados: async (): Promise<Certificado[]> => {\n+    return request<Certificado[]>(\"/certificados\");\n+  },\n+\n+  getExtrato: async (): Promise<Extrato> => {\n+    return request<Extrato>(\"/extrato\");\n+  },\n+\n+  getCertificadoPorCodigo: async (codigo: string): Promise<VerificacaoCertificado> => {\n+    return request<VerificacaoCertificado>(`/certificados/${encodeURIComponent(codigo)}`);\n+  },\n+\n+  emitirCertificado: async (atividadeId: string): Promise<Certificado> => {\n+    return request<Certificado>(`/atividades/${encodeURIComponent(atividadeId)}/certificado`, {\n+      method: \"POST\",\n+    });\n+  },\n };\n\\ No newline at end of file\ndiff --git a/app/src/api/types.ts b/app/src/api/types.ts\nindex 966c9d4..9031047 100644\n--- a/app/src/api/types.ts\n+++ b/app/src/api/types.ts\n@@ -85,6 +85,40 @@ export interface Inscricao {\n   criadaEm: string;\n }\n \n+export interface Certificado {\n+  codigo: string;\n+  atividadeId: string;\n+  participanteId: string;\n+  cargaHorariaMinutos: number;\n+  presencas: number;\n+  encontros: number;\n+  emitidoEm: string;\n+}\n+\n+export interface ExtratoItem {\n+  atividadeId: string;\n+  titulo: string;\n+  tipo: string;\n+  cargaHorariaMinutos: number;\n+  codigo: string | null;\n+}\n+\n+export interface Extrato {\n+  itens: ExtratoItem[];\n+  palestrasMinutos: number;\n+  minicursosMinutos: number;\n+  totalMinutos: number;\n+  aproveitadoMinutos: number;\n+}\n+\n+export interface VerificacaoCertificado {\n+  codigo: string;\n+  participante: string;\n+  atividade: string;\n+  cargaHorariaMinutos: number;\n+  emitidoEm: string;\n+}\n+\n export interface ApiErrorResponse {\n   erro: string;\n   mensagem: string;\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git diff --stat; git diff app/src/api/client.ts app/src/api/types.ts",
+      "time": {
+       "start": 1790027688165,
+       "end": 1790027688653
+      }
+     },
+     "id": "prt_0c5f6e801001LWDpklRmgNN0Et",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f6d9b0001y1sSPfmj8s7Y7A"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "f8622f8cc4d1dd04ff9d74181732ee146c6d2f37",
+     "type": "step-finish",
+     "tokens": {
+      "total": 63962,
+      "input": 175,
+      "output": 299,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 63488
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5f6ecb5001HGkze6YeyvuxdF",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f6d9b0001y1sSPfmj8s7Y7A"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5f524cc001SM2XZU4LEYF6oj",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 64875,
+     "input": 1007,
+     "output": 124,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 63744
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790027689596,
+     "completed": 1790027692871
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5f6ee7c001eKVbxEgPVR1p4S",
+    "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB"
+   },
+   "parts": [
+    {
+     "snapshot": "f8622f8cc4d1dd04ff9d74181732ee146c6d2f37",
+     "type": "step-start",
+     "id": "prt_0c5f6f48e0011Afk7mwDJc3xEE",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f6ee7c001eKVbxEgPVR1p4S"
+    },
+    {
+     "type": "reasoning",
+     "text": "Everything is confirmed. Let me run the final `git status --short` to include in the report. I already have it from the stash output but let me run it cleanly now.",
+     "time": {
+      "start": 1790027691153,
+      "end": 1790027691453
+     },
+     "id": "prt_0c5f6f491001Oajm26gbZwdqb4",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f6ee7c001eKVbxEgPVR1p4S"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_8ab7d8b8a0c2410cb25dbafa",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git status --short",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+      },
+      "output": " M app/src/api/client.ts\n M app/src/api/types.ts\n",
+      "metadata": {
+       "output": " M app/src/api/client.ts\n M app/src/api/types.ts\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git status --short",
+      "time": {
+       "start": 1790027691556,
+       "end": 1790027691895
+      }
+     },
+     "id": "prt_0c5f6f5c00012l3328AnSPTSGH",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f6ee7c001eKVbxEgPVR1p4S"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "f8622f8cc4d1dd04ff9d74181732ee146c6d2f37",
+     "type": "step-finish",
+     "tokens": {
+      "total": 64875,
+      "input": 1007,
+      "output": 124,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 63744
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5f6f96e001W8Y2X7Nl8Fv7PX",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f6ee7c001eKVbxEgPVR1p4S"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5f524cc001SM2XZU4LEYF6oj",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 65520,
+     "input": 132,
+     "output": 620,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 64768
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790027692877,
+     "completed": 1790027699834
+    },
+    "finish": "stop",
+    "id": "msg_0c5f6fb4d001fZBzCpEMBPXk1c",
+    "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB"
+   },
+   "parts": [
+    {
+     "snapshot": "f8622f8cc4d1dd04ff9d74181732ee146c6d2f37",
+     "type": "step-start",
+     "id": "prt_0c5f7004e001I0Xy2UUvrp6pp3",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f6fb4d001fZBzCpEMBPXk1c"
+    },
+    {
+     "type": "text",
+     "text": "GREEN da FATIA UI-1 concluído. Relatório:\n\n## Arquivos de produção modificados\n- `app/src/api/types.ts`\n- `app/src/api/client.ts`\n\n## Tipos adicionados (`types.ts`)\n- `Certificado` — codigo, atividadeId, participanteId, cargaHorariaMinutos, presencas, encontros, emitidoEm\n- `ExtratoItem` — atividadeId, titulo, tipo, cargaHorariaMinutos, codigo\n- `Extrato` — itens, palestrasMinutos, minicursosMinutos, totalMinutos, aproveitadoMinutos\n- `VerificacaoCertificado` — codigo, participante, atividade, cargaHorariaMinutos, emitidoEm\n\n## Assinatura dos quatro métodos (`client.ts`)\n- `getCertificados(): Promise<Certificado[]>` → `GET /certificados`\n- `getExtrato(): Promise<Extrato>` → `GET /extrato`\n- `getCertificadoPorCodigo(codigo: string): Promise<VerificacaoCertificado>` → `GET /certificados/:codigo` (codigo com `encodeURIComponent`)\n- `emitirCertificado(atividadeId: string): Promise<Certificado>` → `POST /atividades/:id/certificado` sem body (atividadeId com `encodeURIComponent`)\n\n## Campos fora do contrato\nConfirmado: nenhum. Todos os campos conferem com `contrato-api.md:197-228`. A política de `X-Usuario` do helper `getHeaders` permaneceu intocada; sem `selectedUserId`, `getCertificadoPorCodigo` não envia o header (testes RED #4 e #5 satisfazem).\n\n## Resultados\n- `client.test.ts`: **18/18 verdes** (5 novos + 13 antigos).\n- Suíte completa da interface: **111 testes, 7 arquivos, todos verdes**.\n- Typecheck (`tsc --noEmit`): falha **apenas** em um erro pré-existente alheio à fatia — `src/hooks/useCodigoEncontro.ts(12,29): error TS2503: Cannot find namespace 'NodeJS'`. Verifiquei via `git stash` que ele já existia antes das minhas alterações. Ficou fora do escopo (módulo de outro integrante).\n- Build (`npm run build`): bloqueado pelo mesmo erro pré-existente do typecheck.\n\n## Confirmações\n- RED não alterado: `client.test.ts` não aparece no diff.\n- `package.json`/`package-lock.json`: não alterados.\n- Não fiz `git add`, `commit`, nem `push`.\n\n## git status --short\n```\n M app/src/api/client.ts\n M app/src/api/types.ts\n```",
+     "time": {
+      "start": 1790027694166,
+      "end": 1790027698881
+     },
+     "id": "prt_0c5f70056001qX5tg9SlgmQf8q",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f6fb4d001fZBzCpEMBPXk1c"
+    },
+    {
+     "reason": "stop",
+     "snapshot": "f8622f8cc4d1dd04ff9d74181732ee146c6d2f37",
+     "type": "step-finish",
+     "tokens": {
+      "total": 65520,
+      "input": 132,
+      "output": 620,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 64768
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5f7147d001eM5lpmFAL0boKB",
+     "sessionID": "ses_f3a0adb63ffeq6V4zzbzG00VJB",
+     "messageID": "msg_0c5f6fb4d001fZBzCpEMBPXk1c"
+    }
+   ]
+  }
+ ]
+}

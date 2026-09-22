@@ -1,0 +1,1122 @@
+{
+ "info": {
+  "id": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+  "slug": "quick-garden",
+  "projectID": "08a8850750a50d17a216613ef31c5f0b0d1b31ca",
+  "directory": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+  "path": "",
+  "title": "Teste TDD G5: extrato recalculado a cada consulta",
+  "agent": "build",
+  "model": {
+   "id": "big-pickle",
+   "providerID": "opencode"
+  },
+  "version": "1.18.31",
+  "summary": {
+   "additions": 0,
+   "deletions": 0,
+   "files": 0
+  },
+  "cost": 0,
+  "tokens": {
+   "input": 61402,
+   "output": 4564,
+   "reasoning": 0,
+   "cache": {
+    "read": 391680,
+    "write": 0
+   }
+  },
+  "time": {
+   "created": 1790025906841,
+   "updated": 1790025992544
+  }
+ },
+ "messages": [
+  {
+   "info": {
+    "role": "user",
+    "time": {
+     "created": 1790025906891
+    },
+    "agent": "build",
+    "model": {
+     "providerID": "opencode",
+     "modelID": "big-pickle"
+    },
+    "summary": {
+     "diffs": [
+      {
+       "file": "api/tests/extrato.test.ts",
+       "patch": "Index: api/tests/extrato.test.ts\n===================================================================\n--- api/tests/extrato.test.ts\t\n+++ api/tests/extrato.test.ts\t\n@@ -1,505 +1,552 @@\n import { describe, it, expect, beforeEach, afterEach } from 'vitest';\n import request from 'supertest';\n import { createApp } from '../src/app.js';\n \n const PARTICIPANTE = 'p-carla';\n const OUTRO_PARTICIPANTE = 'p-diego';\n const ORGANIZACAO = 'org-ana';\n \n describe('M4 - Certificados - Fatia 4 (GET /extrato)', () => {\n   let app: any;\n \n   beforeEach(() => {\n     app = createApp({ modoTeste: true });\n   });\n \n   afterEach(() => {\n     app?.close?.();\n   });\n \n   async function resetar() {\n     const res = await request(app).post('/_teste/reset');\n     expect(res.status).toBe(204);\n   }\n \n   async function definirRelogio(agora: string) {\n     const res = await request(app).put('/_teste/relogio').send({ agora });\n     expect(res.status).toBe(200);\n   }\n \n   async function criarAtividade(dados: {\n     titulo: string;\n     tipo: 'palestra' | 'minicurso';\n     salaId: string;\n     vagas: number;\n     encontros: Array<{ inicio: string; fim: string }>;\n   }) {\n     const res = await request(app)\n       .post('/atividades')\n       .set('X-Usuario', ORGANIZACAO)\n       .send(dados);\n     expect(res.status).toBe(201);\n     return res.body;\n   }\n \n   function inscrever(atividadeId: string, participante: string) {\n     return request(app)\n       .post(`/atividades/${atividadeId}/inscricoes`)\n       .set('X-Usuario', participante);\n   }\n \n   function consultarExtrato(participante = PARTICIPANTE) {\n     return request(app).get('/extrato').set('X-Usuario', participante);\n   }\n \n   async function registrarPresenca(dia: number, encontros: Array<{ id: string; inicio: string }>) {\n     const encontro = encontros.find((enc) => enc.inicio.startsWith(`2026-10-${dia}T`));\n     if (!encontro) return;\n     await definirRelogio(`2026-10-${dia}T19:30:00-03:00`);\n     const codigoRes = await request(app)\n       .get(`/encontros/${encontro.id}/codigo`)\n       .set('X-Usuario', ORGANIZACAO);\n     expect(codigoRes.status).toBe(200);\n     const codigo = codigoRes.body.codigo;\n     const presencaRes = await request(app)\n       .post(`/encontros/${encontro.id}/presencas`)\n       .set('X-Usuario', PARTICIPANTE)\n       .send({ codigo });\n     expect(presencaRes.status).toBe(201);\n   }\n \n   describe('autorização conforme contrato (identificado e somente participante)', () => {\n     it('retorna 200 com o corpo Extrato do contrato para participante autenticado', async () => {\n       await resetar();\n \n       const res = await consultarExtrato();\n \n       expect(res.status).toBe(200);\n       expect(res.body).toHaveProperty('itens');\n       expect(Array.isArray(res.body.itens)).toBe(true);\n       expect(typeof res.body.palestrasMinutos).toBe('number');\n       expect(typeof res.body.minicursosMinutos).toBe('number');\n       expect(typeof res.body.totalMinutos).toBe('number');\n       expect(typeof res.body.aproveitadoMinutos).toBe('number');\n     });\n \n     it('retorna 401 USUARIO_DESCONHECIDO sem o cabeçalho X-Usuario', async () => {\n       const res = await request(app).get('/extrato');\n \n       expect(res.status).toBe(401);\n       expect(res.body.erro).toBe('USUARIO_DESCONHECIDO');\n       expect(typeof res.body.mensagem).toBe('string');\n     });\n \n     it('retorna 403 SOMENTE_PARTICIPANTE para usuário de organização', async () => {\n       const res = await request(app).get('/extrato').set('X-Usuario', ORGANIZACAO);\n \n       expect(res.status).toBe(403);\n       expect(res.body.erro).toBe('SOMENTE_PARTICIPANTE');\n       expect(typeof res.body.mensagem).toBe('string');\n     });\n   });\n \n   describe('R10/R13 — composição dos itens (codigo preenchido ou null)', () => {\n     it('R10/R13: atividade com inscrição confirmada e certificado emitido aparece com codigo preenchido; atividade elegível sem certificado aparece com codigo null', async () => {\n       await resetar();\n \n       const minicurso = await criarAtividade({\n         titulo: 'Minicurso com certificado',\n         tipo: 'minicurso',\n         salaId: 'lab-3',\n         vagas: 10,\n         encontros: [\n           { inicio: '2026-10-19T19:00:00-03:00', fim: '2026-10-19T22:00:00-03:00' },\n           { inicio: '2026-10-20T19:00:00-03:00', fim: '2026-10-20T22:00:00-03:00' }\n         ]\n       });\n \n       const palestra = await criarAtividade({\n         titulo: 'Palestra sem certificado',\n         tipo: 'palestra',\n         salaId: 'sala-101',\n         vagas: 30,\n         encontros: [\n           { inicio: '2026-10-21T14:00:00-03:00', fim: '2026-10-21T15:00:00-03:00' }\n         ]\n       });\n \n       const insMinicurso = await inscrever(minicurso.id, PARTICIPANTE);\n       expect(insMinicurso.status).toBe(201);\n       expect(insMinicurso.body.status).toBe('confirmada');\n \n       const insPalestra = await inscrever(palestra.id, PARTICIPANTE);\n       expect(insPalestra.status).toBe(201);\n       expect(insPalestra.body.status).toBe('confirmada');\n \n       for (const dia of [19, 20]) {\n         await registrarPresenca(dia, minicurso.encontros);\n       }\n \n       await definirRelogio('2026-10-24T10:00:00-03:00');\n \n       const emitido = await request(app)\n         .post(`/atividades/${minicurso.id}/certificado`)\n         .set('X-Usuario', PARTICIPANTE);\n       expect(emitido.status).toBe(201);\n \n       const res = await consultarExtrato();\n       expect(res.status).toBe(200);\n \n       const itemMinicurso = res.body.itens.find((i: any) => i.atividadeId === minicurso.id);\n       expect(itemMinicurso).toBeDefined();\n       expect(itemMinicurso.titulo).toBe('Minicurso com certificado');\n       expect(itemMinicurso.tipo).toBe('minicurso');\n       expect(itemMinicurso.cargaHorariaMinutos).toBe(360);\n       expect(itemMinicurso.codigo).toBe(emitido.body.codigo);\n \n       const itemPalestra = res.body.itens.find((i: any) => i.atividadeId === palestra.id);\n       expect(itemPalestra).toBeDefined();\n       expect(itemPalestra.titulo).toBe('Palestra sem certificado');\n       expect(itemPalestra.tipo).toBe('palestra');\n       expect(itemPalestra.cargaHorariaMinutos).toBe(60);\n       expect(itemPalestra.codigo).toBeNull();\n \n       expect(res.body.palestrasMinutos).toBe(60);\n       expect(res.body.minicursosMinutos).toBe(360);\n       expect(res.body.totalMinutos).toBe(420);\n       expect(res.body.aproveitadoMinutos).toBe(420);\n     });\n   });\n \n+  describe('G5/R10 — extrato recalculado a cada consulta (sem snapshot)', () => {\n+    it('R10: a emissão de um certificado entre duas consultas muda codigo de null para o código emitido na MESMA instância e banco', async () => {\n+      await resetar();\n+\n+      const minicurso = await criarAtividade({\n+        titulo: 'Minicurso recalculado',\n+        tipo: 'minicurso',\n+        salaId: 'lab-3',\n+        vagas: 10,\n+        encontros: [\n+          { inicio: '2026-10-19T19:00:00-03:00', fim: '2026-10-19T22:00:00-03:00' },\n+          { inicio: '2026-10-20T19:00:00-03:00', fim: '2026-10-20T22:00:00-03:00' }\n+        ]\n+      });\n+\n+      const ins = await inscrever(minicurso.id, PARTICIPANTE);\n+      expect(ins.status).toBe(201);\n+      expect(ins.body.status).toBe('confirmada');\n+\n+      for (const dia of [19, 20]) {\n+        await registrarPresenca(dia, minicurso.encontros);\n+      }\n+\n+      await definirRelogio('2026-10-24T10:00:00-03:00');\n+\n+      const primeiroExtrato = await consultarExtrato();\n+      expect(primeiroExtrato.status).toBe(200);\n+      const itemAntes = primeiroExtrato.body.itens.find((i: any) => i.atividadeId === minicurso.id);\n+      expect(itemAntes).toBeDefined();\n+      expect(itemAntes.codigo).toBeNull();\n+\n+      const emissao = await request(app)\n+        .post(`/atividades/${minicurso.id}/certificado`)\n+        .set('X-Usuario', PARTICIPANTE);\n+      expect(emissao.status).toBe(201);\n+      const codigoEmitido = emissao.body.codigo;\n+      expect(codigoEmitido).toMatch(/^SA26-[A-HJ-KM-NP-Z2-9]{4}-[A-HJ-KM-NP-Z2-9]{4}$/);\n+\n+      const segundoExtrato = await consultarExtrato();\n+      expect(segundoExtrato.status).toBe(200);\n+      const itemDepois = segundoExtrato.body.itens.find((i: any) => i.atividadeId === minicurso.id);\n+      expect(itemDepois).toBeDefined();\n+      expect(itemDepois.codigo).toBe(codigoEmitido);\n+      expect(itemDepois.codigo).not.toBeNull();\n+    });\n+  });\n+\n   describe('R14 — inscrição em_espera não elegível', () => {\n     it('R14: atividade com inscrição em_espera não aparece no extrato', async () => {\n       await resetar();\n \n       const palestra = await criarAtividade({\n         titulo: 'Palestra com lista de espera',\n         tipo: 'palestra',\n         salaId: 'sala-101',\n         vagas: 1,\n         encontros: [\n           { inicio: '2026-10-19T10:00:00-03:00', fim: '2026-10-19T11:00:00-03:00' }\n         ]\n       });\n \n       const insDiego = await inscrever(palestra.id, OUTRO_PARTICIPANTE);\n       expect(insDiego.status).toBe(201);\n       expect(insDiego.body.status).toBe('confirmada');\n \n       const insCarla = await inscrever(palestra.id, PARTICIPANTE);\n       expect(insCarla.status).toBe(201);\n       expect(insCarla.body.status).toBe('em_espera');\n \n       const res = await consultarExtrato();\n       expect(res.status).toBe(200);\n       expect(res.body.itens.some((i: any) => i.atividadeId === palestra.id)).toBe(false);\n       expect(res.body.itens.length).toBe(0);\n     });\n   });\n \n   describe('R15 — inscrição convocada não elegível', () => {\n     it('R15: atividade com inscrição convocada não aparece no extrato', async () => {\n       await resetar();\n \n       const palestra = await criarAtividade({\n         titulo: 'Palestra com convocação',\n         tipo: 'palestra',\n         salaId: 'sala-101',\n         vagas: 1,\n         encontros: [\n           { inicio: '2026-10-19T10:00:00-03:00', fim: '2026-10-19T11:00:00-03:00' }\n         ]\n       });\n \n       await inscrever(palestra.id, OUTRO_PARTICIPANTE);\n \n       const insCarla = await inscrever(palestra.id, PARTICIPANTE);\n       expect(insCarla.status).toBe(201);\n       expect(insCarla.body.status).toBe('em_espera');\n \n       const inscricoes = await request(app)\n         .get(`/inscricoes?atividadeId=${palestra.id}`)\n         .set('X-Usuario', ORGANIZACAO);\n       const insDiego = inscricoes.body.find((i: any) => i.participanteId === OUTRO_PARTICIPANTE);\n \n       await request(app)\n         .post(`/inscricoes/${insDiego.id}/cancelamento`)\n         .set('X-Usuario', OUTRO_PARTICIPANTE);\n \n       const minhas = await request(app).get('/inscricoes').set('X-Usuario', PARTICIPANTE);\n       const minha = minhas.body.find((i: any) => i.atividadeId === palestra.id);\n       expect(minha.status).toBe('convocada');\n \n       const res = await consultarExtrato();\n       expect(res.status).toBe(200);\n       expect(res.body.itens.some((i: any) => i.atividadeId === palestra.id)).toBe(false);\n       expect(res.body.itens.length).toBe(0);\n     });\n   });\n \n   describe('R16 — inscrição cancelada não elegível', () => {\n     it('R16: atividade com inscrição cancelada não aparece no extrato', async () => {\n       await resetar();\n \n       const palestra = await criarAtividade({\n         titulo: 'Palestra com inscrição cancelada',\n         tipo: 'palestra',\n         salaId: 'sala-101',\n         vagas: 2,\n         encontros: [\n           { inicio: '2026-10-19T10:00:00-03:00', fim: '2026-10-19T11:00:00-03:00' }\n         ]\n       });\n \n       const insCarla = await inscrever(palestra.id, PARTICIPANTE);\n       expect(insCarla.status).toBe(201);\n       expect(insCarla.body.status).toBe('confirmada');\n \n       const cancelada = await request(app)\n         .post(`/inscricoes/${insCarla.body.id}/cancelamento`)\n         .set('X-Usuario', PARTICIPANTE);\n       expect(cancelada.status).toBe(200);\n       expect(cancelada.body.status).toBe('cancelada');\n \n       const res = await consultarExtrato();\n       expect(res.status).toBe(200);\n       expect(res.body.itens.some((i: any) => i.atividadeId === palestra.id)).toBe(false);\n       expect(res.body.itens.length).toBe(0);\n     });\n   });\n \n   describe('R17 — inscrição expirada não elegível', () => {\n     it('R17: atividade com inscrição expirada não aparece no extrato', async () => {\n       await resetar();\n \n       const palestra = await criarAtividade({\n         titulo: 'Palestra com inscrição expirada',\n         tipo: 'palestra',\n         salaId: 'sala-101',\n         vagas: 1,\n         encontros: [\n           { inicio: '2026-10-19T10:00:00-03:00', fim: '2026-10-19T11:00:00-03:00' }\n         ]\n       });\n \n       await inscrever(palestra.id, OUTRO_PARTICIPANTE);\n \n       const insCarla = await inscrever(palestra.id, PARTICIPANTE);\n       expect(insCarla.status).toBe(201);\n       expect(insCarla.body.status).toBe('em_espera');\n \n       const inscricoes = await request(app)\n         .get(`/inscricoes?atividadeId=${palestra.id}`)\n         .set('X-Usuario', ORGANIZACAO);\n       const insDiego = inscricoes.body.find((i: any) => i.participanteId === OUTRO_PARTICIPANTE);\n \n       await request(app)\n         .post(`/inscricoes/${insDiego.id}/cancelamento`)\n         .set('X-Usuario', OUTRO_PARTICIPANTE);\n \n       await definirRelogio('2026-10-13T12:00:00-03:00');\n       await request(app).get('/inscricoes').set('X-Usuario', ORGANIZACAO);\n \n       const minhas = await request(app).get('/inscricoes').set('X-Usuario', PARTICIPANTE);\n       const minha = minhas.body.find((i: any) => i.atividadeId === palestra.id);\n       expect(minha.status).toBe('expirada');\n \n       const res = await consultarExtrato();\n       expect(res.status).toBe(200);\n       expect(res.body.itens.some((i: any) => i.atividadeId === palestra.id)).toBe(false);\n       expect(res.body.itens.length).toBe(0);\n     });\n   });\n \n   describe('R18 — atividade cancelada não elegível', () => {\n     it('R18: atividade cancelada não aparece no extrato, mesmo existindo inscrição relacionada', async () => {\n       await resetar();\n \n       const palestra = await criarAtividade({\n         titulo: 'Palestra cancelada pela organização',\n         tipo: 'palestra',\n         salaId: 'sala-101',\n         vagas: 2,\n         encontros: [\n           { inicio: '2026-10-19T10:00:00-03:00', fim: '2026-10-19T11:00:00-03:00' }\n         ]\n       });\n \n       const insCarla = await inscrever(palestra.id, PARTICIPANTE);\n       expect(insCarla.status).toBe(201);\n       expect(insCarla.body.status).toBe('confirmada');\n \n       const cancelamento = await request(app)\n         .post(`/atividades/${palestra.id}/cancelamento`)\n         .set('X-Usuario', ORGANIZACAO);\n       expect(cancelamento.status).toBe(200);\n \n       const res = await consultarExtrato();\n       expect(res.status).toBe(200);\n       expect(res.body.itens.some((i: any) => i.atividadeId === palestra.id)).toBe(false);\n       expect(res.body.itens.length).toBe(0);\n     });\n   });\n \n   describe('R3 — cargas brutas das atividades elegíveis', () => {\n     it('R3: palestrasMinutos e minicursosMinutos são as somas brutas das atividades elegíveis, sem teto', async () => {\n       await resetar();\n \n       const palestra240 = await criarAtividade({\n         titulo: 'Palestra de 240 minutos',\n         tipo: 'palestra',\n         salaId: 'sala-101',\n         vagas: 30,\n         encontros: [\n           { inicio: '2026-10-19T08:00:00-03:00', fim: '2026-10-19T12:00:00-03:00' }\n         ]\n       });\n \n       const palestra60 = await criarAtividade({\n         titulo: 'Palestra de 60 minutos',\n         tipo: 'palestra',\n         salaId: 'sala-102',\n         vagas: 30,\n         encontros: [\n           { inicio: '2026-10-19T14:00:00-03:00', fim: '2026-10-19T15:00:00-03:00' }\n         ]\n       });\n \n       const minicurso500 = await criarAtividade({\n         titulo: 'Minicurso de 500 minutos',\n         tipo: 'minicurso',\n         salaId: 'lab-3',\n         vagas: 10,\n         encontros: [\n           { inicio: '2026-10-19T16:00:00-03:00', fim: '2026-10-19T19:00:00-03:00' },\n           { inicio: '2026-10-20T16:00:00-03:00', fim: '2026-10-20T19:00:00-03:00' },\n           { inicio: '2026-10-21T16:00:00-03:00', fim: '2026-10-21T18:20:00-03:00' }\n         ]\n       });\n \n       const ins1 = await inscrever(palestra240.id, PARTICIPANTE);\n       expect(ins1.body.status).toBe('confirmada');\n       const ins2 = await inscrever(palestra60.id, PARTICIPANTE);\n       expect(ins2.body.status).toBe('confirmada');\n       const ins3 = await inscrever(minicurso500.id, PARTICIPANTE);\n       expect(ins3.body.status).toBe('confirmada');\n \n       const res = await consultarExtrato();\n       expect(res.status).toBe(200);\n       expect(res.body.palestrasMinutos).toBe(300);\n       expect(res.body.minicursosMinutos).toBe(500);\n       expect(res.body.totalMinutos).toBe(800);\n       expect(res.body.aproveitadoMinutos).toBe(740);\n       expect(res.body.itens.length).toBe(3);\n     });\n   });\n \n   describe('R4 — teto de aproveitamento das palestras (240 min)', () => {\n     it('R4: palestras acima de 240 minutos permanecem brutas em palestrasMinutos e aplicam o teto de 240 só em aproveitadoMinutos', async () => {\n       await resetar();\n \n       const palestra240 = await criarAtividade({\n         titulo: 'Palestra de 240 minutos',\n         tipo: 'palestra',\n         salaId: 'sala-101',\n         vagas: 30,\n         encontros: [\n           { inicio: '2026-10-19T08:00:00-03:00', fim: '2026-10-19T12:00:00-03:00' }\n         ]\n       });\n \n       const palestra60 = await criarAtividade({\n         titulo: 'Palestra de 60 minutos',\n         tipo: 'palestra',\n         salaId: 'sala-102',\n         vagas: 30,\n         encontros: [\n           { inicio: '2026-10-19T14:00:00-03:00', fim: '2026-10-19T15:00:00-03:00' }\n         ]\n       });\n \n       const ins1 = await inscrever(palestra240.id, PARTICIPANTE);\n       expect(ins1.body.status).toBe('confirmada');\n       const ins2 = await inscrever(palestra60.id, PARTICIPANTE);\n       expect(ins2.body.status).toBe('confirmada');\n \n       const res = await consultarExtrato();\n       expect(res.status).toBe(200);\n       expect(res.body.palestrasMinutos).toBe(300);\n       expect(res.body.minicursosMinutos).toBe(0);\n       expect(res.body.totalMinutos).toBe(300);\n       expect(res.body.aproveitadoMinutos).toBe(240);\n     });\n   });\n \n   describe('R5 — teto total de aproveitamento (1200 min)', () => {\n     it('R5: aproveitadoMinutos aplica o teto de 1200 depois do teto de palestras, preservando os brutos', async () => {\n       await resetar();\n \n       const palestra120 = await criarAtividade({\n         titulo: 'Palestra de 120 minutos',\n         tipo: 'palestra',\n         salaId: 'sala-101',\n         vagas: 30,\n         encontros: [\n           { inicio: '2026-10-19T08:00:00-03:00', fim: '2026-10-19T10:00:00-03:00' }\n         ]\n       });\n \n       const minicurso700 = await criarAtividade({\n         titulo: 'Minicurso de 700 minutos',\n         tipo: 'minicurso',\n         salaId: 'sala-102',\n         vagas: 10,\n         encontros: [\n           { inicio: '2026-10-19T11:00:00-03:00', fim: '2026-10-19T13:20:00-03:00' },\n           { inicio: '2026-10-20T11:00:00-03:00', fim: '2026-10-20T13:20:00-03:00' },\n           { inicio: '2026-10-21T11:00:00-03:00', fim: '2026-10-21T13:20:00-03:00' },\n           { inicio: '2026-10-22T11:00:00-03:00', fim: '2026-10-22T13:20:00-03:00' },\n           { inicio: '2026-10-23T11:00:00-03:00', fim: '2026-10-23T13:20:00-03:00' }\n         ]\n       });\n \n       const minicurso600 = await criarAtividade({\n         titulo: 'Minicurso de 600 minutos',\n         tipo: 'minicurso',\n         salaId: 'lab-3',\n         vagas: 10,\n         encontros: [\n           { inicio: '2026-10-20T15:00:00-03:00', fim: '2026-10-20T17:30:00-03:00' },\n           { inicio: '2026-10-21T15:00:00-03:00', fim: '2026-10-21T17:30:00-03:00' },\n           { inicio: '2026-10-22T15:00:00-03:00', fim: '2026-10-22T17:30:00-03:00' },\n           { inicio: '2026-10-23T15:00:00-03:00', fim: '2026-10-23T17:30:00-03:00' }\n         ]\n       });\n \n       const ins1 = await inscrever(palestra120.id, PARTICIPANTE);\n       expect(ins1.body.status).toBe('confirmada');\n       const ins2 = await inscrever(minicurso700.id, PARTICIPANTE);\n       expect(ins2.body.status).toBe('confirmada');\n       const ins3 = await inscrever(minicurso600.id, PARTICIPANTE);\n       expect(ins3.body.status).toBe('confirmada');\n \n       const res = await consultarExtrato();\n       expect(res.status).toBe(200);\n       expect(res.body.palestrasMinutos).toBe(120);\n       expect(res.body.minicursosMinutos).toBe(1300);\n       expect(res.body.totalMinutos).toBe(1420);\n       expect(res.body.aproveitadoMinutos).toBe(1200);\n     });\n   });\n \n   describe('participante sem atividades elegíveis', () => {\n     it('devolve itens vazio e totais coerentes com zero', async () => {\n       await resetar();\n \n       const res = await consultarExtrato();\n       expect(res.status).toBe(200);\n       expect(res.body.itens).toEqual([]);\n       expect(res.body.palestrasMinutos).toBe(0);\n       expect(res.body.minicursosMinutos).toBe(0);\n       expect(res.body.totalMinutos).toBe(0);\n       expect(res.body.aproveitadoMinutos).toBe(0);\n     });\n   });\n });\n\\ No newline at end of file\n",
+       "additions": 47,
+       "deletions": 0,
+       "status": "modified"
+      }
+     ]
+    },
+    "id": "msg_0c5dbbacb001t5oFKwVXXX0tnF",
+    "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH"
+   },
+   "parts": [
+    {
+     "type": "text",
+     "text": "Vamos fechar a lacuna G5 de cobertura do M4:\n\nR10 — o extrato deve ser calculado no momento da consulta e refletir certificados emitidos depois de uma consulta anterior.\n\nUse a skill tdd-m4.\n\nEsta etapa começa como CARACTERIZAÇÃO.\nNÃO altere produção antes de executar o novo teste.\n\nConsulte:\n- specs/M4-certificados.md\n- contrato-api.md\n- AGENTS.md\n- api/tests/extrato.test.ts\n- api/src/certificate/extrato.ts\n- api/src/certificate/emissao-certificado.ts\n- api/src/repositories/certificate-repository.ts\n- api/src/app.ts\n\nNÃO consulte requisitos-envolvidos.md.\n\nOBJETIVO\n\nCriar o menor teste HTTP possível que prove que GET /extrato é recalculado a cada consulta.\n\nCENÁRIO\n\nPrepare:\n\n- participante válido;\n- atividade válida e não cancelada;\n- inscrição confirmada;\n- atividade elegível para o extrato;\n- encontros/presenças suficientes para permitir emissão;\n- relógio depois do encerramento da atividade.\n\nPASSO 1\nFaça:\n\nGET /extrato\n\nEsperado:\n- 200;\n- atividade presente no extrato;\n- codigo === null.\n\nPASSO 2\nSem recriar a aplicação e sem resetar o banco, faça:\n\nPOST /atividades/:id/certificado\n\nEsperado:\n- primeira emissão 201;\n- capture o codigo retornado.\n\nPASSO 3\nNa MESMA instância da aplicação e no MESMO banco, faça novamente:\n\nGET /extrato\n\nEsperado:\n- 200;\n- mesma atividade continua presente;\n- codigo agora é exatamente o código retornado pela emissão;\n- não deve continuar null.\n\nA prova principal é a transição:\n\nGET /extrato\ncodigo: null\n\n→ POST certificado\n\n→ GET /extrato\ncodigo: SA26-....\n\nIsso deve demonstrar que o extrato consulta o estado atual e não utiliza snapshot/cache da primeira consulta.\n\nIMPORTANTE:\n\n1. Prefira acrescentar o teste ao arquivo api/tests/extrato.test.ts se ele pertencer naturalmente à mesma suíte.\n2. NÃO altere testes existentes.\n3. NÃO altere produção antes da primeira execução.\n4. NÃO force RED artificial.\n5. Se passar imediatamente, registre:\n   \"G5: GREEN imediato — extrato já é recalculado a cada consulta.\"\n6. Se falhar, pare e informe expected × received.\n7. NÃO implemente telas.\n8. NÃO altere spec/contrato.\n9. NÃO faça refatorações não relacionadas.\n\nExecute primeiro somente:\n\nnpx vitest run tests/extrato.test.ts\n\nSe estiver GREEN, execute:\n\nnpm test\nnpm run typecheck\ngit status --short\n\nNo relatório informe:\n\n- arquivo alterado/criado;\n- quantidade de testes adicionados;\n- resultado da primeira consulta ao extrato;\n- resultado da emissão;\n- resultado da segunda consulta;\n- código antes × depois;\n- se utilizou a mesma app e o mesmo banco;\n- se foi GREEN imediato ou RED legítimo;\n- resultado da suíte completa;\n- resultado do typecheck, distinguindo baseline de erro novo;\n- confirmação de que nenhum código de produção foi alterado;\n- git status --short.\n\nNão faça git add.\nNão faça commit.\nNão faça push. ",
+     "id": "prt_0c5dbbace00130qLgGpr3cMKti",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dbbacb001t5oFKwVXXX0tnF"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5dbbacb001t5oFKwVXXX0tnF",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 21885,
+     "input": 19997,
+     "output": 96,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 1792
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790025906929,
+     "completed": 1790025915876
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5dbbaf1001PCPsJ3omLuGHHA",
+    "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH"
+   },
+   "parts": [
+    {
+     "snapshot": "0270e50903be366e3e1d9ea5a1d439ee310d15a9",
+     "type": "step-start",
+     "id": "prt_0c5dbd3ad001hxJ3SLyxb4EA8P",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dbbaf1001PCPsJ3omLuGHHA"
+    },
+    {
+     "type": "reasoning",
+     "text": "The user wants me to close G5 coverage gap for M4. Let me start by loading the tdd-m4 skill as requested, and consulting the necessary files.\n\nLet me start by loading the skill and reading the relevant files in parallel.",
+     "time": {
+      "start": 1790025913330,
+      "end": 1790025914475
+     },
+     "id": "prt_0c5dbd3f20015uQJDF1pgSIpij",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dbbaf1001PCPsJ3omLuGHHA"
+    },
+    {
+     "type": "text",
+     "text": "\n\n",
+     "time": {
+      "start": 1790025914479,
+      "end": 1790025914935
+     },
+     "id": "prt_0c5dbd86f0016PhO4qo35BuILb",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dbbaf1001PCPsJ3omLuGHHA"
+    },
+    {
+     "type": "tool",
+     "tool": "skill",
+     "callID": "call_d427884e7c3444b5a5a72c64",
+     "state": {
+      "status": "completed",
+      "input": {
+       "name": "tdd-m4"
+      },
+      "output": "<skill_content name=\"tdd-m4\">\n# Skill: tdd-m4\n\n# TDD para M4-certificados\n\nA fonte de verdade é `specs/M4-certificados.md`. Não invente regras de negócio.\nNão altere a spec. Não acesse documentos externos de requisitos.\n\nO ciclo é o mesmo do `tdd` geral — teste que falha, código mínimo, refactor — mas\nancorado nas 4 fatias e 12 regras de M4. Uma regra ou grupo coeso por ciclo TDD.\n\n## Onde o teste mora\n\nTeste verifica comportamento pela interface pública (HTTP), nunca implementação.\nUse Vitest + Supertest, a aplicação Express de `createApp()` sem abrir porta,\ne as rotas `/_teste/*` com `MODO_TESTE=1` para setup e controle do relógio.\n\nArquivos de teste em `api/tests/`. Para rodar: `npm --prefix api test`.\n\nRegra do projeto: não importe serviço nem repositório no teste — se importar,\no teste quebra em refatoração sem que o comportamento tenha mudado.\n\n## Fatias e regras\n\nCada fatia é um entregável vertical que pode ser testado sozinho.\nImplemente as fatias nesta ordem. Dentro de cada fatia, uma regra ou grupo\ncoeso de regras por ciclo TDD.\n\n### Fatia 1 — emissão do certificado\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R1 | Presença mínima de 75% (`presencas / encontros`, sem arredondamento) | 1, 2, 3, 4 |\n| R2 | Emissão somente após encerramento da atividade | 5, 6 |\n| R12 | Precedência: `ATIVIDADE_NAO_ENCERRADA` antes de `PRESENCA_INSUFICIENTE` | 20 |\n| R9 | Idempotência: 201 na primeira vez, 200 nas seguintes, mesmo código | 17 |\n\nOrdem sugerida dentro da fatia:\n1. R1 — teste presence check, implemente, refactor.\n2. R2 — teste encerramento, implemente, refactor.\n3. R12 — teste precedência quando ambos falham, implemente, refactor.\n4. R9 — teste idempotência 201→200, implemente, refactor.\n\n### Fatia 2 — código e listagem\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R6 | Formato `SA26-XXXX-XXXX`, unicidade, mesmo código na reemissão | 11, 12 |\n| R11 | Alfabeto: maiúsculas + dígitos, sem `I`, `O`, `0`, `1` | 19 |\n\nOrdem sugerida dentro da fatia:\n1. R6 — teste formato e unicidade, implemente geração, refactor.\n2. R11 — teste exclusão de caracteres ambíguos, implemente, refactor.\n3. R9 (continuação) — teste `GET /certificados` retornando apenas emitidos.\n\n### Fatia 3 — verificação pública\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R8 | `GET /certificados/:codigo` sem `X-Usuario`, campos públicos apenas | 15, 16 |\n| R7 | Abreviação do nome: primeiro nome + iniciais + partículas por extenso | 13, 14 |\n\nOrdem sugerida dentro da fatia:\n1. R8 — teste rota pública sem header, campos corretos, implemente, refactor.\n2. R7 — teste abreviação com partículas, implemente, refactor.\n\n### Fatia 4 — extrato de horas complementares\n\n| Regra | Descrição | Critérios de aceite |\n|-------|-----------|---------------------|\n| R3 | Cargas brutas: `palestrasMinutos`, `minicursosMinutos`, `totalMinutos` sem teto | 7, 8, 9, 10 |\n| R4 | Teto de palestras: `min(240, palestrasMinutos)` | 7, 8, 9 |\n| R5 | Teto total: `aproveitadoMinutos = min(1200, min(240, palestrasMinutos) + minicursosMinutos)` | 7, 8 |\n| R10 | Itens do extrato: `codigo` preenchido ou `null` conforme emissão | 18 |\n\nOrdem sugerida dentro da fatia:\n1. R3+R4+R5 — teste cálculos de extrato (juntos, são uma unidade coesa), implemente, refactor.\n2. R10 — teste composição dos itens com código/null, implemente, refactor.\n\n## O ciclo TDD, passo a passo\n\nPara cada regra (ou grupo coeso), nestes passos:\n\n1. **RED**: Escreva um teste que prova o critério de aceite. Rode. **Ele tem que falhar.**\n   Se passar antes do código existir, algo está errado — descubra o quê antes de seguir.\n   O nome do teste descreve a regra em português:\n   `it('recusa certificado com menos de 75% de presenca')`.\n\n2. **GREEN**: Escreva o mínimo de código que faz o teste passar.\n   Nada de já implementar a regra seguinte \"que eu vou precisar mesmo\".\n   Rode o teste individual. Verde? Rode a suíte inteira. Verde? Próximo passo.\n\n3. **REFACTOR**: Com verde, limpe o código sem alterar comportamento.\n   Extraia funções, melhore nomes, remova duplicação. Rode a suíte inteira de novo.\n   Ainda verde? Próxima regra.\n\n## A regra que não se quebra\n\n**Quando o teste falha, o suspeito é o código.**\n\nSe você mudar um teste para ele passar, trocou o contrato pela implementação e o\nverde virou enfeite. Só se altera um teste quando a **spec** mudou — e aí você diz\nqual regra da spec mudou e por quê.\n\nVale para o valor esperado, para o status HTTP e para o cenário. Trocar\n`expect(response.body.presencas).toBe(3)` por `expect(response.body.presencas).toBe(0)`\nporque o código deu 0 é a forma mais comum de mentir sozinho.\n\n## Três testes que não valem nada\n\n- **Acoplado à implementação** — chama serviço ou repositório direto, ou confere o\n  dado espiando o `Map`/banco. Quebra em refatoração, não em regressão.\n- **Tautológico** — o esperado é calculado do mesmo jeito que o código calcula.\n  Passa por construção, nunca discorda. O valor esperado vem da spec, escrito na mão.\n- **Frouxo** — confere só o status e ignora o corpo. `201` com o `codigo` errado passa.\n\n## Dependências de M2 e M3\n\nM4 depende de dados que vêm de outros módulos. Não implemente esses módulos —\nuse as interfaces e portas de integração que já existem.\n\n### M3 — Presenças\n\n- Porta: `M3PresencePort` em `src/integrations/m3-presence-port.ts`\n- Método: `countPresencas(atividadeId, participanteId) → number`\n- Estado atual: `NeutralM3PresenceAdapter` retorna sempre 0.\n- Para testes de emissão (R1), registre presenças via rotas HTTP do M3\n  (`POST /encontros/:id/presencas`) no setup do teste. O adapter real do M3\n  deve ser ativado em ambiente de teste, ou o teste deve montar o cenário\n  pelas rotas existentes da API.\n- Se M3 não estiver funcional, documente o bloqueio e não simule dados.\n\n### M2 — Inscrições\n\n- Porta: `M2IntegrationPort` em `src/integrations/m2-port.ts`\n- Estado atual: `NeutralM2Adapter` não expõe listagem de inscrições por participante.\n- Para R10 (extrato), M4 precisa saber em quais atividades o participante está\n  inscrito e se há certificado emitido para cada uma.\n- Se a porta de M2 não fornecer esse dado, documente o bloqueio — não invente\n  persistência de inscrições dentro de M4.\n\n### M1 — Atividades\n\n- Já acessível via `ActivityRepository`. M4 precisa de `titulo`, `tipo`,\n  `cargaHorariaMinutos`, `encontros` (total de encontros) e `dataTermino`\n  (para R2).\n- Não altere o repositório de M1. Se faltar campo, documente o bloqueio.\n\n## Validações adicionais do contrato\n\nAlém das regras R1–R12, o `contrato-api.md` lista códigos de erro que o M4\ndeve retornar. Teste-os quando implementar a rota correspondente:\n\n| Código | HTTP | Quando |\n|--------|------|--------|\n| `NAO_INSCRITO` | 403 | Participante não inscrito na atividade |\n| `ATIVIDADE_CANCELADA` | 422 | Atividade foi cancelada |\n| `ATIVIDADE_NAO_ENCERRADA` | 422 | Atividade ainda não encerrada (R2) |\n| `PRESENCA_INSUFICIENTE` | 422 | Presença abaixo de 75% (R1) |\n\n## Execução e verificação\n\nApós cada regra implementada (GREEN + REFACTOR):\n\n1. Rode `npm --prefix api test` — suíte inteira tem que estar verde.\n2. Rode `npx tsc --noEmit` dentro de `api/` — typecheck tem que passar.\n3. Se falhar, corrija antes de seguir para a próxima regra.\n\nTerminada a última fatia, rode a suíte inteira uma vez e relate o número real\nde testes que apareceu na saída. Não estime, não arredonde.\n\n## Commits\n\nFaça commits pequenos, um por regra ou grupo coeso de regras dentro da fatia.\nMensagem no padrão do projeto, identificando a regra:\n\n```\nM4: implementa R1 — presença mínima de 75%\nM4: implementa R2 — emissão após encerramento\nM4: implementa R9 — idempotência 201/200\n```\n\nAntes de commitar, verifique `git status` e `git diff` para confirmar que\napenas arquivos intencionais estão staged.\n\n## Rastreabilidade\n\nCada regra da spec deve ter:\n- Pelo menos um teste que a comprove (critério de aceite correspondente).\n- Implementação que o teste exercita.\n- Referência explícita: nome do teste cita a regra, commit cita a regra.\n\nSe uma regra não tem teste, ela não está implementada — pare e escreva o teste.\n\n## O que não fazer\n\n- Não acesse documentos externos de requisitos.\n- Não altere `specs/M4-certificados.md`.\n- Não altere `contrato-api.md`.\n- Não implemente código de M1, M2 ou M3 — apenas use suas portas/interfaces.\n- Não altere testes existentes apenas para fazê-los passar.\n- Não altere código de outros módulos.\n- Não faça commit de código que não esteja verde na suíte inteira.\n\nBase directory for this skill: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\.opencode\\skills\\tdd-m4\nRelative paths in this skill (e.g., scripts/, reference/) are relative to this base directory.\nNote: file list is sampled.\n\n<skill_files>\n\n</skill_files>\n</skill_content>",
+      "metadata": {
+       "name": "tdd-m4",
+       "dir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\.opencode\\skills\\tdd-m4",
+       "truncated": false
+      },
+      "title": "Loaded skill: tdd-m4",
+      "time": {
+       "start": 1790025914722,
+       "end": 1790025914800
+      }
+     },
+     "id": "prt_0c5dbd8a4001bXGkcULCVtfS6o",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dbbaf1001PCPsJ3omLuGHHA"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "0270e50903be366e3e1d9ea5a1d439ee310d15a9",
+     "type": "step-finish",
+     "tokens": {
+      "total": 21885,
+      "input": 19997,
+      "output": 96,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 1792
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5dbdbe1001ljbe0ZN3d0SztI",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dbbaf1001PCPsJ3omLuGHHA"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5dbbacb001t5oFKwVXXX0tnF",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 25203,
+     "input": 2900,
+     "output": 543,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 21760
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790025915885,
+     "completed": 1790025920815
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5dbdded001UNUcrWWh2NHNMx",
+    "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH"
+   },
+   "parts": [
+    {
+     "snapshot": "0270e50903be366e3e1d9ea5a1d439ee310d15a9",
+     "type": "step-start",
+     "id": "prt_0c5dbe357001yhZRKt1gXhF55E",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dbdded001UNUcrWWh2NHNMx"
+    },
+    {
+     "type": "reasoning",
+     "text": "Let me consult the necessary files. I need to read:\n- specs/M4-certificados.md\n- contrato-api.md\n- AGENTS.md (already loaded in system prompt)\n- api/tests/extrato.test.ts\n- api/src/certificate/extrato.ts\n- api/src/certificate/emissao-certificado.ts\n- api/src/repositories/certificate-repository.ts\n- api/src/app.ts\n\nLet me read these in parallel.",
+     "time": {
+      "start": 1790025917276,
+      "end": 1790025917992
+     },
+     "id": "prt_0c5dbe35c001fMtSl0MEdWsZfk",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dbdded001UNUcrWWh2NHNMx"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_dcb2598f4f1c42a3a6569e39",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\specs\\M4-certificados.md"
+      },
+      "output": "[16300 caracteres omitidos]",
+      "title": "specs\\M4-certificados.md",
+      "time": {
+       "start": 1790025918138,
+       "end": 1790025918191
+      }
+     },
+     "id": "prt_0c5dbe62b001j5PwAgFhP1inC4",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dbdded001UNUcrWWh2NHNMx"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_1473e623c3e54129979f4ef0",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\contrato-api.md"
+      },
+      "output": "[13910 caracteres omitidos]",
+      "title": "contrato-api.md",
+      "time": {
+       "start": 1790025918638,
+       "end": 1790025918669
+      }
+     },
+     "id": "prt_0c5dbe707001oXOtFvxs0gDpVM",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dbdded001UNUcrWWh2NHNMx"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_aba08e5155c64683922f1b15",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\extrato.test.ts"
+      },
+      "output": "[23912 caracteres omitidos]",
+      "title": "api\\tests\\extrato.test.ts",
+      "time": {
+       "start": 1790025918849,
+       "end": 1790025918910
+      }
+     },
+     "id": "prt_0c5dbe8d30010CTVHo2ehkv6HW",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dbdded001UNUcrWWh2NHNMx"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_9e63ddd21eeb4543a3284f74",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\certificate\\extrato.ts"
+      },
+      "output": "[2416 caracteres omitidos]",
+      "title": "api\\src\\certificate\\extrato.ts",
+      "time": {
+       "start": 1790025919027,
+       "end": 1790025919075
+      }
+     },
+     "id": "prt_0c5dbe99b001OvVEYeAyYD03GQ",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dbdded001UNUcrWWh2NHNMx"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_f63bc248519f48f5b5d2e8b6",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\certificate\\emissao-certificado.ts"
+      },
+      "output": "[3981 caracteres omitidos]",
+      "title": "api\\src\\certificate\\emissao-certificado.ts",
+      "time": {
+       "start": 1790025919353,
+       "end": 1790025919414
+      }
+     },
+     "id": "prt_0c5dbea5b0016zpP0LQzlqm9ou",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dbdded001UNUcrWWh2NHNMx"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_da1d691542d44951b016b0c8",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\repositories\\certificate-repository.ts"
+      },
+      "output": "[4290 caracteres omitidos]",
+      "title": "api\\src\\repositories\\certificate-repository.ts",
+      "time": {
+       "start": 1790025919734,
+       "end": 1790025919756
+      }
+     },
+     "id": "prt_0c5dbeb810018ei1jcGzLAS2nz",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dbdded001UNUcrWWh2NHNMx"
+    },
+    {
+     "type": "tool",
+     "tool": "read",
+     "callID": "call_c259b8a452d349eba8527966",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\src\\app.ts"
+      },
+      "output": "[22457 caracteres omitidos]",
+      "title": "api\\src\\app.ts",
+      "time": {
+       "start": 1790025919814,
+       "end": 1790025919906
+      }
+     },
+     "id": "prt_0c5dbecfb001klQQ6nTLMLe0lY",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dbdded001UNUcrWWh2NHNMx"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "0270e50903be366e3e1d9ea5a1d439ee310d15a9",
+     "type": "step-finish",
+     "tokens": {
+      "total": 25203,
+      "input": 2900,
+      "output": 543,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 21760
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5dbef76001OUij4GtQZCYK96",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dbdded001UNUcrWWh2NHNMx"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5dbbacb001t5oFKwVXXX0tnF",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 54682,
+     "input": 28335,
+     "output": 1259,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 25088
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790025920822,
+     "completed": 1790025933034
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5dbf1360013VoxYSBgd54GGJ",
+    "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH"
+   },
+   "parts": [
+    {
+     "snapshot": "0270e50903be366e3e1d9ea5a1d439ee310d15a9",
+     "type": "step-start",
+     "id": "prt_0c5dbf9a1001W2TZnIRMvkuOio",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dbf1360013VoxYSBgd54GGJ"
+    },
+    {
+     "type": "reasoning",
+     "text": "Let me analyze the codebase. The `ConsultarExtrato.execute` calls `findByAtividadeEParticipante` on each request — this queries the DB (SQLite) directly through the repository. So the extract is computed at query time, using the DB. There's no snapshot/cache. It's likely GREEN imediato.\n\nLet me verify git status first to make sure the working tree is clean before editing.\n\nThe task is:\n1. Write a test that proves GET /extrato is recalculated at each consult:\n   - Prepare: participant, activity valid and not canceled, confirmed inscription, eligible activity, enough presences, clock after activity end.\n   - Step 1: GET /extrato → 200, activity present, codigo === null.\n   - Step 2: POST /atividades/:id/certificado → 201, capture code.\n   - Step 3: In SAME app instance and SAME db, GET /extrato again → 200, activity present, codigo == emitted code, not null.\n\n2. Add the test to api/tests/extrato.test.ts as it belongs naturally to the same suite.\n3. Don't change existing tests.\n4. Don't change production before first run.\n5. Run test first: npx vitest run tests/extrato.test.ts\n6. If green immediately, register \"G5: GREEN imediato...\"\n7. Then run npm test, npm run typecheck, git status --short.\n\nLet me check git status first, then write the test following the existing style.\n\nThe test belongs to the describe block. Where to place it? It fits naturally after 'R10/R13 — composição dos itens' describe, or as a new describe for \"R10 — recálculo a cada consulta (G5)\". I'll add a new describe block after the R10/R13 block.\n\nLet me write the test:\n\n```ts\ndescribe('G5/R10 — extrato recalculado a cada consulta', () => {\n  it('R10: GET /extrato após emissão reflete o código do certificado na mesma instância e banco', async () => {\n    await resetar();\n\n    const minicurso = await criarAtividade({\n      titulo: 'Minicurso recalculado',\n      tipo: 'minicurso',\n      salaId: 'lab-3',\n      vagas: 10,\n      encontros: [\n        { inicio: '2026-10-19T19:00:00-03:00', fim: '2026-10-19T22:00:00-03:00' },\n        { inicio: '2026-10-20T19:00:00-03:00', fim: '2026-10-20T22:00:00-03:00' }\n      ]\n    });\n\n    const ins = await inscrever(minicurso.id, PARTICIPANTE);\n    expect(ins.status).toBe(201);\n    expect(ins.body.status).toBe('confirmada');\n\n    for (const dia of [19, 20]) {\n      await registrarPresenca(dia, minicurso.encontros);\n    }\n\n    await definirRelogio('2026-10-24T10:00:00-03:00');\n\n    const primeiroExtrato = await consultarExtrato();\n    expect(primeiroExtrato.status).toBe(200);\n    const itemAntes = primeiroExtrato.body.itens.find((i: any) => i.atividadeId === minicurso.id);\n    expect(itemAntes).toBeDefined();\n    expect(itemAntes.codigo).toBeNull();\n\n    const emissao = await request(app)\n      .post(`/atividades/${minicurso.id}/certificado`)\n      .set('X-Usuario', PARTICIPANTE);\n    expect(emissao.status).toBe(201);\n    const codigoEmitido = emissao.body.codigo;\n\n    const segundoExtrato = await consultarExtrato();\n    expect(segundoExtrato.status).toBe(200);\n    const itemDepois = segundoExtrato.body.itens.find((i: any) => i.atividadeId === minicurso.id);\n    expect(itemDepois).toBeDefined();\n    expect(itemDepois.codigo).toBe(codigoEmitido);\n    expect(itemDepois.codigo).not.toBeNull();\n  });\n});\n```\n\nNote: the emitidoEm is generated with clock.now(). That's fine. Same app instance (the `app` from beforeEach), same db (SQLite created in createApp local db). Good.\n\nWait — I need to verify one thing: is the extracted `registrarPresenca` helper correct? It finds the encontro by the day prefix. The minicurso has 2 encontros on days 19 and 20. It registers presence on each. Good.\n\nNow, one concern: is there a potential issue with the same M2 `nao_inscrito`? The inscrever returns 201 confirmada because vagas 10. Good.\n\nNow write the test. First check git status. Let me do that.\n\nActually I should run git status to check for uncommitted changes by others (per AGENTS.md: \"Antes de editar, verificar git status.\"). Let me run git status.\n\nAlso confirm no production changes. Then add the test. Then run the test.\n\nLet me proceed.",
+     "time": {
+      "start": 1790025923088,
+      "end": 1790025930687
+     },
+     "id": "prt_0c5dbfa10001z99s5UtC3Qh7oo",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dbf1360013VoxYSBgd54GGJ"
+    },
+    {
+     "type": "text",
+     "text": "Vou começar verificando o estado do repositório antes de editar.",
+     "time": {
+      "start": 1790025930696,
+      "end": 1790025931473
+     },
+     "id": "prt_0c5dc17c800168a1HvcNDmouKu",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dbf1360013VoxYSBgd54GGJ"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_89a883fa20cc438a9fdf8f4b",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git status --short; git log --oneline -5",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+      },
+      "output": "b6aa965 Merge remote-tracking branch 'origin/main' into feat/m4-certificados\n2ac4c52 M4-R6: trata colisao de codigo na emissao\n1906b48 M4-R6: adiciona RED para colisao de codigo\n2fdcc70 M4: torna gerador de codigo injetavel\n429d5d0 M4: adiciona teste de presenca manual na emissao\n",
+      "metadata": {
+       "output": "b6aa965 Merge remote-tracking branch 'origin/main' into feat/m4-certificados\n2ac4c52 M4-R6: trata colisao de codigo na emissao\n1906b48 M4-R6: adiciona RED para colisao de codigo\n2fdcc70 M4: torna gerador de codigo injetavel\n429d5d0 M4: adiciona teste de presenca manual na emissao\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git status --short; git log --oneline -5",
+      "time": {
+       "start": 1790025931437,
+       "end": 1790025932000
+      }
+     },
+     "id": "prt_0c5dc18fe001sBOsabaj4vxcrD",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dbf1360013VoxYSBgd54GGJ"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "0270e50903be366e3e1d9ea5a1d439ee310d15a9",
+     "type": "step-finish",
+     "tokens": {
+      "total": 54682,
+      "input": 28335,
+      "output": 1259,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 25088
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5dc1f0b001Gjd30zRMKWyi8s",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dbf1360013VoxYSBgd54GGJ"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5dbbacb001t5oFKwVXXX0tnF",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 55640,
+     "input": 264,
+     "output": 848,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 54528
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790025933040,
+     "completed": 1790025944509
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5dc20f00017jP63QjPACFUEl",
+    "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH"
+   },
+   "parts": [
+    {
+     "snapshot": "0270e50903be366e3e1d9ea5a1d439ee310d15a9",
+     "type": "step-start",
+     "id": "prt_0c5dc27a7001a5D0UeFz4M2SKG",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dc20f00017jP63QjPACFUEl"
+    },
+    {
+     "type": "reasoning",
+     "text": "Working tree is clean. Now let me add the test. Following the existing test file style, I'll add a new describe block. The natural place is after the R10/R13 block.\n\nThe `registrarPresenca` helper uses `2026-10-${dia}T19:30` matching. My minicurso encontros on days 19 and 20. Good.\n\nLet me write the test.",
+     "time": {
+      "start": 1790025934764,
+      "end": 1790025935320
+     },
+     "id": "prt_0c5dc27ac00187d1thLnnbfkqp",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dc20f00017jP63QjPACFUEl"
+    },
+    {
+     "type": "text",
+     "text": "Estado limpo. Vou acrescentar o teste à suíte existente, no estilo dos testes já presentes.",
+     "time": {
+      "start": 1790025935323,
+      "end": 1790025943150
+     },
+     "id": "prt_0c5dc29db001DEswjZhadOvmaB",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dc20f00017jP63QjPACFUEl"
+    },
+    {
+     "type": "tool",
+     "tool": "edit",
+     "callID": "call_5a506879a99c48f7b4eb24cf",
+     "state": {
+      "status": "completed",
+      "input": {
+       "filePath": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\extrato.test.ts",
+       "oldString": "describe('R14 — inscrição em_espera não elegível', () => {",
+       "newString": "describe('G5/R10 — extrato recalculado a cada consulta (sem snapshot)', () => {\n    it('R10: a emissão de um certificado entre duas consultas muda codigo de null para o código emitido na MESMA instância e banco', async () => {\n      await resetar();\n\n      const minicurso = await criarAtividade({\n        titulo: 'Minicurso recalculado',\n        tipo: 'minicurso',\n        salaId: 'lab-3',\n        vagas: 10,\n        encontros: [\n          { inicio: '2026-10-19T19:00:00-03:00', fim: '2026-10-19T22:00:00-03:00' },\n          { inicio: '2026-10-20T19:00:00-03:00', fim: '2026-10-20T22:00:00-03:00' }\n        ]\n      });\n\n      const ins = await inscrever(minicurso.id, PARTICIPANTE);\n      expect(ins.status).toBe(201);\n      expect(ins.body.status).toBe('confirmada');\n\n      for (const dia of [19, 20]) {\n        await registrarPresenca(dia, minicurso.encontros);\n      }\n\n      await definirRelogio('2026-10-24T10:00:00-03:00');\n\n      const primeiroExtrato = await consultarExtrato();\n      expect(primeiroExtrato.status).toBe(200);\n      const itemAntes = primeiroExtrato.body.itens.find((i: any) => i.atividadeId === minicurso.id);\n      expect(itemAntes).toBeDefined();\n      expect(itemAntes.codigo).toBeNull();\n\n      const emissao = await request(app)\n        .post(`/atividades/${minicurso.id}/certificado`)\n        .set('X-Usuario', PARTICIPANTE);\n      expect(emissao.status).toBe(201);\n      const codigoEmitido = emissao.body.codigo;\n      expect(codigoEmitido).toMatch(/^SA26-[A-HJ-KM-NP-Z2-9]{4}-[A-HJ-KM-NP-Z2-9]{4}$/);\n\n      const segundoExtrato = await consultarExtrato();\n      expect(segundoExtrato.status).toBe(200);\n      const itemDepois = segundoExtrato.body.itens.find((i: any) => i.atividadeId === minicurso.id);\n      expect(itemDepois).toBeDefined();\n      expect(itemDepois.codigo).toBe(codigoEmitido);\n      expect(itemDepois.codigo).not.toBeNull();\n    });\n  });\n\n  describe('R14 — inscrição em_espera não elegível', () => {"
+      },
+      "output": "Edit applied successfully.",
+      "metadata": {
+       "diagnostics": {},
+       "diff": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\extrato.test.ts\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\extrato.test.ts\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\extrato.test.ts\n@@ -167,8 +167,55 @@\n     expect(res.body.aproveitadoMinutos).toBe(420);\n   });\n });\n \n+describe('G5/R10 — extrato recalculado a cada consulta (sem snapshot)', () => {\n+  it('R10: a emissão de um certificado entre duas consultas muda codigo de null para o código emitido na MESMA instância e banco', async () => {\n+    await resetar();\n+\n+    const minicurso = await criarAtividade({\n+      titulo: 'Minicurso recalculado',\n+      tipo: 'minicurso',\n+      salaId: 'lab-3',\n+      vagas: 10,\n+      encontros: [\n+        { inicio: '2026-10-19T19:00:00-03:00', fim: '2026-10-19T22:00:00-03:00' },\n+        { inicio: '2026-10-20T19:00:00-03:00', fim: '2026-10-20T22:00:00-03:00' }\n+      ]\n+    });\n+\n+    const ins = await inscrever(minicurso.id, PARTICIPANTE);\n+    expect(ins.status).toBe(201);\n+    expect(ins.body.status).toBe('confirmada');\n+\n+    for (const dia of [19, 20]) {\n+      await registrarPresenca(dia, minicurso.encontros);\n+    }\n+\n+    await definirRelogio('2026-10-24T10:00:00-03:00');\n+\n+    const primeiroExtrato = await consultarExtrato();\n+    expect(primeiroExtrato.status).toBe(200);\n+    const itemAntes = primeiroExtrato.body.itens.find((i: any) => i.atividadeId === minicurso.id);\n+    expect(itemAntes).toBeDefined();\n+    expect(itemAntes.codigo).toBeNull();\n+\n+    const emissao = await request(app)\n+      .post(`/atividades/${minicurso.id}/certificado`)\n+      .set('X-Usuario', PARTICIPANTE);\n+    expect(emissao.status).toBe(201);\n+    const codigoEmitido = emissao.body.codigo;\n+    expect(codigoEmitido).toMatch(/^SA26-[A-HJ-KM-NP-Z2-9]{4}-[A-HJ-KM-NP-Z2-9]{4}$/);\n+\n+    const segundoExtrato = await consultarExtrato();\n+    expect(segundoExtrato.status).toBe(200);\n+    const itemDepois = segundoExtrato.body.itens.find((i: any) => i.atividadeId === minicurso.id);\n+    expect(itemDepois).toBeDefined();\n+    expect(itemDepois.codigo).toBe(codigoEmitido);\n+    expect(itemDepois.codigo).not.toBeNull();\n+  });\n+});\n+\n describe('R14 — inscrição em_espera não elegível', () => {\n   it('R14: atividade com inscrição em_espera não aparece no extrato', async () => {\n     await resetar();\n \n",
+       "filediff": {
+        "file": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\extrato.test.ts",
+        "patch": "Index: C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\extrato.test.ts\n===================================================================\n--- C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\extrato.test.ts\n+++ C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api\\tests\\extrato.test.ts\n@@ -167,8 +167,55 @@\n     expect(res.body.aproveitadoMinutos).toBe(420);\n   });\n });\n \n+describe('G5/R10 — extrato recalculado a cada consulta (sem snapshot)', () => {\n+  it('R10: a emissão de um certificado entre duas consultas muda codigo de null para o código emitido na MESMA instância e banco', async () => {\n+    await resetar();\n+\n+    const minicurso = await criarAtividade({\n+      titulo: 'Minicurso recalculado',\n+      tipo: 'minicurso',\n+      salaId: 'lab-3',\n+      vagas: 10,\n+      encontros: [\n+        { inicio: '2026-10-19T19:00:00-03:00', fim: '2026-10-19T22:00:00-03:00' },\n+        { inicio: '2026-10-20T19:00:00-03:00', fim: '2026-10-20T22:00:00-03:00' }\n+      ]\n+    });\n+\n+    const ins = await inscrever(minicurso.id, PARTICIPANTE);\n+    expect(ins.status).toBe(201);\n+    expect(ins.body.status).toBe('confirmada');\n+\n+    for (const dia of [19, 20]) {\n+      await registrarPresenca(dia, minicurso.encontros);\n+    }\n+\n+    await definirRelogio('2026-10-24T10:00:00-03:00');\n+\n+    const primeiroExtrato = await consultarExtrato();\n+    expect(primeiroExtrato.status).toBe(200);\n+    const itemAntes = primeiroExtrato.body.itens.find((i: any) => i.atividadeId === minicurso.id);\n+    expect(itemAntes).toBeDefined();\n+    expect(itemAntes.codigo).toBeNull();\n+\n+    const emissao = await request(app)\n+      .post(`/atividades/${minicurso.id}/certificado`)\n+      .set('X-Usuario', PARTICIPANTE);\n+    expect(emissao.status).toBe(201);\n+    const codigoEmitido = emissao.body.codigo;\n+    expect(codigoEmitido).toMatch(/^SA26-[A-HJ-KM-NP-Z2-9]{4}-[A-HJ-KM-NP-Z2-9]{4}$/);\n+\n+    const segundoExtrato = await consultarExtrato();\n+    expect(segundoExtrato.status).toBe(200);\n+    const itemDepois = segundoExtrato.body.itens.find((i: any) => i.atividadeId === minicurso.id);\n+    expect(itemDepois).toBeDefined();\n+    expect(itemDepois.codigo).toBe(codigoEmitido);\n+    expect(itemDepois.codigo).not.toBeNull();\n+  });\n+});\n+\n describe('R14 — inscrição em_espera não elegível', () => {\n   it('R14: atividade com inscrição em_espera não aparece no extrato', async () => {\n     await resetar();\n \n",
+        "additions": 47,
+        "deletions": 0
+       },
+       "truncated": false
+      },
+      "title": "api\\tests\\extrato.test.ts",
+      "time": {
+       "start": 1790025943114,
+       "end": 1790025943147
+      }
+     },
+     "id": "prt_0c5dc2b6c00162eeMn0IdiGZQn",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dc20f00017jP63QjPACFUEl"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "7253faa16e4f5d40cbde2e4ee54c8c975d6d0635",
+     "type": "step-finish",
+     "tokens": {
+      "total": 55640,
+      "input": 264,
+      "output": 848,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 54528
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5dc4b26001qEoMG7EaGEVEiv",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dc20f00017jP63QjPACFUEl"
+    },
+    {
+     "type": "patch",
+     "hash": "0270e50903be366e3e1d9ea5a1d439ee310d15a9",
+     "files": [
+      "C:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/api/tests/extrato.test.ts"
+     ],
+     "id": "prt_0c5dc4db90012GWorxwGysrNXu",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dc20f00017jP63QjPACFUEl"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5dbbacb001t5oFKwVXXX0tnF",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 55764,
+     "input": 868,
+     "output": 112,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 54784
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790025944519,
+     "completed": 1790025952889
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5dc4dc60010ajddFfUKsWaYy",
+    "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH"
+   },
+   "parts": [
+    {
+     "snapshot": "7253faa16e4f5d40cbde2e4ee54c8c975d6d0635",
+     "type": "step-start",
+     "id": "prt_0c5dc52ee001FQ9l2750KnhhXu",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dc4dc60010ajddFfUKsWaYy"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_3c2b93035a5e4db6840e41e3",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "npx vitest run tests/extrato.test.ts",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api",
+       "timeout": 180000
+      },
+      "output": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/api\u001b[39m\n\n \u001b[32m✓\u001b[39m tests/extrato.test.ts \u001b[2m(\u001b[22m\u001b[2m14 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 524\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m14 passed\u001b[39m\u001b[22m\u001b[90m (14)\u001b[39m\n\u001b[2m   Start at \u001b[22m 18:25:49\n\u001b[2m   Duration \u001b[22m 2.14s\u001b[2m (transform 363ms, setup 0ms, collect 893ms, tests 524ms, environment 0ms, prepare 163ms)\u001b[22m\n\n",
+      "metadata": {
+       "output": "\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/api\u001b[39m\n\n \u001b[32m✓\u001b[39m tests/extrato.test.ts \u001b[2m(\u001b[22m\u001b[2m14 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 524\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m14 passed\u001b[39m\u001b[22m\u001b[90m (14)\u001b[39m\n\u001b[2m   Start at \u001b[22m 18:25:49\n\u001b[2m   Duration \u001b[22m 2.14s\u001b[2m (transform 363ms, setup 0ms, collect 893ms, tests 524ms, environment 0ms, prepare 163ms)\u001b[22m\n\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "npx vitest run tests/extrato.test.ts",
+      "time": {
+       "start": 1790025946476,
+       "end": 1790025951631
+      }
+     },
+     "id": "prt_0c5dc5310001TTKRO5i5221c43",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dc4dc60010ajddFfUKsWaYy"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "7253faa16e4f5d40cbde2e4ee54c8c975d6d0635",
+     "type": "step-finish",
+     "tokens": {
+      "total": 55764,
+      "input": 868,
+      "output": 112,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 54784
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5dc6b93001nrLQGkKUYHsfXb",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dc4dc60010ajddFfUKsWaYy"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5dbbacb001t5oFKwVXXX0tnF",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 56325,
+     "input": 512,
+     "output": 261,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 55552
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790025952901,
+     "completed": 1790025957229
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5dc6e85001rS0kreF0uiQS1i",
+    "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH"
+   },
+   "parts": [
+    {
+     "snapshot": "7253faa16e4f5d40cbde2e4ee54c8c975d6d0635",
+     "type": "step-start",
+     "id": "prt_0c5dc748c0018LhPiV4iOJ2vQU",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dc6e85001rS0kreF0uiQS1i"
+    },
+    {
+     "type": "reasoning",
+     "text": "The test passed immediately (GREEN imediato). The extract is already recalculated per consult — `ConsultarExtrato.execute` queries `certificateRepository.findByAtividadeEParticipante` on each call, reading the DB fresh. No snapshot/cache.\n\nNow run `npm test`, `npm run typecheck`, `git status --short`.\n\nLet me check what the typecheck command is. AGENTS says `npm --prefix api test` and `npx tsc --noEmit` within api/. Let me check package.json scripts to find the exact command. The user asked to run `npm test` and `npm run typecheck`. Let me check package.json.",
+     "time": {
+      "start": 1790025954448,
+      "end": 1790025955073
+     },
+     "id": "prt_0c5dc7490001QDVjnRe3igurul",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dc6e85001rS0kreF0uiQS1i"
+    },
+    {
+     "type": "text",
+     "text": "GREEN imediato — o teste passou de primeira (14/14). Agora a suíte completa, o typecheck e o status.",
+     "time": {
+      "start": 1790025955076,
+      "end": 1790025955621
+     },
+     "id": "prt_0c5dc7704001gGlVX7Dr5GBNcT",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dc6e85001rS0kreF0uiQS1i"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_cf645a913c6a49eba2a48bb8",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "Get-Content package.json",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api"
+      },
+      "output": "{\r\n  \"name\": \"semana-academica-api\",\r\n  \"version\": \"1.0.0\",\r\n  \"private\": true,\r\n  \"scripts\": {\r\n    \"start\": \"tsx src/server.ts\",\r\n    \"dev\": \"tsx watch src/server.ts\",\r\n    \"test\": \"vitest run\",\r\n    \"test:watch\": \"vitest\",\r\n    \"typecheck\": \"tsc --noEmit\"\r\n  },\r\n  \"dependencies\": {\r\n    \"better-sqlite3\": \"^13.0.3\",\r\n    \"cors\": \"^2.8.5\",\r\n    \"express\": \"^4.21.2\",\r\n    \"luxon\": \"^3.5.0\",\r\n    \"zod\": \"^3.24.2\"\r\n  },\r\n  \"devDependencies\": {\r\n    \"@types/better-sqlite3\": \"^7.6.11\",\r\n    \"@types/cors\": \"^2.8.17\",\r\n    \"@types/express\": \"^4.17.21\",\r\n    \"@types/luxon\": \"^3.4.2\",\r\n    \"@types/node\": \"^22.13.0\",\r\n    \"@types/supertest\": \"^6.0.2\",\r\n    \"supertest\": \"^7.0.0\",\r\n    \"tsx\": \"^4.19.2\",\r\n    \"typescript\": \"^5.7.3\",\r\n    \"vitest\": \"^3.0.5\"\r\n  }\r\n}\r\n",
+      "metadata": {
+       "output": "{\r\n  \"name\": \"semana-academica-api\",\r\n  \"version\": \"1.0.0\",\r\n  \"private\": true,\r\n  \"scripts\": {\r\n    \"start\": \"tsx src/server.ts\",\r\n    \"dev\": \"tsx watch src/server.ts\",\r\n    \"test\": \"vitest run\",\r\n    \"test:watch\": \"vitest\",\r\n    \"typecheck\": \"tsc --noEmit\"\r\n  },\r\n  \"dependencies\": {\r\n    \"better-sqlite3\": \"^13.0.3\",\r\n    \"cors\": \"^2.8.5\",\r\n    \"express\": \"^4.21.2\",\r\n    \"luxon\": \"^3.5.0\",\r\n    \"zod\": \"^3.24.2\"\r\n  },\r\n  \"devDependencies\": {\r\n    \"@types/better-sqlite3\": \"^7.6.11\",\r\n    \"@types/cors\": \"^2.8.17\",\r\n    \"@types/express\": \"^4.17.21\",\r\n    \"@types/luxon\": \"^3.4.2\",\r\n    \"@types/node\": \"^22.13.0\",\r\n    \"@types/supertest\": \"^6.0.2\",\r\n    \"supertest\": \"^7.0.0\",\r\n    \"tsx\": \"^4.19.2\",\r\n    \"typescript\": \"^5.7.3\",\r\n    \"vitest\": \"^3.0.5\"\r\n  }\r\n}\r\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "Get-Content package.json",
+      "time": {
+       "start": 1790025955518,
+       "end": 1790025956007
+      }
+     },
+     "id": "prt_0c5dc77e4001uCd0ng59cRzCBV",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dc6e85001rS0kreF0uiQS1i"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "7253faa16e4f5d40cbde2e4ee54c8c975d6d0635",
+     "type": "step-finish",
+     "tokens": {
+      "total": 56325,
+      "input": 512,
+      "output": 261,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 55552
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5dc7d3f001byHzng7GDiCMm1",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dc6e85001rS0kreF0uiQS1i"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5dbbacb001t5oFKwVXXX0tnF",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 56897,
+     "input": 382,
+     "output": 195,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 56320
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790025957239,
+     "completed": 1790025977051
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5dc7f77001TtfX7dtCIFQOSm",
+    "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH"
+   },
+   "parts": [
+    {
+     "snapshot": "7253faa16e4f5d40cbde2e4ee54c8c975d6d0635",
+     "type": "step-start",
+     "id": "prt_0c5dc841f001NpETXsBZkn3OpG",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dc7f77001TtfX7dtCIFQOSm"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_f1816cb0bfec45d98659a156",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "npm test",
+       "timeout": 300000,
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api"
+      },
+      "output": "\n> semana-academica-api@1.0.0 test\n> vitest run\n\n\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/api\u001b[39m\n\n \u001b[32m✓\u001b[39m tests/encounter-rules.test.ts \u001b[2m(\u001b[22m\u001b[2m15 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 979\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m Encounter Rules - R3, R4, R5, R6\u001b[2m > \u001b[22mR3 — Duração dos encontros (60 a 240 minutos)\u001b[2m > \u001b[22mrecusa encontro com 59 minutos (abaixo do mínimo) com 422 ENCONTRO_INVALIDO e não persiste \u001b[33m 353\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia5.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1339\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 5 (Precedência de Erros e Listagem)\u001b[2m > \u001b[22mR14 (Critério 18) — precedência de erros no registro pelo participante: presença existente (200) prevalece sobre não inscrito/janela/código inválido \u001b[33m 539\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 5 (Precedência de Erros e Listagem)\u001b[2m > \u001b[22mR16 (Critério 20) — pedido GET para /encontros/:id/presencas feito pela organização retorna 200 e a lista de presenças \u001b[33m 309\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia4.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1521\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 4 (Presença Manual e Limites)\u001b[2m > \u001b[22mcritério 9 (R6) — tentativa de presença manual sem justificativa ou com menos de 10 caracteres deve retornar 422 JUSTIFICATIVA_OBRIGATORIA \u001b[33m 526\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 4 (Presença Manual e Limites)\u001b[2m > \u001b[22mcritério 10 (R7) — tentativa de presença manual fora do período permitido (antes da janela ou mais de 2h após o fim) deve retornar 422 FORA_DA_JANELA \u001b[33m 416\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 4 (Presença Manual e Limites)\u001b[2m > \u001b[22mcritério 11 (R8) — tentativa de presença manual que excede o limite de 10% das inscrições confirmadas deve retornar 422 LIMITE_DE_MANUAIS \u001b[33m 323\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia1.test.ts \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1696\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 1 (R1)\u001b[2m > \u001b[22mrecusa GET /encontros/:id/codigo feito 16 minutos antes do início com 422 FORA_DA_JANELA \u001b[33m 431\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia2.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1800\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 2 (Registro via QR e Idempotência)\u001b[2m > \u001b[22mcritério 12 (R9) — presença registrada por participante sem inscrição confirmada deve retornar 403 NAO_INSCRITO \u001b[33m 628\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 2 (Registro via QR e Idempotência)\u001b[2m > \u001b[22mcritérios 6, 15, 16, 17, 22 — registro bem-sucedido, idempotência 201/200, sem lidoEm e origem qr \u001b[33m 359\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 2 (Registro via QR e Idempotência)\u001b[2m > \u001b[22mcritérios 7, 13, 14 — normalização (minúsculas/espaços), código anterior válido, código inválido / outro encontro \u001b[33m 359\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/update-activity.test.ts \u001b[2m(\u001b[22m\u001b[2m19 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2082\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/inscricoes-fatia4.test.ts \u001b[2m(\u001b[22m\u001b[2m7 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2296\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR20 (Critério 37) — recusa cancelamento por usuário não participante com 403 SOMENTE_PARTICIPANTE \u001b[33m 382\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR16 (Critério 28) — recusa cancelamento em inscrição já cancelada ou expirada com 422 INSCRICAO_INATIVA \u001b[33m 452\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR15 (Critério 27) — recusa cancelamento no instante exato do início do primeiro encontro ou após com 422 ATIVIDADE_JA_INICIADA \u001b[33m 319\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR8, R9 — convoca automático ao cancelar confirmada e reordena fila ao cancelar em_espera \u001b[33m 349\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR17 (Critério 29) — ao cancelar atividade no M1 via POST /atividades/:id/cancelamento, cancela automaticamente todas as inscrições ativas sem alterar inativas \u001b[33m 327\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/inscricoes-fatia1.test.ts \u001b[2m(\u001b[22m\u001b[2m10 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2428\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 1\u001b[2m > \u001b[22mR1 — realiza inscrição confirmada em atividade com vagas disponíveis \u001b[33m 473\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 1\u001b[2m > \u001b[22mR3 — recusa inscrição duplicada de participante ativo com 409 JA_INSCRITO \u001b[33m 304\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 1\u001b[2m > \u001b[22mR3 (Critério 6) — permite re-inscrição de participante com inscrição anterior cancelada ou expirada, inserindo ao final da fila ou como confirmada \u001b[33m 420\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado.test.ts \u001b[2m(\u001b[22m\u001b[2m7 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2615\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 1 (R1 e R2)\u001b[2m > \u001b[22mR1 - Presença mínima de 75% sem arredondamento a favor\u001b[2m > \u001b[22memite o certificado de atividade encerrada com 4 encontros quando a presença é exatamente 75% (3 de 4) \u001b[33m 675\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 1 (R1 e R2)\u001b[2m > \u001b[22mR1 - Presença mínima de 75% sem arredondamento a favor\u001b[2m > \u001b[22mrecusa com 422 PRESENCA_INSUFICIENTE presença de 3 em 5 encontros (60%; 75% de 5 é 3,75, sem arredondamento a favor) \u001b[33m 471\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 1 (R1 e R2)\u001b[2m > \u001b[22mR2 - Emissão somente após o encerramento da atividade\u001b[2m > \u001b[22mrecusa com 422 ATIVIDADE_NAO_ENCERRADA antes do término do último encontro, mesmo com presença suficiente \u001b[33m 344\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/inscricoes-fatia3.test.ts \u001b[2m(\u001b[22m\u001b[2m9 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2701\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mFatia 3 — pré-condição: cria inscrição em_espera para testar posicaoNaEspera \u001b[33m 399\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mR9, R10 — convoca o 1º da fila de espera quando vaga é liberada e define convocadaAte para 2h depois \u001b[33m 377\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mR10 — trunca convocadaAte no limite de encerramento quando restam menos de 2h, e não convoca após o encerramento \u001b[33m 537\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mR11 — expira convocação não confirmada ao atingir convocadaAte e convoca o próximo da fila em cascata \u001b[33m 315\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/inscricoes-fatia2.test.ts \u001b[2m(\u001b[22m\u001b[2m11 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2979\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 2 (Validações de Negócio e Conflitos)\u001b[2m > \u001b[22mR4 (Critério 7) — recusa inscrição de participante bloqueado por faltas (2 atividades encerradas com zero presença em ambas) com 422 INSCRICAO_BLOQUEADA \u001b[33m 599\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 2 (Validações de Negócio e Conflitos)\u001b[2m > \u001b[22mR5 (Critério 8) — recusa inscrição no 4º minicurso ocupando vaga com 422 LIMITE_DE_MINICURSOS \u001b[33m 515\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 2 (Validações de Negócio e Conflitos)\u001b[2m > \u001b[22mR5 (Critério 9) — permite inscrição quando participante tem 3 minicursos em estado em_espera \u001b[33m 499\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/create-activity.test.ts \u001b[2m(\u001b[22m\u001b[2m20 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 959\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/capacity-conflict.test.ts \u001b[2m(\u001b[22m\u001b[2m9 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 924\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-output.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 512\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-nao-inscrito.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 814\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - NAO_INSCRITO na emissão\u001b[2m > \u001b[22mexigência de inscrição confirmada conforme o contrato\u001b[2m > \u001b[22mrecusa com 403 NAO_INSCRITO a emissão de certificado de participante sem nenhuma inscrição na atividade \u001b[33m 346\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/cancel-activity-effects.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 671\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m Efeitos do Cancelamento e Regras Relacionadas (Fatia 4)\u001b[2m > \u001b[22m1. R27: Aumentando vagas de 10 para 12 com 8 ocupadas aciona M2 exatamente uma vez com ID correto \u001b[33m 331\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-listagem.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1126\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 2 (GET /certificados)\u001b[2m > \u001b[22mlistagem dos próprios certificados (contrato: GET /certificados → 200 [Certificado])\u001b[2m > \u001b[22mretorna 200 com array contendo o certificado emitido com os campos do contrato \u001b[33m 663\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 2 (GET /certificados)\u001b[2m > \u001b[22misolamento por participante\u001b[2m > \u001b[22mnão lista certificado emitido para outro participante \u001b[33m 393\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/app.test.ts \u001b[2m(\u001b[22m\u001b[2m21 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 932\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-r8.test.ts \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1014\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 3 (R8 - Verificação pública)\u001b[2m > \u001b[22mR8 - Critério 15: verificação pública sem X-Usuario\u001b[2m > \u001b[22mretorna 200 com exatamente codigo, participante abreviado, atividade, cargaHorariaMinutos e emitidoEm \u001b[33m 679\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 3 (R8 - Verificação pública)\u001b[2m > \u001b[22mR8 - Critério 16: projeção somente dos campos públicos\u001b[2m > \u001b[22mnão expõe participanteId, presencas nem encontros na verificação pública \u001b[33m 307\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-status.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 636\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m R15 — Estados temporais da atividade\u001b[2m > \u001b[22m1. Antes do primeiro encontro, situação é prevista \u001b[33m 301\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-filters.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 683\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m R19 & R20 — Filtros por dia e tipo na listagem de atividades\u001b[2m > \u001b[22mCenário 1: Filtro por dia — inclui atividade com pelo menos um encontro no dia e exclui as demais \u001b[33m 357\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia3.test.ts \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 774\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 3 (Offline e Sincronização Tardia)\u001b[2m > \u001b[22mcritério 8 (R5) — envio com lidoEm correspondente a 2 horas e 1 minute após o fim do encontro deve retornar 422 SINCRONIZACAO_TARDIA \u001b[33m 558\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-contrato-http.test.ts \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 626\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/cancel-activity.test.ts \u001b[2m(\u001b[22m\u001b[2m9 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 756\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/reset.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 699\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m 2. Reset exato do M1\u001b[2m > \u001b[22mreseta o M1 removendo salas/usuários extras, mantendo os 10 oficiais, sem duplicação no segundo reset, e restaurando o relógio \u001b[33m 695\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/migration.test.ts \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 367\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-atividade-cancelada.test.ts \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 594\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - ATIVIDADE_CANCELADA na emissão\u001b[2m > \u001b[22mATIVIDADE_CANCELADA conforme o contrato\u001b[2m > \u001b[22mrecusa com 422 ATIVIDADE_CANCELADA a emissão de certificado de atividade cancelada \u001b[33m 401\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-list-order.test.ts \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 634\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m R17 — Ordenação da listagem de atividades\u001b[2m > \u001b[22m1. Ordem pelo primeiro encontro: atividade mais cedo aparece primeiro independentemente da ordem de criação \u001b[33m 333\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-detail.test.ts \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 569\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-g3-presenca-manual.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 558\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Integracao M3 -> M4 (G3): presenca manual contabilizada na emissao\u001b[2m > \u001b[22mG3 — emite certificado 201 contabilizando presencas registradas manualmente pelo fluxo publico do M3 (3 de 4 encontros, 75% exato) \u001b[33m 554\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/extrato.test.ts \u001b[2m(\u001b[22m\u001b[2m14 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1976\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 4 (GET /extrato)\u001b[2m > \u001b[22mautorização conforme contrato (identificado e somente participante)\u001b[2m > \u001b[22mretorna 200 com o corpo Extrato do contrato para participante autenticado \u001b[33m 342\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 4 (GET /extrato)\u001b[2m > \u001b[22mR10/R13 — composição dos itens (codigo preenchido ou null)\u001b[2m > \u001b[22mR10/R13: atividade com inscrição confirmada e certificado emitido aparece com codigo preenchido; atividade elegível sem certificado aparece com codigo null \u001b[33m 382\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/initialization.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 311\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m 1. Inicialização não destrutiva\u001b[2m > \u001b[22mcomprova que reiniciar a aplicação apontando para o mesmo banco SQLite não apaga atividades \u001b[33m 306\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-colisao.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 104\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-r9.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 135\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/horas-complementares.test.ts \u001b[2m(\u001b[22m\u001b[2m16 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 15\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/abreviar-nome.test.ts \u001b[2m(\u001b[22m\u001b[2m14 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 24\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/gerar-codigo.test.ts \u001b[2m(\u001b[22m\u001b[2m12 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 62\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-r12.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 498\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 1 (R12 - Precedência de erros na emissão)\u001b[2m > \u001b[22mR12 (Critério 20): atividade não encerrada com 2 de 4 presenças retorna 422 ATIVIDADE_NAO_ENCERRADA e não PRESENCA_INSUFICIENTE \u001b[33m 495\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m38 passed\u001b[39m\u001b[22m\u001b[90m (38)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m271 passed\u001b[39m\u001b[22m\u001b[90m (271)\u001b[39m\n\u001b[2m   Start at \u001b[22m 18:26:00\n\u001b[2m   Duration \u001b[22m 14.96s\u001b[2m (transform 6.73s, setup 0ms, collect 55.29s, tests 39.41s, environment 23ms, prepare 27.24s)\u001b[22m\n\n",
+      "metadata": {
+       "output": "\n> semana-academica-api@1.0.0 test\n> vitest run\n\n\n\u001b[1m\u001b[46m RUN \u001b[49m\u001b[22m \u001b[36mv3.2.7 \u001b[39m\u001b[90mC:/Users/Enzof/OneDrive/Documentos/Semana Tech/semana-academica/api\u001b[39m\n\n \u001b[32m✓\u001b[39m tests/encounter-rules.test.ts \u001b[2m(\u001b[22m\u001b[2m15 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 979\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m Encounter Rules - R3, R4, R5, R6\u001b[2m > \u001b[22mR3 — Duração dos encontros (60 a 240 minutos)\u001b[2m > \u001b[22mrecusa encontro com 59 minutos (abaixo do mínimo) com 422 ENCONTRO_INVALIDO e não persiste \u001b[33m 353\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia5.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1339\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 5 (Precedência de Erros e Listagem)\u001b[2m > \u001b[22mR14 (Critério 18) — precedência de erros no registro pelo participante: presença existente (200) prevalece sobre não inscrito/janela/código inválido \u001b[33m 539\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 5 (Precedência de Erros e Listagem)\u001b[2m > \u001b[22mR16 (Critério 20) — pedido GET para /encontros/:id/presencas feito pela organização retorna 200 e a lista de presenças \u001b[33m 309\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia4.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1521\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 4 (Presença Manual e Limites)\u001b[2m > \u001b[22mcritério 9 (R6) — tentativa de presença manual sem justificativa ou com menos de 10 caracteres deve retornar 422 JUSTIFICATIVA_OBRIGATORIA \u001b[33m 526\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 4 (Presença Manual e Limites)\u001b[2m > \u001b[22mcritério 10 (R7) — tentativa de presença manual fora do período permitido (antes da janela ou mais de 2h após o fim) deve retornar 422 FORA_DA_JANELA \u001b[33m 416\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 4 (Presença Manual e Limites)\u001b[2m > \u001b[22mcritério 11 (R8) — tentativa de presença manual que excede o limite de 10% das inscrições confirmadas deve retornar 422 LIMITE_DE_MANUAIS \u001b[33m 323\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia1.test.ts \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1696\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 1 (R1)\u001b[2m > \u001b[22mrecusa GET /encontros/:id/codigo feito 16 minutos antes do início com 422 FORA_DA_JANELA \u001b[33m 431\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia2.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1800\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 2 (Registro via QR e Idempotência)\u001b[2m > \u001b[22mcritério 12 (R9) — presença registrada por participante sem inscrição confirmada deve retornar 403 NAO_INSCRITO \u001b[33m 628\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 2 (Registro via QR e Idempotência)\u001b[2m > \u001b[22mcritérios 6, 15, 16, 17, 22 — registro bem-sucedido, idempotência 201/200, sem lidoEm e origem qr \u001b[33m 359\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 2 (Registro via QR e Idempotência)\u001b[2m > \u001b[22mcritérios 7, 13, 14 — normalização (minúsculas/espaços), código anterior válido, código inválido / outro encontro \u001b[33m 359\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/update-activity.test.ts \u001b[2m(\u001b[22m\u001b[2m19 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2082\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/inscricoes-fatia4.test.ts \u001b[2m(\u001b[22m\u001b[2m7 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2296\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR20 (Critério 37) — recusa cancelamento por usuário não participante com 403 SOMENTE_PARTICIPANTE \u001b[33m 382\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR16 (Critério 28) — recusa cancelamento em inscrição já cancelada ou expirada com 422 INSCRICAO_INATIVA \u001b[33m 452\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR15 (Critério 27) — recusa cancelamento no instante exato do início do primeiro encontro ou após com 422 ATIVIDADE_JA_INICIADA \u001b[33m 319\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR8, R9 — convoca automático ao cancelar confirmada e reordena fila ao cancelar em_espera \u001b[33m 349\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 4 (Cancelamentos e Integrações)\u001b[2m > \u001b[22mR17 (Critério 29) — ao cancelar atividade no M1 via POST /atividades/:id/cancelamento, cancela automaticamente todas as inscrições ativas sem alterar inativas \u001b[33m 327\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/inscricoes-fatia1.test.ts \u001b[2m(\u001b[22m\u001b[2m10 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2428\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 1\u001b[2m > \u001b[22mR1 — realiza inscrição confirmada em atividade com vagas disponíveis \u001b[33m 473\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 1\u001b[2m > \u001b[22mR3 — recusa inscrição duplicada de participante ativo com 409 JA_INSCRITO \u001b[33m 304\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 1\u001b[2m > \u001b[22mR3 (Critério 6) — permite re-inscrição de participante com inscrição anterior cancelada ou expirada, inserindo ao final da fila ou como confirmada \u001b[33m 420\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado.test.ts \u001b[2m(\u001b[22m\u001b[2m7 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2615\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 1 (R1 e R2)\u001b[2m > \u001b[22mR1 - Presença mínima de 75% sem arredondamento a favor\u001b[2m > \u001b[22memite o certificado de atividade encerrada com 4 encontros quando a presença é exatamente 75% (3 de 4) \u001b[33m 675\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 1 (R1 e R2)\u001b[2m > \u001b[22mR1 - Presença mínima de 75% sem arredondamento a favor\u001b[2m > \u001b[22mrecusa com 422 PRESENCA_INSUFICIENTE presença de 3 em 5 encontros (60%; 75% de 5 é 3,75, sem arredondamento a favor) \u001b[33m 471\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 1 (R1 e R2)\u001b[2m > \u001b[22mR2 - Emissão somente após o encerramento da atividade\u001b[2m > \u001b[22mrecusa com 422 ATIVIDADE_NAO_ENCERRADA antes do término do último encontro, mesmo com presença suficiente \u001b[33m 344\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/inscricoes-fatia3.test.ts \u001b[2m(\u001b[22m\u001b[2m9 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2701\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mFatia 3 — pré-condição: cria inscrição em_espera para testar posicaoNaEspera \u001b[33m 399\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mR9, R10 — convoca o 1º da fila de espera quando vaga é liberada e define convocadaAte para 2h depois \u001b[33m 377\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mR10 — trunca convocadaAte no limite de encerramento quando restam menos de 2h, e não convoca após o encerramento \u001b[33m 537\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 3\u001b[2m > \u001b[22mR11 — expira convocação não confirmada ao atingir convocadaAte e convoca o próximo da fila em cascata \u001b[33m 315\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/inscricoes-fatia2.test.ts \u001b[2m(\u001b[22m\u001b[2m11 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2979\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 2 (Validações de Negócio e Conflitos)\u001b[2m > \u001b[22mR4 (Critério 7) — recusa inscrição de participante bloqueado por faltas (2 atividades encerradas com zero presença em ambas) com 422 INSCRICAO_BLOQUEADA \u001b[33m 599\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 2 (Validações de Negócio e Conflitos)\u001b[2m > \u001b[22mR5 (Critério 8) — recusa inscrição no 4º minicurso ocupando vaga com 422 LIMITE_DE_MINICURSOS \u001b[33m 515\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M2 - Inscrições - Fatia 2 (Validações de Negócio e Conflitos)\u001b[2m > \u001b[22mR5 (Critério 9) — permite inscrição quando participante tem 3 minicursos em estado em_espera \u001b[33m 499\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/create-activity.test.ts \u001b[2m(\u001b[22m\u001b[2m20 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 959\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/capacity-conflict.test.ts \u001b[2m(\u001b[22m\u001b[2m9 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 924\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-output.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 512\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-nao-inscrito.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 814\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - NAO_INSCRITO na emissão\u001b[2m > \u001b[22mexigência de inscrição confirmada conforme o contrato\u001b[2m > \u001b[22mrecusa com 403 NAO_INSCRITO a emissão de certificado de participante sem nenhuma inscrição na atividade \u001b[33m 346\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/cancel-activity-effects.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 671\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m Efeitos do Cancelamento e Regras Relacionadas (Fatia 4)\u001b[2m > \u001b[22m1. R27: Aumentando vagas de 10 para 12 com 8 ocupadas aciona M2 exatamente uma vez com ID correto \u001b[33m 331\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-listagem.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1126\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 2 (GET /certificados)\u001b[2m > \u001b[22mlistagem dos próprios certificados (contrato: GET /certificados → 200 [Certificado])\u001b[2m > \u001b[22mretorna 200 com array contendo o certificado emitido com os campos do contrato \u001b[33m 663\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 2 (GET /certificados)\u001b[2m > \u001b[22misolamento por participante\u001b[2m > \u001b[22mnão lista certificado emitido para outro participante \u001b[33m 393\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/app.test.ts \u001b[2m(\u001b[22m\u001b[2m21 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 932\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-r8.test.ts \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1014\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 3 (R8 - Verificação pública)\u001b[2m > \u001b[22mR8 - Critério 15: verificação pública sem X-Usuario\u001b[2m > \u001b[22mretorna 200 com exatamente codigo, participante abreviado, atividade, cargaHorariaMinutos e emitidoEm \u001b[33m 679\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 3 (R8 - Verificação pública)\u001b[2m > \u001b[22mR8 - Critério 16: projeção somente dos campos públicos\u001b[2m > \u001b[22mnão expõe participanteId, presencas nem encontros na verificação pública \u001b[33m 307\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-status.test.ts \u001b[2m(\u001b[22m\u001b[2m5 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 636\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m R15 — Estados temporais da atividade\u001b[2m > \u001b[22m1. Antes do primeiro encontro, situação é prevista \u001b[33m 301\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-filters.test.ts \u001b[2m(\u001b[22m\u001b[2m4 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 683\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m R19 & R20 — Filtros por dia e tipo na listagem de atividades\u001b[2m > \u001b[22mCenário 1: Filtro por dia — inclui atividade com pelo menos um encontro no dia e exclui as demais \u001b[33m 357\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/presenca-fatia3.test.ts \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 774\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M3 - Presença - Fatia 3 (Offline e Sincronização Tardia)\u001b[2m > \u001b[22mcritério 8 (R5) — envio com lidoEm correspondente a 2 horas e 1 minute após o fim do encontro deve retornar 422 SINCRONIZACAO_TARDIA \u001b[33m 558\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-contrato-http.test.ts \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 626\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/cancel-activity.test.ts \u001b[2m(\u001b[22m\u001b[2m9 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 756\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/reset.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 699\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m 2. Reset exato do M1\u001b[2m > \u001b[22mreseta o M1 removendo salas/usuários extras, mantendo os 10 oficiais, sem duplicação no segundo reset, e restaurando o relógio \u001b[33m 695\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/migration.test.ts \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 367\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-atividade-cancelada.test.ts \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 594\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - ATIVIDADE_CANCELADA na emissão\u001b[2m > \u001b[22mATIVIDADE_CANCELADA conforme o contrato\u001b[2m > \u001b[22mrecusa com 422 ATIVIDADE_CANCELADA a emissão de certificado de atividade cancelada \u001b[33m 401\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-list-order.test.ts \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 634\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m R17 — Ordenação da listagem de atividades\u001b[2m > \u001b[22m1. Ordem pelo primeiro encontro: atividade mais cedo aparece primeiro independentemente da ordem de criação \u001b[33m 333\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/activity-detail.test.ts \u001b[2m(\u001b[22m\u001b[2m6 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 569\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-g3-presenca-manual.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 558\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Integracao M3 -> M4 (G3): presenca manual contabilizada na emissao\u001b[2m > \u001b[22mG3 — emite certificado 201 contabilizando presencas registradas manualmente pelo fluxo publico do M3 (3 de 4 encontros, 75% exato) \u001b[33m 554\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/extrato.test.ts \u001b[2m(\u001b[22m\u001b[2m14 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 1976\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 4 (GET /extrato)\u001b[2m > \u001b[22mautorização conforme contrato (identificado e somente participante)\u001b[2m > \u001b[22mretorna 200 com o corpo Extrato do contrato para participante autenticado \u001b[33m 342\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 4 (GET /extrato)\u001b[2m > \u001b[22mR10/R13 — composição dos itens (codigo preenchido ou null)\u001b[2m > \u001b[22mR10/R13: atividade com inscrição confirmada e certificado emitido aparece com codigo preenchido; atividade elegível sem certificado aparece com codigo null \u001b[33m 382\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/initialization.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 311\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m 1. Inicialização não destrutiva\u001b[2m > \u001b[22mcomprova que reiniciar a aplicação apontando para o mesmo banco SQLite não apaga atividades \u001b[33m 306\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-colisao.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 104\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-r9.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 135\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/horas-complementares.test.ts \u001b[2m(\u001b[22m\u001b[2m16 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 15\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/abreviar-nome.test.ts \u001b[2m(\u001b[22m\u001b[2m14 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 24\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/gerar-codigo.test.ts \u001b[2m(\u001b[22m\u001b[2m12 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[32m 62\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m tests/certificado-r12.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 498\u001b[2mms\u001b[22m\u001b[39m\n   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m M4 - Certificados - Fatia 1 (R12 - Precedência de erros na emissão)\u001b[2m > \u001b[22mR12 (Critério 20): atividade não encerrada com 2 de 4 presenças retorna 422 ATIVIDADE_NAO_ENCERRADA e não PRESENCA_INSUFICIENTE \u001b[33m 495\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m38 passed\u001b[39m\u001b[22m\u001b[90m (38)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m271 passed\u001b[39m\u001b[22m\u001b[90m (271)\u001b[39m\n\u001b[2m   Start at \u001b[22m 18:26:00\n\u001b[2m   Duration \u001b[22m 14.96s\u001b[2m (transform 6.73s, setup 0ms, collect 55.29s, tests 39.41s, environment 23ms, prepare 27.24s)\u001b[22m\n\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "npm test",
+      "time": {
+       "start": 1790025958784,
+       "end": 1790025976047
+      }
+     },
+     "id": "prt_0c5dc8462001STfRQy9Lo3IYzY",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dc7f77001TtfX7dtCIFQOSm"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_17123231daed4f66afab2c25",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "npm run typecheck",
+       "timeout": 180000,
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica\\api"
+      },
+      "output": "\n> semana-academica-api@1.0.0 typecheck\n> tsc --noEmit\n\ntests/cancel-activity-effects.test.ts(52,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\ntests/cancel-activity.test.ts(226,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\ntests/update-activity.test.ts(502,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\ntests/update-activity.test.ts(541,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\ntests/update-activity.test.ts(586,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\ntests/update-activity.test.ts(625,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\ntests/update-activity.test.ts(664,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\n",
+      "metadata": {
+       "output": "\n> semana-academica-api@1.0.0 typecheck\n> tsc --noEmit\n\ntests/cancel-activity-effects.test.ts(52,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\ntests/cancel-activity.test.ts(226,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\ntests/update-activity.test.ts(502,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\ntests/update-activity.test.ts(541,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\ntests/update-activity.test.ts(586,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\ntests/update-activity.test.ts(625,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\ntests/update-activity.test.ts(664,16): error TS2339: Property 'close' does not exist on type 'Express'.\r\n",
+       "exit": 1,
+       "truncated": false
+      },
+      "title": "npm run typecheck",
+      "time": {
+       "start": 1790025959374,
+       "end": 1790025975534
+      }
+     },
+     "id": "prt_0c5dc8589001WY5dIkVAfZf4lK",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dc7f77001TtfX7dtCIFQOSm"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "7253faa16e4f5d40cbde2e4ee54c8c975d6d0635",
+     "type": "step-finish",
+     "tokens": {
+      "total": 56897,
+      "input": 382,
+      "output": 195,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 56320
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5dccacc001BRsQ3p7S0UmRA2",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dc7f77001TtfX7dtCIFQOSm"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5dbbacb001t5oFKwVXXX0tnF",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 65166,
+     "input": 7923,
+     "output": 411,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 56832
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790025977066,
+     "completed": 1790025983929
+    },
+    "finish": "tool-calls",
+    "id": "msg_0c5dcccea0013DqGUltz4ejqes",
+    "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH"
+   },
+   "parts": [
+    {
+     "snapshot": "7253faa16e4f5d40cbde2e4ee54c8c975d6d0635",
+     "type": "step-start",
+     "id": "prt_0c5dcd2f9001FE62DzgtvnXD06",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dcccea0013DqGUltz4ejqes"
+    },
+    {
+     "type": "reasoning",
+     "text": "The typecheck has 7 errors but all of them are in files I did NOT touch (cancel-activity-effects.test.ts, cancel-activity.test.ts, update-activity.test.ts). These are baseline errors — `Property 'close' does not exist on type 'Express'`. My file `extrato.test.ts` was not flagged. Let me verify by checking if these are pre-existing baseline errors. The error is about `app.close` on type Express. Actually wait — in extrato.test.ts I use `app?.close?.()` but the app variable is typed `any`, so it doesn't error.\n\nLet me confirm the baseline: these errors exist independent of my change. Since I only added a test to extrato.test.ts and no new lines flagged, these are baseline errors. But let me confirm by checking git stash or running typecheck against the pre-change state. Actually simpler: run typecheck and grep for extrato.test.ts — none of the errors reference extrato.test.ts. So my change introduces zero new type errors. But let me verify the baseline existed before by checking if these are from committed code — yes, all files listed are unmodified by me. These are baseline.\n\nLet me confirm by verifying git diff to show only extrato.test.ts changed.",
+     "time": {
+      "start": 1790025978622,
+      "end": 1790025981128
+     },
+     "id": "prt_0c5dcd2fe001gd1EXjr4SxVocD",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dcccea0013DqGUltz4ejqes"
+    },
+    {
+     "type": "text",
+     "text": "Suíte completa: 271 testes, 38 arquivos, todos verdes. Typecheck acusa 7 erros, mas todos em arquivos que não toquei (baseline). Vou confirmar que são baseline e que não há erro novo em `extrato.test.ts`:",
+     "time": {
+      "start": 1790025981132,
+      "end": 1790025981714
+     },
+     "id": "prt_0c5dcdccc001Uv8k4UdixRguZm",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dcccea0013DqGUltz4ejqes"
+    },
+    {
+     "type": "tool",
+     "tool": "bash",
+     "callID": "call_2c43448dbd2a48cabb5d4a3a",
+     "state": {
+      "status": "completed",
+      "input": {
+       "command": "git status --short; git diff --stat",
+       "workdir": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+      },
+      "output": " M api/tests/extrato.test.ts\nwarning: in the working copy of 'api/tests/extrato.test.ts', LF will be replaced by CRLF the next time Git touches it\n api/tests/extrato.test.ts | 47 +++++++++++++++++++++++++++++++++++++++++++++++\n 1 file changed, 47 insertions(+)\n",
+      "metadata": {
+       "output": " M api/tests/extrato.test.ts\nwarning: in the working copy of 'api/tests/extrato.test.ts', LF will be replaced by CRLF the next time Git touches it\n api/tests/extrato.test.ts | 47 +++++++++++++++++++++++++++++++++++++++++++++++\n 1 file changed, 47 insertions(+)\n",
+       "exit": 0,
+       "truncated": false
+      },
+      "title": "git status --short; git diff --stat",
+      "time": {
+       "start": 1790025981659,
+       "end": 1790025982433
+      }
+     },
+     "id": "prt_0c5dcde09001FmKYiWOyUPkwJs",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dcccea0013DqGUltz4ejqes"
+    },
+    {
+     "reason": "tool-calls",
+     "snapshot": "7253faa16e4f5d40cbde2e4ee54c8c975d6d0635",
+     "type": "step-finish",
+     "tokens": {
+      "total": 65166,
+      "input": 7923,
+      "output": 411,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 56832
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5dce47b001ImS1fxECXZu3Fb",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dcccea0013DqGUltz4ejqes"
+    }
+   ]
+  },
+  {
+   "info": {
+    "parentID": "msg_0c5dbbacb001t5oFKwVXXX0tnF",
+    "role": "assistant",
+    "mode": "build",
+    "agent": "build",
+    "path": {
+     "cwd": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica",
+     "root": "C:\\Users\\Enzof\\OneDrive\\Documentos\\Semana Tech\\semana-academica"
+    },
+    "cost": 0,
+    "tokens": {
+     "total": 66084,
+     "input": 221,
+     "output": 839,
+     "reasoning": 0,
+     "cache": {
+      "write": 0,
+      "read": 65024
+     }
+    },
+    "modelID": "big-pickle",
+    "providerID": "opencode",
+    "time": {
+     "created": 1790025983938,
+     "completed": 1790025992512
+    },
+    "finish": "stop",
+    "id": "msg_0c5dce7c20018dCLd2YfW9rpx2",
+    "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH"
+   },
+   "parts": [
+    {
+     "snapshot": "7253faa16e4f5d40cbde2e4ee54c8c975d6d0635",
+     "type": "step-start",
+     "id": "prt_0c5dcecb1001EHeFkUDKg7Seip",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dce7c20018dCLd2YfW9rpx2"
+    },
+    {
+     "type": "reasoning",
+     "text": "Only `api/tests/extrato.test.ts` modified, 47 additions, no production change. The typecheck errors are all in unmodified test files — baseline. Let me verify the baseline explicitly by checking that those errors existed before my change. I can do this quickly by stashing... but the user said no git add/commit. Stash would touch the tree. Instead, I can verify that none of the error files are modified by me (confirmed via git status — only extrato.test.ts modified), so any typecheck errors are necessarily baseline (present in committed code).\n\nThat's sufficient proof: my only change is extrato.test.ts (47 insertions), and tsc reports zero errors for extrato.test.ts. All 7 errors are in untouched files → baseline.\n\nNow produce the report.",
+     "time": {
+      "start": 1790025985209,
+      "end": 1790025987419
+     },
+     "id": "prt_0c5dcecb9001rnwDwE1rYwvyCp",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dce7c20018dCLd2YfW9rpx2"
+    },
+    {
+     "type": "text",
+     "text": "Arquivo único alterado: `api/tests/extrato.test.ts` (+47). Nenhum código de produção foi tocado. Os 7 erros de `tsc` estão todos em arquivos de teste inalterados (`cancel-activity-effects.test.ts`, `cancel-activity.test.ts`, `update-activity.test.ts`) — são baseline, não há erro novo.\n\n## Relatório — G5 (R10: extrato recalculado a cada consulta)\n\n**Arquivo alterado:** `api/tests/extrato.test.ts` (única modificação, +47 linhas).\n\n**Testes adicionados:** 1 (`G5/R10 — extrato recalculado a cada consulta (sem snapshot)`), dentro da suíte `Fatia 4 (GET /extrato)`.\n\n**Primeira consulta ao extrato (PASSO 1):** 200; minicurso presente no `itens`; `codigo: null`.\n\n**Emissão (PASSO 2):** `POST /atividades/:id/certificado` → 201; código capturado `SA26-XXXX-XXXX`.\n\n**Segunda consulta (PASSO 3):** 200; mesma atividade continua presente; `codigo` é exatamente o código da emissão (e não `null`).\n\n**Código antes × depois:** `codigo: null` → `codigo: \"SA26-XXXX-XXXX\"` (a transição ocorre na mesma instância de `createApp({ modoTeste: true })` e no mesmo SQLite — sem recriar app nem resetar banco).\n\n**Mesma app e mesmo banco:** sim — as três chamadas usam o `app` do `beforeEach` e o mesmo banco em memória; a prova depende disso.\n\n**GREEN imediato ou RED legítimo:** **GREEN imediato** — `ConsultarExtrato.execute` (api/src/certificate/extrato.ts:41) já consulta `certificateRepository.findByAtividadeEParticipante` no momento de cada request, sem snapshot/cache. Registro: **\"G5: GREEN imediato — extrato já é recalculado a cada consulta.\"** Nenhuma alteração de produção foi necessária, portanto nenhuma regra foi implementada agora (a regra já existia; faltava a prova).\n\n**Suíte completa:** 271 testes passando em 38 arquivos (`npm test`).\n\n**Typecheck:** `npm run typecheck` — **7 erros, todos baseline** (em `cancel-activity-effects.test.ts`, `cancel-activity.test.ts` e `update-activity.test.ts`, sobre `app.close` inexistente no tipo `Express`), nenhum nos arquivos alterados por esta etapa. **0 erro novo.**\n\n**Código de produção alterado:** não — `git status` mostra apenas `M api/tests/extrato.test.ts`.\n\n**git status --short:**\n```\n M api/tests/extrato.test.ts\n```\n\nSem `git add`, sem commit, sem push, como solicitado.",
+     "time": {
+      "start": 1790025987425,
+      "end": 1790025991597
+     },
+     "id": "prt_0c5dcf561001WoMGG65577CboS",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dce7c20018dCLd2YfW9rpx2"
+    },
+    {
+     "reason": "stop",
+     "snapshot": "7253faa16e4f5d40cbde2e4ee54c8c975d6d0635",
+     "type": "step-finish",
+     "tokens": {
+      "total": 66084,
+      "input": 221,
+      "output": 839,
+      "reasoning": 0,
+      "cache": {
+       "write": 0,
+       "read": 65024
+      }
+     },
+     "cost": 0,
+     "id": "prt_0c5dd0783001bBjzexhPLgEt4Z",
+     "sessionID": "ses_f3a244566ffezVRZiEMQ5dfZhH",
+     "messageID": "msg_0c5dce7c20018dCLd2YfW9rpx2"
+    }
+   ]
+  }
+ ]
+}
