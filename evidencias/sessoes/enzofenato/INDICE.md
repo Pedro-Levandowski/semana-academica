@@ -69,4 +69,8 @@ Requisições são chamadas ao modelo: cada passo do agente é uma. Skills conta
 | 22/09 10:16 | [Presença offline M3 no cálculo M4](ses_f36bd7c0bffevKuATLz1E6yVZb.md) | 16 | tdd-m4 | — | 0 / 2 | 0 | 1 | 0 | — |
 | 22/09 10:26 | [Teste de estabilidade do código após reinício](ses_f36b47aeaffeYEiiOSkONGLMB4.md) | 22 | tdd-m4 | — | 1 / 2 | 0 | 1 | 0 | — |
 | 22/09 10:38 | [Revisão de contrato do módulo M4](ses_f36a8e173ffeb1xGNUBSrLgxCX.md) | 7 | — | revisor-de-contrato (2) | 0 / 0 | 0 | 0 | 0 | — |
-| | **Total: 57 sessões** | 1.093 | grilling (3), to-spec (2), tdd (5), tdd-m4 (36) | explore (4), general, revisor-de-contrato (6), auditor (2) | 55 / 88 | 6 | 14 | 2 | — |
+| 22/09 10:58 | [Análise da interface Meus certificados M4](ses_f369688feffe754y1H2kys9A57.md) | 121 | tdd-m4 (2) | — | 1 / 0 | 0 | 0 | 0 | — |
+| 22/09 18:28 | [Auditor subagent prompt](ses_f34fa9d63ffeBvWoMZUS4qDtMW.md) | 3 | — | auditor | 0 / 0 | 0 | 0 | 0 | — |
+| 22/09 18:29 | [Auditoria final M4 certificados](ses_f34f9d5b0ffe2YbPdnm7Nsh3v4.md) | 2 | — | auditor | 0 / 0 | 0 | 0 | 0 | — |
+| 22/09 18:47 | [Reauditoria final módulo M4](ses_f34e98390ffeCgto6eENSkPIpU.md) | 74 | — | — | 2 / 5 | 0 | 0 | 0 | — |
+| | **Total: 61 sessões** | 1.293 | grilling (3), to-spec (2), tdd (5), tdd-m4 (38) | explore (4), general, revisor-de-contrato (6), auditor (4) | 58 / 93 | 6 | 14 | 2 | — |
