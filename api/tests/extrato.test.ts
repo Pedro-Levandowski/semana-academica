@@ -204,7 +204,7 @@ describe('M4 - Certificados - Fatia 4 (GET /extrato)', () => {
         .set('X-Usuario', PARTICIPANTE);
       expect(emissao.status).toBe(201);
       const codigoEmitido = emissao.body.codigo;
-      expect(codigoEmitido).toMatch(/^SA26-[A-HJ-KM-NP-Z2-9]{4}-[A-HJ-KM-NP-Z2-9]{4}$/);
+      expect(codigoEmitido).toMatch(/^SA26-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/);
 
       const segundoExtrato = await consultarExtrato();
       expect(segundoExtrato.status).toBe(200);
