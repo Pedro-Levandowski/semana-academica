@@ -8,6 +8,8 @@ import { AtividadeDetalhe } from './components/AtividadeDetalhe';
 import { CriarAtividade } from './components/CriarAtividade';
 import { EditarAtividade } from './components/EditarAtividade';
 import { PainelOrganizacao } from './components/PainelOrganizacao';
+import { SemChanceRelatorio } from './components/SemChanceRelatorio';
+import { BloqueiosPainel } from './components/BloqueiosPainel';
 import { api } from './api/client';
 
 interface AppProps {
@@ -71,9 +73,12 @@ export function App({ apiClient = api, initialEntries }: AppProps) {
               </section>
 
               {selectedUser.papel === 'organizacao' && (
-                <nav aria-label="Navegação da organização">
+                <nav className="organization-nav" aria-label="Navegação da organização">
                   <Link to="/painel" className="button button--secondary">
                     Painel da organização
+                  </Link>
+                  <Link to="/painel/bloqueios" className="button button--secondary">
+                    Bloqueios
                   </Link>
                 </nav>
               )}
@@ -135,6 +140,34 @@ export function App({ apiClient = api, initialEntries }: AppProps) {
                   element={
                     selectedUser.papel === 'organizacao' ? (
                       <PainelOrganizacao
+                        selectedUserId={selectedUser.id}
+                        apiClient={apiClient}
+                      />
+                    ) : (
+                      <div role="alert">Acesso restrito</div>
+                    )
+                  }
+                />
+
+                <Route
+                  path="/painel/atividades/:id/sem-chance"
+                  element={
+                    selectedUser.papel === 'organizacao' ? (
+                      <SemChanceRelatorio
+                        selectedUserId={selectedUser.id}
+                        apiClient={apiClient}
+                      />
+                    ) : (
+                      <div role="alert">Acesso restrito</div>
+                    )
+                  }
+                />
+
+                <Route
+                  path="/painel/bloqueios"
+                  element={
+                    selectedUser.papel === 'organizacao' ? (
+                      <BloqueiosPainel
                         selectedUserId={selectedUser.id}
                         apiClient={apiClient}
                       />

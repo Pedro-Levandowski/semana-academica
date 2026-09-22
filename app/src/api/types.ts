@@ -1,3 +1,23 @@
+export interface SemChance {
+  participanteId: string;
+  nome: string;
+  faltas: number;
+  faltasPermitidas: number;
+}
+
+export interface ArquivoFrequencia {
+  blob: Blob;
+  nomeArquivo: string;
+  contentType: string;
+}
+
+export interface Bloqueio {
+  participanteId: string;
+  nome: string;
+  atividades: string[];
+  bloqueadoDesde: string;
+}
+
 export interface PainelAtividade {
   atividadeId: string;
   titulo: string;

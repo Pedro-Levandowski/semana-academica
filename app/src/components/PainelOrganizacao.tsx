@@ -1,5 +1,7 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { usePainelAtividades } from '../hooks/usePainelAtividades';
+import { useDownloadFrequencia } from '../hooks/useDownloadFrequencia';
 import { api } from '../api/client';
 
 interface PainelOrganizacaoProps {
@@ -9,9 +11,14 @@ interface PainelOrganizacaoProps {
 
 export function PainelOrganizacao({ selectedUserId, apiClient = api }: PainelOrganizacaoProps) {
   const { atividades, loading, error, atualizar } = usePainelAtividades(selectedUserId, apiClient);
+  const {
+    baixar,
+    baixandoId,
+    error: downloadError,
+  } = useDownloadFrequencia(apiClient);
 
   if (loading) {
-    return <div role="status">Carregando painel...</div>;
+    return <div className="state-message" role="status">Carregando painel...</div>;
   }
 
   const formatPercent = (val: number | null) => {
@@ -20,25 +27,38 @@ export function PainelOrganizacao({ selectedUserId, apiClient = api }: PainelOrg
   };
 
   return (
-    <div className="painel-organizacao">
-      <h2>Painel da organização</h2>
-
-      <button type="button" onClick={atualizar}>
-        Atualizar painel
-      </button>
+    <section className="painel-organizacao m5-page" aria-labelledby="painel-title">
+      <div className="m5-page__header">
+        <div>
+          <span className="eyebrow">Organização</span>
+          <h2 id="painel-title">Painel da organização</h2>
+        </div>
+        <button className="button button--secondary" type="button" onClick={atualizar}>
+          Atualizar painel
+        </button>
+      </div>
 
       {error && (
-        <div role="alert">
-          <strong>{error.erro}</strong>: {error.mensagem}
+        <div className="error-message" role="alert">
+          <strong>{error.erro}</strong>
+          <span>{error.mensagem}</span>
+        </div>
+      )}
+
+      {downloadError && (
+        <div className="error-message" role="alert">
+          <strong>{downloadError.erro}</strong>
+          <span>{downloadError.mensagem}</span>
         </div>
       )}
 
       {!error && atividades.length === 0 && (
-        <p role="status">Nenhuma atividade encontrada no painel.</p>
+        <p className="empty-inline" role="status">Nenhuma atividade encontrada no painel.</p>
       )}
 
       {!error && atividades.length > 0 && (
-        <table aria-label="Atividades do painel">
+        <div className="m5-table-wrapper">
+        <table className="m5-table" aria-label="Atividades do painel">
           <thead>
             <tr>
               <th scope="col">Atividade</th>
@@ -47,6 +67,7 @@ export function PainelOrganizacao({ selectedUserId, apiClient = api }: PainelOrg
               <th scope="col">Em espera</th>
               <th scope="col">Ocupação</th>
               <th scope="col">Frequência</th>
+              <th scope="col">Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -58,11 +79,30 @@ export function PainelOrganizacao({ selectedUserId, apiClient = api }: PainelOrg
                 <td>{atv.emEspera}</td>
                 <td>{formatPercent(atv.ocupacaoPercentual)}</td>
                 <td>{formatPercent(atv.frequenciaPercentual)}</td>
+                <td className="m5-actions">
+                  <Link
+                    className="button button--ghost button--small"
+                    to={`/painel/atividades/${atv.atividadeId}/sem-chance`}
+                    aria-label={`Ver sem chance de certificado de ${atv.titulo}`}
+                  >
+                    Sem chance
+                  </Link>
+                  <button
+                    className="button button--secondary button--small"
+                    type="button"
+                    aria-label={`Baixar frequência de ${atv.titulo}`}
+                    disabled={baixandoId === atv.atividadeId}
+                    onClick={() => baixar(atv.atividadeId)}
+                  >
+                    {baixandoId === atv.atividadeId ? 'Baixando...' : 'Baixar CSV'}
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
+        </div>
       )}
-    </div>
+    </section>
   );
 }
